@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <extension key="uk.co.compucorp.civicrm.simplemail" type="module">
   <file>simplemail</file>
-  <name>FIXME</name>
-  <description>FIXME</description>
+  <name>Simple Mail</name>
+  <description>Simplified mailing workflow</description>
   <license>AGPL-3.0</license>
   <maintainer>
     <author>Robin Mitra</author>
