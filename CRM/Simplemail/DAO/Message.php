@@ -101,6 +101,12 @@ class CRM_Simplemail_DAO_Message extends CRM_Core_DAO
    */
   public $label;
   /**
+   * Message long text
+   *
+   * @var text
+   */
+  public $text;
+  /**
    *
    * @var boolean
    */
@@ -139,6 +145,11 @@ class CRM_Simplemail_DAO_Message extends CRM_Core_DAO
           'maxlength' => 255,
           'size' => CRM_Utils_Type::HUGE,
         ) ,
+        'text' => array(
+          'name' => 'text',
+          'type' => CRM_Utils_Type::T_TEXT,
+          'title' => ts('Text') ,
+        ) ,
         'is_active' => array(
           'name' => 'is_active',
           'type' => CRM_Utils_Type::T_BOOLEAN,
@@ -161,6 +172,7 @@ class CRM_Simplemail_DAO_Message extends CRM_Core_DAO
       self::$_fieldKeys = array(
         'id' => 'id',
         'label' => 'simplemail_message_label',
+        'text' => 'text',
         'is_active' => 'is_active',
       );
     }

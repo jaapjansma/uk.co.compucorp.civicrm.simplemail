@@ -1,8 +1,8 @@
-SET FOREIGN_KEY_CHECKS=0;
+SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS `civicrm_simplemail_message`;
 
-SET FOREIGN_KEY_CHECKS=1;
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- /*******************************************************
 -- *
@@ -13,10 +13,15 @@ SET FOREIGN_KEY_CHECKS=1;
 -- *******************************************************/
 CREATE TABLE `civicrm_simplemail_message` (
 
-     `id` int unsigned NOT NULL AUTO_INCREMENT  COMMENT 'Unique message ID',
-     `label` varchar(255) NOT NULL   COMMENT 'Message label',
-     `is_active` tinyint NOT NULL  DEFAULT 0
-,
-    PRIMARY KEY ( `id` )
+  `id`    INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique message ID',
+  `label` VARCHAR(255) NOT NULL
+  COMMENT 'Message label',
+  `text`  TEXT COMMENT 'Message long text',
+  `is_active` TINYINT NOT NULL DEFAULT 0
+  ,
+  PRIMARY KEY (`id`)
 
-)  ENGINE=InnoDB DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci  ;
+)
+  ENGINE =InnoDB
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_unicode_ci;

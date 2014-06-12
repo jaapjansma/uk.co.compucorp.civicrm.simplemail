@@ -2,8 +2,19 @@
 
 require_once 'CRM/Core/Page.php';
 
-class CRM_Simplemail_Page_Messages extends CRM_Core_Page_Basic {
-  function run() {
+class CRM_Simplemail_Page_Messages extends CRM_Core_Page_Basic
+{
+
+  /**
+   * The action links that we need to display for the browse screen
+   *
+   * @var array
+   * @static
+   */
+  static $_links = null;
+
+  function run()
+  {
     // Example: Set the page-title dynamically; alternatively, declare a static title in xml/Menu/*.xml
     CRM_Utils_System::setTitle(ts('Campaign messages'));
 
@@ -18,33 +29,52 @@ class CRM_Simplemail_Page_Messages extends CRM_Core_Page_Basic {
    *
    * @return string Class name of BAO.
    */
-  function getBAOName() {
+  function getBAOName()
+  {
     return 'CRM_Simplemail_BAO_Message';
   }
 
   /**
    * {@inheritdoc}
    */
-  function editForm() {
+  function editForm()
+  {
     return 'CRM_Simplemail_Form_MessagesNew';
   }
 
   /**
    * {@inheritdoc}
    */
-  function editName() {
+  function editName()
+  {
     return 'Message';
   }
 
   /**
-   * an array of action links
+   * An array of action links
    *
    * @return array (reference)
    * @access public
    */
   function &links()
   {
-    // TODO: Implement links() method.
+    if (!static::$_links) {
+      static::$_links = array(
+        CRM_Core_Action::UPDATE => array(
+          'name' => ts('Edit'),
+          'url' => 'civicrm/admin/simple-mail/messages/%%id%%/edit',
+          'qs' => 'reset=1',
+          'title' => ts('Edit Resource'),
+        ),
+       CRM_Core_Action::DELETE => array(
+          'name' => ts('Delete'),
+          'url' => 'civicrm/admin/simple-mail/messages/%%id%%/delete',
+          'qs' => 'reset=1',
+          'title' => ts('Delete Resource'),
+        )
+      );
+    }
+    return self::$_links;
   }
 
   /**
@@ -62,40 +92,20 @@ class CRM_Simplemail_Page_Messages extends CRM_Core_Page_Basic {
 
   function browse()
   {
- $types =  CRM_Booking_BAO_Resource::buildOptions('type_id', 'create');
-    $locations =  CRM_Booking_BAO_Resource::buildOptions('location_id', 'create');
+    $bao = new CRM_Simplemail_BAO_Message();
+    $bao->find();
 
-    // get all custom groups sorted by weight
-    $resources = array();
-    $dao = new CRM_Booking_DAO_Resource();
-    $dao->orderBy('weight');
-    $dao->is_deleted = FALSE;
-    $dao->find();
+    $messages = array();
+    $action = array_sum(array_keys($this->links()));
 
-    while ($dao->fetch()) {
-
-      $resources[$dao->id] = array();
-      CRM_Core_DAO::storeValues($dao, $resources[$dao->id]);
-      $resources[$dao->id]['type'] =  CRM_Utils_Array::value(CRM_Utils_Array::value('type_id', $resources[$dao->id]), $types);
-      $resources[$dao->id]['location'] =  CRM_Utils_Array::value(CRM_Utils_Array::value('location_id', $resources[$dao->id]), $locations);
-
-
-      // form all action links
-      $action = array_sum(array_keys($this->links()));
-
-      // update enable/disable links.
-      if ($dao->is_active) {
-        $action -= CRM_Core_Action::ENABLE;
-      }
-      else {
-        $action -= CRM_Core_Action::DISABLE;
-      }
-
-      $resources[$dao->id]['action'] = CRM_Core_Action::formLink(self::links(), $action,
-        array('id' => $dao->id)
+    while ($bao->fetch()) {
+      $messages[$bao->id] = $bao->toArray();
+      $messages[$bao->id]['action'] = CRM_Core_Action::formLink(static::links(), $action,
+        array('id' => $bao->id)
       );
-
     }
-    $this->assign('rows', $resources);
+
+
+    $this->assign('messages', $messages);
   }
 }

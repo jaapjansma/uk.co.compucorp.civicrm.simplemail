@@ -1,9 +1,31 @@
-<a href="">Add new campaign message</a>
+<p><a href="">Add new campaign message</a></p>
 
-<h3>Campaign messages:</h3>
+{if $messages}
+    <div>
+        {include file="CRM/common/enableDisable.tpl"}
+        <table class="selector">
+            <tr class="columnheader">
+                <th>{ts}ID{/ts}</th>
+                <th>{ts}Label{/ts}</th>
+                <th>{ts}Text{/ts}</th>
+                <th>{ts}Is active{/ts}</th>
+                <th></th>
+            </tr>
+            {foreach from=$messages item=message}
+                <tr id="row_{$message.id}"
+                    class="{cycle values="odd-row,even-row"} {if NOT $message.is_active} disabled{/if}">
+                    <td class="crm-simplemail-id">{$message.id}</td>
+                    <td class="crm-simplemail-label">{$message.label}</td>
+                    <td class="crm-simplemail-text">{$message.text}</td>
+                    <td class="crm-simplemail-active">{$message.is_active}</td>
+                    <td>{$message.action|replace:'xx':$message.id}</td>
+                </tr>
+            {/foreach}
+        </table>
+   </div>
+{/if}
 
-{* Example: Display a variable directly *}
-<p>The current time is {$currentTime}</p>
+<p><a href="">Add new campaign message</a></p>
 
 {* Example: Display a translated string -- which happens to include a variable *}
 <p>{ts 1=$currentTime}(In your native language) The current time is %1.{/ts}</p>
@@ -34,46 +56,49 @@
  +--------------------------------------------------------------------+
 *}
 {if $action eq 1 or $action eq 2 or $action eq 8}
-   {include file="CRM/Admin/Form/Resource.tpl"}
+    {include file="CRM/Admin/Form/Resource.tpl"}
 {else}
-{if $rows}
-<div id="ltype">
-        {strip}
-        {* handle enable/disable actions*}
-        {include file="CRM/common/enableDisable.tpl"}
-        <table class="selector">
-        <tr class="columnheader">
-            <th >{ts}ID{/ts}</th>
-            <th >{ts}Label{/ts}</th>
-            <th >{ts}Text{/ts}</th>
-            <th >{ts}Is active{/ts}</th>
-            <th ></th>
-        </tr>
-        {foreach from=$rows item=row}
-        <tr id="row_{$row.id}" class="crm-booking_resource {cycle values="odd-row,even-row"} {$row.class}{if NOT $row.is_active} disabled{/if}">
-            <td class="crm-booking-resource-name">{$row.id}</td>
-            <td class="crm-booking-resource-description">{$row.label}</td>
-            <td class="crm-booking-resource-type">{$row.text}</td>
-            <td class="crm-booking-resource-location">{$row.is_active}</td>
-            <td>{$row.action|replace:'xx':$row.id}</td>
-        </tr>
-        {/foreach}
-        </table>
-        {/strip}
+    {if $rows}
+        <div id="ltype">
+            {strip}
+                {* handle enable/disable actions*}
+                {include file="CRM/common/enableDisable.tpl"}
+                <table class="selector">
+                    <tr class="columnheader">
+                        <th>{ts}ID{/ts}</th>
+                        <th>{ts}Label{/ts}</th>
+                        <th>{ts}Text{/ts}</th>
+                        <th>{ts}Is active{/ts}</th>
+                        <th></th>
+                    </tr>
+                    {foreach from=$rows item=row}
+                        <tr id="row_{$row.id}"
+                            class="crm-booking_resource {cycle values="odd-row,even-row"} {$row.class}{if NOT $row.is_active} disabled{/if}">
+                            <td class="crm-booking-resource-name">{$row.id}</td>
+                            <td class="crm-booking-resource-description">{$row.label}</td>
+                            <td class="crm-booking-resource-type">{$row.text}</td>
+                            <td class="crm-booking-resource-location">{$row.is_active}</td>
+                            <td>{$row.action|replace:'xx':$row.id}</td>
+                        </tr>
+                    {/foreach}
+                </table>
+            {/strip}
 
-        {if $action ne 1 and $action ne 2}
-        <div class="action-link">
-          <a href="{crmURL q="action=add&reset=1"}" id="new" class="button"><span><div class="icon add-icon"></div>{ts}Add Resource{/ts}</span></a>
+            {if $action ne 1 and $action ne 2}
+                <div class="action-link">
+                    <a href="{crmURL q="action=add&reset=1"}" id="new" class="button"><span><div
+                                    class="icon add-icon"></div>{ts}Add Resource{/ts}</span></a>
+                </div>
+            {/if}
         </div>
-        {/if}
-</div>
-{elseif $action ne 1}
-    <div class="messages status no-popup">
-      <div class="icon inform-icon"></div>
-        {ts}There are no resources.{/ts}
-     </div>
-     <div class="action-link">
-       <a href="{crmURL p='civicrm/admin/resource' q="action=add&reset=1"}" id="newResource" class="button"><span><div class="icon add-icon"></div>{ts}Add Resource{/ts}</span></a>
-     </div>
-{/if}
+    {elseif $action ne 1}
+        <div class="messages status no-popup">
+            <div class="icon inform-icon"></div>
+            {ts}There are no resources.{/ts}
+        </div>
+        <div class="action-link">
+            <a href="{crmURL p='civicrm/admin/resource' q="action=add&reset=1"}" id="newResource" class="button"><span><div
+                            class="icon add-icon"></div>{ts}Add Resource{/ts}</span></a>
+        </div>
+    {/if}
 {/if}
