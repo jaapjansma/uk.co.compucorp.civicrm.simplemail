@@ -6,4 +6,10 @@
     <title>Messages</title>
     <access_arguments>access CiviCRM</access_arguments>
   </item>
+  <item>
+    <path>civicrm/admin/simple-mail/headers</path>
+    <page_callback>CRM_Simplemail_Page_Headers</page_callback>
+    <title>Headers</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
 </menu>
