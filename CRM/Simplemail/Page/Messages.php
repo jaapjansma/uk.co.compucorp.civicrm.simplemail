@@ -11,9 +11,9 @@ class CRM_Simplemail_Page_Messages extends CRM_Core_Page_Basic
    * @var array
    * @static
    */
-  static $_links = null;
+  protected static $_links = null;
 
-  function run()
+  public function run()
   {
     // Example: Set the page-title dynamically; alternatively, declare a static title in xml/Menu/*.xml
     CRM_Utils_System::setTitle(ts('Campaign messages'));
@@ -29,7 +29,7 @@ class CRM_Simplemail_Page_Messages extends CRM_Core_Page_Basic
    *
    * @return string Class name of BAO.
    */
-  function getBAOName()
+  public function getBAOName()
   {
     return 'CRM_Simplemail_BAO_Message';
   }
@@ -37,7 +37,7 @@ class CRM_Simplemail_Page_Messages extends CRM_Core_Page_Basic
   /**
    * {@inheritdoc}
    */
-  function editForm()
+  public function editForm()
   {
     return 'CRM_Simplemail_Form_MessagesNew';
   }
@@ -45,7 +45,7 @@ class CRM_Simplemail_Page_Messages extends CRM_Core_Page_Basic
   /**
    * {@inheritdoc}
    */
-  function editName()
+  public function editName()
   {
     return 'Message';
   }
@@ -56,7 +56,7 @@ class CRM_Simplemail_Page_Messages extends CRM_Core_Page_Basic
    * @return array (reference)
    * @access public
    */
-  function &links()
+  public function &links()
   {
     if (!static::$_links) {
       static::$_links = array(
@@ -85,12 +85,12 @@ class CRM_Simplemail_Page_Messages extends CRM_Core_Page_Basic
    * @return string
    * @access public
    */
-  function userContext($mode = NULL)
+  public function userContext($mode = NULL)
   {
     // TODO: Implement userContext() method.
   }
 
-  function browse()
+  public function browse()
   {
     $bao = new CRM_Simplemail_BAO_Message();
     $bao->find();

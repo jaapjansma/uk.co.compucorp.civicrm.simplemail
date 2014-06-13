@@ -6,6 +6,6 @@ return array (
   array (
     'name' => 'Message',
     'class' => 'CRM_Simplemail_DAO_Message',
-    'table' => 'civicrm_message',
+    'table' => 'civicrm_simplemail_message',
   ),
 );

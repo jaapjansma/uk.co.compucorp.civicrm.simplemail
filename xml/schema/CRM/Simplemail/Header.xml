@@ -3,8 +3,8 @@
 <table>
   <base>CRM/Simplemail</base>
   <class>Header</class>
-  <name>civicrm_header</name>
-  <comment>FIXME</comment>
+  <name>civicrm_simplemail_header</name>
+  <comment>Header images for Simple Mail</comment>
   <add>4.4</add>
   <log>true</log>
 
@@ -21,17 +21,36 @@
   </primaryKey>
 
   <field>
-    <name>contact_id</name>
-    <type>int unsigned</type>
-    <comment>FK to Contact</comment>
+    <name>label</name>
+    <type>varchar</type>
+    <length>30</length>
+    <comment>Label for the header image</comment>
+    <title>Name</title>
+    <required>true</required>
+    <uniqueName>simplemail_header_label</uniqueName>
     <add>4.4</add>
   </field>
-  <foreignKey>
-    <name>contact_id</name>
-    <table>civicrm_contact</table>
-    <key>id</key>
-    <add>4.4</add>
-    <onDelete>CASCADE</onDelete>
-  </foreignKey>
 
+  <field>
+    <name>image</name>
+    <type>varchar</type>
+    <length>255</length>
+    <comment>Header image</comment>
+    <required>true</required>
+  </field>
+
+  <field>
+    <name>show_logo</name>
+    <type>boolean</type>
+    <default>1</default>
+    <required>true</required>
+  </field>
+
+  <field>
+    <name>logo_image</name>
+    <type>varchar</type>
+    <length>255</length>
+    <comment>Logo image</comment>
+    <required>false</required>
+  </field>
 </table>

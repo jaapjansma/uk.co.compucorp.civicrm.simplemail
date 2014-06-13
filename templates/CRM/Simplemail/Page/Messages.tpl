@@ -14,10 +14,10 @@
             {foreach from=$messages item=message}
                 <tr id="row_{$message.id}"
                     class="{cycle values="odd-row,even-row"} {if NOT $message.is_active} disabled{/if}">
-                    <td class="crm-simplemail-id">{$message.id}</td>
-                    <td class="crm-simplemail-label">{$message.label}</td>
-                    <td class="crm-simplemail-text">{$message.text}</td>
-                    <td class="crm-simplemail-active">{$message.is_active}</td>
+                    <td class="crm-simplemail-message-id">{$message.id}</td>
+                    <td class="crm-simplemail-message-label">{$message.label}</td>
+                    <td class="crm-simplemail-message-text">{$message.text}</td>
+                    <td class="crm-simplemail-message-active">{$message.is_active}</td>
                     <td>{$message.action|replace:'xx':$message.id}</td>
                 </tr>
             {/foreach}

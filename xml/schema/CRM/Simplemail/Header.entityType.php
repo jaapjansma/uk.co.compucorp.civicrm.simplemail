@@ -6,6 +6,6 @@ return array (
   array (
     'name' => 'Header',
     'class' => 'CRM_Simplemail_DAO_Header',
-    'table' => 'civicrm_header',
+    'table' => 'civicrm_simplemail_header',
   ),
 );
