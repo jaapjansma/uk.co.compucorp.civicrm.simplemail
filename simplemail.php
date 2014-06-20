@@ -106,3 +106,15 @@ function simplemail_civicrm_caseTypes(&$caseTypes) {
 function simplemail_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
   _simplemail_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
+
+
+/**
+ * Implementation of hook_civicrm_entityTypes
+ */
+function simplemail_civicrm_entityTypes(&$entityTypes) {
+  $entityTypes[] = array(
+    'name' => 'Header',
+    'class' => 'CRM_Simplemail_DAO_Header',
+    'table' => 'civicrm_simplemail_header'
+  );
+}

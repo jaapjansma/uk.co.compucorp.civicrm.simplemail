@@ -1,0 +1,25 @@
+<div>
+  <p><a href="">Add new campaign messages</a></p>
+
+  <table>
+    <thead>
+    <tr>
+      <td>ID</td>
+      <td>Label</td>
+      <td>Text</td>
+      <td>Is active</td>
+      <td></td>
+    </tr>
+    </thead>
+    <tr ng-repeat="message in messages">
+      <td>{{message.id}}</td>
+      <td>{{message.label}}</td>
+      <td>{{message.text}}</td>
+      <td>{{message.isActive}}</td>
+      <td><a ng-href="messages/new/{{message.id}}" class="button">Edit</a></td>
+    </tr>
+  </table>
+
+  <p><a href="">Add new campaign messages</a></p>
+
+</div>

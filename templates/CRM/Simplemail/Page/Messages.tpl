@@ -1,3 +1,5 @@
+{literal}{/literal}
+
 <p><a href="">Add new campaign message</a></p>
 
 {if $messages}

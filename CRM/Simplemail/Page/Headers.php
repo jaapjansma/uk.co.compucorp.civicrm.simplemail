@@ -5,7 +5,8 @@ require_once 'CRM/Core/Page.php';
 /**
  * Class CRM_Simplemail_Page_Headers
  */
-class CRM_Simplemail_Page_Headers extends CRM_Core_Page_Basic {
+class CRM_Simplemail_Page_Headers extends CRM_Core_Page_Basic
+{
 
   /**
    * @var
@@ -15,12 +16,17 @@ class CRM_Simplemail_Page_Headers extends CRM_Core_Page_Basic {
   /**
    *
    */
-  function run() {
+  function run()
+  {
     // Example: Set the page-title dynamically; alternatively, declare a static title in xml/Menu/*.xml
     CRM_Utils_System::setTitle(ts('Headers'));
 
     // Example: Assign a variable for use in a template
     $this->assign('currentTime', date('Y-m-d H:i:s'));
+    CRM_Core_Resources::singleton()
+      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular.min.js', 90, 'page-footer')
+      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/app.js', 100, 'page-footer')
+      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/controllers.js', 110, 'page-footer');
 
     parent::run();
   }
@@ -52,7 +58,7 @@ class CRM_Simplemail_Page_Headers extends CRM_Core_Page_Basic {
           'qs' => 'reset=1',
           'title' => ts('Edit Resource'),
         ),
-       CRM_Core_Action::DELETE => array(
+        CRM_Core_Action::DELETE => array(
           'name' => ts('Delete'),
           'url' => 'civicrm/admin/simple-mail/headers/%%id%%/delete',
           'qs' => 'reset=1',
@@ -118,6 +124,12 @@ class CRM_Simplemail_Page_Headers extends CRM_Core_Page_Basic {
 
 
     $this->assign('headers', $headers);
+  }
+
+  public function registerScripts()
+  {
+    CRM_Core_Resources::singleton()
+      ->addScriptFile('', 'js/vendors/angular.min.js', 100, 'html-header', false);
   }
 
 }
