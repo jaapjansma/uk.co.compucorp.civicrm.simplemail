@@ -31,7 +31,7 @@ class CRM_Simplemail_Page_Messages extends CRM_Core_Page_Basic
    */
   public function getBAOName()
   {
-    return 'CRM_Simplemail_BAO_Message';
+    return 'CRM_Simplemail_BAO_SimpleMailMessage';
   }
 
   /**
@@ -92,7 +92,7 @@ class CRM_Simplemail_Page_Messages extends CRM_Core_Page_Basic
 
   public function browse()
   {
-    $bao = new CRM_Simplemail_BAO_Message();
+    $bao = new CRM_Simplemail_BAO_SimpleMailMessage();
     $bao->find();
 
     $messages = array();

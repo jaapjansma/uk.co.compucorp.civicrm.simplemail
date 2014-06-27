@@ -1,16 +1,16 @@
 <?php
 
-class CRM_Simplemail_BAO_Message extends CRM_Simplemail_DAO_Message {
+class CRM_Simplemail_BAO_SimpleMailMessage extends CRM_Simplemail_DAO_SimpleMailMessage {
 
   /**
-   * Create a new Message based on array-data
+   * Create a new SimpleMailMessage based on array-data
    *
    * @param array $params key-value pairs
-   * @return CRM_Simplemail_DAO_Message|NULL
+   * @return CRM_Simplemail_DAO_SimpleMailMessage|NULL
    *
   public static function create($params) {
-    $className = 'CRM_Simplemail_DAO_Message';
-    $entityName = 'Message';
+    $className = 'CRM_Simplemail_DAO_SimpleMailMessage';
+    $entityName = 'SimpleMailMessage';
     $hook = empty($params['id']) ? 'create' : 'edit';
 
     CRM_Utils_Hook::pre($hook, $entityName, CRM_Utils_Array::value('id', $params), $params);

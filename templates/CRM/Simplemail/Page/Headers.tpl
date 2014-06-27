@@ -1,8 +1,7 @@
 <div ng-app="simpleMail">
-    {literal}{{1+4}}{/literal}
+    {*{literal}{{1+4}}{/literal}*}
     <div ng-controller="MessagesAdminController">
         <p><a href="">Add new campaign messages</a></p>
-        {literal}{{test}}{/literal}
         <table>
             <thead>
             <tr>

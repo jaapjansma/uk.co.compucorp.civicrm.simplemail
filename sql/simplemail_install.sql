@@ -1,7 +1,7 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS `civicrm_simplemail_header`;
-DROP TABLE IF EXISTS `civicrm_simplemail_message`;
+DROP TABLE IF EXISTS `civicrm_simplemailheader`;
+DROP TABLE IF EXISTS `civicrm_simplemailmessage`;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -12,7 +12,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- * Header images for Simple Mail
 -- *
 -- *******************************************************/
-CREATE TABLE `civicrm_simplemail_header` (
+CREATE TABLE `civicrm_simplemailheader` (
 
 
      `id` int unsigned NOT NULL AUTO_INCREMENT  COMMENT 'Unique Header ID',
@@ -34,7 +34,7 @@ CREATE TABLE `civicrm_simplemail_header` (
 -- * Campaign messages for Simple Mail
 -- *
 -- *******************************************************/
-CREATE TABLE `civicrm_simplemail_message` (
+CREATE TABLE `civicrm_simplemailmessage` (
 
   `id`    INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique message ID',
   `label` VARCHAR(255) NOT NULL

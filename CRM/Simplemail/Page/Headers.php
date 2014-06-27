@@ -36,10 +36,10 @@ class CRM_Simplemail_Page_Headers extends CRM_Core_Page_Basic
    *
    * @return string
    * @access public
-   */
+   a/
   function getBAOName()
   {
-    return 'CRM_Simplemail_BAO_Header';
+    return 'CRM_Simplemail_BAO_SimpleMailHeader';
   }
 
   /**
@@ -109,7 +109,7 @@ class CRM_Simplemail_Page_Headers extends CRM_Core_Page_Basic
    */
   function browse()
   {
-    $bao = new CRM_Simplemail_BAO_Header;
+    $bao = new CRM_Simplemail_BAO_SimpleMailHeader();
     $bao->find();
 
     $headers = array();

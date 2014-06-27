@@ -2,9 +2,9 @@
 
 <table>
   <base>CRM/Simplemail</base>
-  <class>Header</class>
-  <name>civicrm_simplemail_header</name>
-  <comment>Header images for Simple Mail</comment>
+  <class>SimpleMailHeader</class>
+  <name>civicrm_simplemailheader</name>
+  <comment>Header for Simple Mail</comment>
   <add>4.4</add>
   <log>true</log>
 

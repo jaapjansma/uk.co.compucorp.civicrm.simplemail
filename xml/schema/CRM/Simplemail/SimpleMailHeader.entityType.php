@@ -4,8 +4,8 @@
 return array (
   0 => 
   array (
-    'name' => 'Header',
-    'class' => 'CRM_Simplemail_DAO_Header',
-    'table' => 'civicrm_simplemail_header',
+    'name' => 'SimpleMailHeader',
+    'class' => 'CRM_Simplemail_DAO_SimpleMailHeader',
+    'table' => 'civicrm_simplemailheader',
   ),
 );
