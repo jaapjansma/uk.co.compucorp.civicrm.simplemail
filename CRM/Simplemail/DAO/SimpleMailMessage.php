@@ -89,17 +89,28 @@ class CRM_Simplemail_DAO_SimpleMailMessage extends CRM_Core_DAO
    */
   static $_log = true;
   /**
-   * Unique SimpleMailMessage ID
+   * Unique Message ID
    *
    * @var int unsigned
    */
   public $id;
   /**
-   * FK to Contact
+   * Label for the message
    *
-   * @var int unsigned
+   * @var string
    */
-  public $contact_id;
+  public $label;
+  /**
+   * Long text for the message
+   *
+   * @var text
+   */
+  public $text;
+  /**
+   *
+   * @var boolean
+   */
+  public $is_active;
   /**
    * class constructor
    *
@@ -110,21 +121,6 @@ class CRM_Simplemail_DAO_SimpleMailMessage extends CRM_Core_DAO
   {
     $this->__table = 'civicrm_simplemailmessage';
     parent::__construct();
-  }
-  /**
-   * return foreign keys and entity references
-   *
-   * @static
-   * @access public
-   * @return array of CRM_Core_Reference_Interface
-   */
-  static function getReferenceColumns()
-  {
-    if (!self::$_links) {
-      self::$_links = static ::createReferenceColumns(__CLASS__);
-      self::$_links[] = new CRM_Core_Reference_Basic(self::getTableName() , 'contact_id', 'civicrm_contact', 'id');
-    }
-    return self::$_links;
   }
   /**
    * returns all the column names of this table
@@ -141,10 +137,25 @@ class CRM_Simplemail_DAO_SimpleMailMessage extends CRM_Core_DAO
           'type' => CRM_Utils_Type::T_INT,
           'required' => true,
         ) ,
-        'contact_id' => array(
-          'name' => 'contact_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'FKClassName' => 'CRM_Contact_DAO_Contact',
+        'label' => array(
+          'name' => 'label',
+          'type' => CRM_Utils_Type::T_STRING,
+          'title' => ts('Label') ,
+          'required' => true,
+          'maxlength' => 30,
+          'size' => CRM_Utils_Type::MEDIUM,
+        ) ,
+        'text' => array(
+          'name' => 'text',
+          'type' => CRM_Utils_Type::T_TEXT,
+          'title' => ts('Text') ,
+          'required' => true,
+        ) ,
+        'is_active' => array(
+          'name' => 'is_active',
+          'type' => CRM_Utils_Type::T_BOOLEAN,
+          'required' => true,
+          'default' => '1',
         ) ,
       );
     }
@@ -162,7 +173,9 @@ class CRM_Simplemail_DAO_SimpleMailMessage extends CRM_Core_DAO
     if (!(self::$_fieldKeys)) {
       self::$_fieldKeys = array(
         'id' => 'id',
-        'contact_id' => 'contact_id',
+        'label' => 'label',
+        'text' => 'text',
+        'is_active' => 'is_active',
       );
     }
     return self::$_fieldKeys;
