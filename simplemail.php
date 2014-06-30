@@ -113,7 +113,7 @@ function simplemail_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
  */
 function simplemail_civicrm_entityTypes(&$entityTypes) {
   $entityTypes[] = array(
-    'name' => 'Header',
+    'name' => 'SimpleMailHeader',
     'class' => 'CRM_Simplemail_DAO_SimpleMailHeader',
     'table' => 'civicrm_simplemailheader'
   );

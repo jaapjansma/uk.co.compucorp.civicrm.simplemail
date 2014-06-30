@@ -26,7 +26,8 @@ class CRM_Simplemail_Page_Headers extends CRM_Core_Page_Basic
     CRM_Core_Resources::singleton()
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular.min.js', 90, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/app.js', 100, 'page-footer')
-      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/controllers.js', 110, 'page-footer');
+      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/controllers.js', 110, 'page-footer')
+    ;
 
     parent::run();
   }
@@ -36,7 +37,7 @@ class CRM_Simplemail_Page_Headers extends CRM_Core_Page_Basic
    *
    * @return string
    * @access public
-   a/
+   */
   function getBAOName()
   {
     return 'CRM_Simplemail_BAO_SimpleMailHeader';
