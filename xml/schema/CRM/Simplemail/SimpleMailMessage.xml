@@ -4,7 +4,7 @@
   <base>CRM/Simplemail</base>
   <class>SimpleMailMessage</class>
   <name>civicrm_simplemailmessage</name>
-  <comment>FIXME</comment>
+  <comment>Message for Simple Mail</comment>
   <add>4.4</add>
   <log>true</log>
 
@@ -12,7 +12,7 @@
     <name>id</name>
     <type>int unsigned</type>
     <required>true</required>
-    <comment>Unique SimpleMailMessage ID</comment>
+    <comment>Unique Message ID</comment>
     <add>4.4</add>
   </field>
   <primaryKey>
@@ -21,17 +21,28 @@
   </primaryKey>
 
   <field>
-    <name>contact_id</name>
-    <type>int unsigned</type>
-    <comment>FK to Contact</comment>
+    <name>label</name>
+    <type>varchar</type>
+    <length>30</length>
+    <comment>Label for the message</comment>
+    <title>Label</title>
+    <required>true</required>
     <add>4.4</add>
   </field>
-  <foreignKey>
-    <name>contact_id</name>
-    <table>civicrm_contact</table>
-    <key>id</key>
-    <add>4.4</add>
-    <onDelete>CASCADE</onDelete>
-  </foreignKey>
 
+  <field>
+    <name>text</name>
+    <type>text</type>
+    <comment>Long text for the message</comment>
+    <title>Text</title>
+    <required>true</required>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>is_active</name>
+    <type>boolean</type>
+    <default>1</default>
+    <required>true</required>
+  </field>
 </table>
