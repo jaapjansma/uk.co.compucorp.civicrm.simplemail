@@ -117,4 +117,9 @@ function simplemail_civicrm_entityTypes(&$entityTypes) {
     'class' => 'CRM_Simplemail_DAO_SimpleMailHeader',
     'table' => 'civicrm_simplemailheader'
   );
+  $entityTypes[] = array(
+    'name' => 'SimpleMailMessage',
+    'class' => 'CRM_Simplemail_DAO_SimpleMailMessage',
+    'table' => 'civicrm_simplemailmessage'
+  );
 }

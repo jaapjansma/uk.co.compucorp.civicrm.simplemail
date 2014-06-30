@@ -1,0 +1,20 @@
+<div ng-controller="HeadersAdminController">
+  <p><a href="">Add a new mailing header</a></p>
+  <table>
+    <thead>
+    <tr>
+      <td>ID</td>
+      <td>Thumbnail</td>
+      <td>Show logo</td>
+      <td></td>
+    </tr>
+    </thead>
+    <tr ng-repeat="header in headers.values">
+      <td>{{header.id}}</td>
+      <td>{{header.label}}</td>
+      <td>{{header.text}}</td>
+      <td>{{header.isActive}}</td>
+      <td><a ng-href="#/headers/{{header.id}}" class="button">Edit</a></td>
+    </tr>
+  </table>
+</div>

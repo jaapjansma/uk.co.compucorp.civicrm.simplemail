@@ -1,4 +1,4 @@
-<div>
+<div ng-controller="MessagesAdminController">
   <p><a href="">Add new campaign messages</a></p>
 
   <table>
@@ -11,12 +11,17 @@
       <td></td>
     </tr>
     </thead>
-    <tr ng-repeat="message in messages">
+    <tr ng-repeat="message in messages.values">
       <td>{{message.id}}</td>
-      <td>{{message.label}}</td>
+      <td>
+        <span ng-hide="message.editing">{{message.label}}</span>
+        <form ng-show="message.editing">
+          <input id="label-{{message.id}}" type="text"/>
+        </form>
+      </td>
       <td>{{message.text}}</td>
       <td>{{message.isActive}}</td>
-      <td><a ng-href="messages/new/{{message.id}}" class="button">Edit</a></td>
+      <td><a ng-click="message.editing = true" class="button">Edit</a></td>
     </tr>
   </table>
 

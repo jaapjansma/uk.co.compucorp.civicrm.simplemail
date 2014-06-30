@@ -1,48 +1,59 @@
-var messagesAdmin = angular.module('messagesAdmin', []);
+var controllers = angular.module('simpleMailControllers', []);
 
-messagesAdmin.config(['$httpProvider', function ($httpProvider) {
+controllers.config(['$httpProvider', function ($httpProvider) {
   // This is needed (Utils/Rest.php::ajax()) for CiviCRM to treat the request as genuine
   $httpProvider.defaults.headers.common["X-Requested-With"] = 'XMLHttpRequest';
 }]);
 
-messagesAdmin.controller('MessagesAdminController', ['$scope', '$http',
+/**
+ * Headers
+ */
+controllers.controller('HeadersAdminController', ['$scope', '$http',
+  function ($scope, $http) {
+    $scope.test = 'Hello world';
+    $scope.headers = [];
+
+    $http.post('/civicrm/ajax/rest?json=1&debug=on&sequential=1&entity=SimpleMailHeader&action=get')
+      .success(function (headers) {
+        $scope.headers = headers;
+        console.log('Headers:', headers);
+      }).error(function () {
+        console.log('failure');
+      });
+  }
+]);
+
+/**
+ * Header
+ */
+controllers.controller('HeaderAdminController', ['$scope', '$http', '$routeParams',
+  function ($scope, $http, $routeParams) {
+    $scope.header = {};
+
+    $http.post('/civicrm/ajax/rest?json=1&debug=on&sequential=1&entity=SimpleMailHeader&action=get&id=' + $routeParams.headerId)
+      .success(function (header) {
+        $scope.header = header;
+        console.log('Headers:', header);
+      }).error(function () {
+        console.log('failure');
+      });
+  }
+]);
+
+/**
+ * Messages
+ */
+controllers.controller('MessagesAdminController', ['$scope', '$http',
   function ($scope, $http) {
     $scope.test = 'Hello world';
     $scope.messages = [];
 
-    $http.post('/civicrm/ajax/rest?json=1&debug=on&entity=SimpleMailMessage&action=get')
+    $http.post('/civicrm/ajax/rest?json=1&debug=on&sequential=1&entity=SimpleMailMessage&action=get')
       .success(function (messages) {
         $scope.messages = messages;
-        console.log(messages);
+        console.log('Messages', messages);
       }).error(function () {
         console.log('failure');
       });
-
-    $scope.messages = [
-      {
-        id: 1,
-        label: 'Message one',
-        text: 'This is the long text',
-        isActive: true
-      },
-      {
-        id: 2,
-        label: 'Message two',
-        text: 'This is the long text',
-        isActive: true
-      },
-      {
-        id: 3,
-        label: 'Message three',
-        text: 'This is the long text',
-        isActive: true
-      },
-      {
-        id: 4,
-        label: 'Message four',
-        text: 'This is the long text',
-        isActive: true
-      }
-    ];
   }
 ]);
