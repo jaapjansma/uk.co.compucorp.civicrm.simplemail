@@ -1,0 +1,40 @@
+.sm-container {
+  textarea, input[type="text"] {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 0.25rem;
+  }
+  textarea {
+    resize: none;
+  }
+  label {
+    width: 20%;
+    border: 1px solid red;
+    float: left;
+    text-align: right;
+  }
+  .form-layout input {
+    float: right;
+    width: auto;
+  }
+  .form-layout .form-field {
+    clear: both;
+    border: 1px solid green;
+  }
+  .resizable-textarea {
+
+  }
+}
+
+#sm-messages-admin-table {
+  textarea, input[type="text"] {
+    width: 100%;
+  }
+  .text {
+    width: 50%;
+  }
+  .label {
+    width: 15%;
+  }
+}

@@ -1,6 +1,7 @@
 var app = angular.module('simpleMailApp', [
   'ngRoute',
-  'simpleMailControllers'
+  'simpleMailApp.controllers',
+  'simpleMailApp.services'
 ]);
 
 function partialUrl(url) {
@@ -10,8 +11,9 @@ function partialUrl(url) {
 app.config(['$routeProvider',
   function ($routeProvider) {
     $routeProvider
+      // todo: add resolvers to listing controllers in order to not render view until API has returned data
       .when('/headers', {
-        templateUrl: '/civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/partials/admin/listHeaders.html',
+        templateUrl: partialUrl('listHeaders.html'),
         controller: 'HeadersAdminController'
       })
       .when('/headers/:headerId', {
@@ -22,11 +24,7 @@ app.config(['$routeProvider',
         templateUrl: partialUrl('listMessages.html'),
         controller: 'MessagesAdminController'
       })
-      .when('/messages/:messageId', {
-        templateUrl: partialUrl('editMessage.html'),
-        controller: 'MessageAdminController'
-      })
-      .otherwise({
+     .otherwise({
         redirectTo: '/'
       })
   }

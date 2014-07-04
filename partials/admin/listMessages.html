@@ -1,30 +1,78 @@
-<div ng-controller="MessagesAdminController">
+<div id="sm-messages-admin" class="sm-container" ng-controller="MessagesAdminController">
   <p><a href="">Add new campaign messages</a></p>
 
-  <table>
+  <form class="crm-form-block form-layout">
+    <p class="form-field clearfix">
+      <label for="new-message-label">Label</label>
+      <input id="new-message-label" name="new-message-label" type="text"/>
+    </p>
+
+    <p class="clearfix">
+      <label for="new-message-text">Text</label>
+      <textarea name="new-message-text" id="new-message-text" cols="30" rows="10"></textarea>
+    </p>
+
+    <p class="clearfix">
+      <label for="new-message-active">Text</label>
+      <input id="new-message-active" name="new-message-active" type="checkbox"/>
+    </p>
+
+    <div class="clearfix">
+      <label for="new-message-text">Text</label>
+
+      <div class="resizable-textarea">
+        <span>
+        <textarea rows="8" cols="80" name="body_html" id="body_html" class="form-textarea textarea-processed">
+        </textarea>
+        <div class="grippie" style="margin-right: 14px;"></div>
+        </span>
+      </div>
+    </div>
+
+    <p class="clearfix">
+      <input type="button" class="button" ng-click="createMessage()" value="Save"/>
+    </p>
+
+  </form>
+
+  <table id="sm-messages-admin-table">
     <thead>
     <tr>
-      <td>ID</td>
-      <td>Label</td>
-      <td>Text</td>
-      <td>Is active</td>
-      <td></td>
+      <th class="id">ID</th>
+      <th class="label">Label</th>
+      <th class="text">Text</th>
+      <th class="boolean">Is active</th>
+      <th class="action-buttons">Action</th>
     </tr>
     </thead>
-    <tr ng-repeat="message in messages.values">
-      <td>{{message.id}}</td>
-      <td>
-        <span ng-hide="message.editing">{{message.label}}</span>
-        <form ng-show="message.editing">
-          <input id="label-{{message.id}}" type="text"/>
-        </form>
-      </td>
-      <td>{{message.text}}</td>
-      <td>{{message.isActive}}</td>
-      <td><a ng-click="message.editing = true" class="button">Edit</a></td>
+    <tr ng-repeat="message in messages.values" ng-class-even="'even-row'" ng-class-odd="'odd-row'">
+      <form ng-show="message.editing">
+        <td id="id">{{message.id}}</td>
+        <!-- Label -->
+        <td class="label">
+          <span ng-hide="message.editing">{{message.label}}</span>
+          <input ng-show="message.editing" id="label-{{message.id}}" type="text" placeholder="Label"
+                 ng-model="message.label"/>
+        </td>
+        <!-- Text -->
+        <td class="text">
+          <span ng-hide="message.editing">{{message.text}}</span>
+          <textarea ng-show="message.editing" name="text-{{message.id}}" id="text-{{message.id}}" cols="50" rows="3"
+                    ng-model="message.text"></textarea>
+        </td>
+        <td class="boolean">
+          <span ng-hide="message.editing">{{message.isActive}}</span>
+          <input ng-show="message.editing" id="is-active-{{message.id}}" type="checkbox"/>
+        </td>
+        <td class="action-buttons">
+          <a ng-hide="message.editing" ng-click="message.editing = true" class="button">Edit</a>
+          <a ng-hide="message.editing" ng-click="deleteMessage($index)" class="button">Delete</a>
+          <a ng-show="message.editing" ng-click="updateMessage($index)" class="button">Save</a>
+          <a ng-show="message.editing" ng-click="message.editing = false" class="button">Cancel</a>
+        </td>
+      </form>
     </tr>
   </table>
 
   <p><a href="">Add new campaign messages</a></p>
-
 </div>
