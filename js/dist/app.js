@@ -1,5 +1,6 @@
 var app = angular.module('simpleMailApp', [
   'ngRoute',
+  'ngAnimate',
   'simpleMailApp.controllers',
   'simpleMailApp.services'
 ]);

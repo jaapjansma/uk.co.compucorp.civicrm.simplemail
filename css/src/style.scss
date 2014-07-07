@@ -1,4 +1,27 @@
 .sm-container {
+  overflow: hidden;
+  
+  p {
+    margin: 0.5rem 0rem;
+  }
+  p:first-child {
+    margin-top: 0;
+  }
+  p:last-child {
+    margin-bottom: 0;
+  }
+  .crm-form-block {
+    margin: 1rem 0 !important;
+  }
+  .crm-form-block {
+    padding: 1rem;
+    transition: linear 200ms;
+    -webkit-transition: linear 200ms;
+    position: relative;
+    top:0;
+  }  
+  a {
+  }
   textarea, input[type="text"] {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -6,24 +29,41 @@
     padding: 0.25rem;
   }
   textarea {
-    resize: none;
+    resize: none;    
   }
   label {
     width: 20%;
-    border: 1px solid red;
     float: left;
     text-align: right;
+    margin-right: 1rem;
   }
   .form-layout input {
-    float: right;
-    width: auto;
+    float: left;
   }
   .form-layout .form-field {
     clear: both;
-    border: 1px solid green;
   }
   .resizable-textarea {
-
+    width: 75%;
+    float: left;
+    textarea {
+      width: 100%;
+    }
+  }
+  .ng-show {
+    opacity: 1;
+  }
+  .ng-hide {
+     opacity: 0;
+     top: -10px;
+  }
+  .ng-enter, .ng-leave-active {
+    opacity: 0;
+    display: block !important;
+  }
+  .ng-enter-active, .ng-leave {
+    opacity: 1;
+    display: block !important;
   }
 }
 
