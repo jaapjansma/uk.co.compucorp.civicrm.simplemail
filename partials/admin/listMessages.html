@@ -1,36 +1,28 @@
 <div id="sm-messages-admin" class="sm-container" ng-controller="MessagesAdminController">
-  <p><a href="">Add new campaign messages</a></p>
+  <p><a href ng-click="enableAddingMessage()">Add new campaign messages</a></p>
 
-  <form class="crm-form-block form-layout">
+  <form ng-show="newMessage.editing" class="crm-form-block form-layout">
     <p class="form-field clearfix">
       <label for="new-message-label">Label</label>
-      <input id="new-message-label" name="new-message-label" type="text"/>
-    </p>
-
-    <p class="clearfix">
-      <label for="new-message-text">Text</label>
-      <textarea name="new-message-text" id="new-message-text" cols="30" rows="10"></textarea>
-    </p>
-
-    <p class="clearfix">
-      <label for="new-message-active">Text</label>
-      <input id="new-message-active" name="new-message-active" type="checkbox"/>
+      <input id="new-message-label" name="new-message-label" type="text" class="form-text big required"
+             ng-model="newMessage.label"/>
     </p>
 
     <div class="clearfix">
       <label for="new-message-text">Text</label>
-
-      <div class="resizable-textarea">
-        <span>
-        <textarea rows="8" cols="80" name="body_html" id="body_html" class="form-textarea textarea-processed">
-        </textarea>
-        <div class="grippie" style="margin-right: 14px;"></div>
-        </span>
-      </div>
+      <textarea name="body_html" id="body_html" cols="30" rows="3" class="form-textarea"
+                ng-model="newMessage.text"></textarea>
     </div>
 
     <p class="clearfix">
-      <input type="button" class="button" ng-click="createMessage()" value="Save"/>
+      <label for="new-message-active">Is active?</label>
+      <input id="new-message-active" name="new-message-active" type="checkbox" ng-model="newMessage.is_active"
+             ng-true-value="1" ng-false-value="0"/>
+    </p>
+
+    <p class="clearfix">
+      <input type="button" class="button" ng-click="addMessage()" value="Save"/>
+      <input type="button" class="button" ng-click="disableAddingMessage()" value="Cancel"/>
     </p>
 
   </form>
@@ -61,14 +53,15 @@
                     ng-model="message.text"></textarea>
         </td>
         <td class="boolean">
-          <span ng-hide="message.editing">{{message.isActive}}</span>
-          <input ng-show="message.editing" id="is-active-{{message.id}}" type="checkbox"/>
+          <span ng-hide="message.editing">{{message.is_active === '1' ? 'True' : 'False'}}</span>
+          <input ng-show="message.editing" id="is-active-{{message.id}}" type="checkbox" ng-model="message.is_active"
+                 ng-true-value="1" ng-false-value="0"/>
         </td>
         <td class="action-buttons">
-          <a ng-hide="message.editing" ng-click="message.editing = true" class="button">Edit</a>
+          <a ng-hide="message.editing" ng-click="enableEditingMessage($index)" class="button">Edit</a>
           <a ng-hide="message.editing" ng-click="deleteMessage($index)" class="button">Delete</a>
           <a ng-show="message.editing" ng-click="updateMessage($index)" class="button">Save</a>
-          <a ng-show="message.editing" ng-click="message.editing = false" class="button">Cancel</a>
+          <a ng-show="message.editing" ng-click="disableEditingMessage($index)" class="button">Cancel</a>
         </td>
       </form>
     </tr>

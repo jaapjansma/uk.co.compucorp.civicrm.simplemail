@@ -1,20 +1,25 @@
-<div ng-controller="HeadersAdminController">
-  <p><a href="">Add a new mailing header</a></p>
-  <table>
+<div id="sm-headers-admin" class="sm-container" ng-controller="HeadersAdminController">
+  <p><a href ng-click="enableAddingHeader()">Add a new mailing header</a></p>
+
+  <table id="sm-headers-admin-table">
     <thead>
     <tr>
-      <td>ID</td>
-      <td>Thumbnail</td>
-      <td>Show logo</td>
-      <td></td>
+      <td class="id">ID</td>
+      <td class="label">Name</td>
+      <td class="thumb">Thumbnail</td>
+      <td class="boolean">Show logo</td>
+      <td class="action-buttons">Action</td>
     </tr>
     </thead>
     <tr ng-repeat="header in headers.values">
-      <td>{{header.id}}</td>
-      <td>{{header.label}}</td>
-      <td>{{header.text}}</td>
-      <td>{{header.isActive}}</td>
-      <td><a ng-href="#/headers/{{header.id}}" class="button">Edit</a></td>
+      <td class="id">{{header.id}}</td>
+      <td class="label">{{header.label}}</td>
+      <td class="thumb">{{header.thumb}}</td>
+      <td class="boolean">{{header.show_logo}}</td>
+      <td class="action-buttons">
+        <a ng-click="editHeader($index)" class="button">Edit</a>
+        <a ng-click="deleteHeader($index)" class="button">Delete</a>
+      </td>
     </tr>
   </table>
 </div>

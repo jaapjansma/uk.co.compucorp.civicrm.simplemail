@@ -8,19 +8,19 @@ controllers.config(['$httpProvider', function ($httpProvider) {
 /**
  * Headers
  */
-controllers.controller('HeadersAdminController', ['$scope', '$http', '$routeParams',
-  function ($scope, $http) {
+controllers.controller('HeadersAdminController', [
+  '$scope', '$http', 'civiApiServices', 'loggingServices', 'notificationServices',
+  function ($scope, $http, civiApi, log, notification) {
     $scope.test = 'Hello world';
     $scope.headers = [];
 
-    $http.post('/civicrm/ajax/rest?json=1&sequential=1&entity=SimpleMailHeader&action=get')
+    civiApi.get('SimpleMailHeader')
       .success(function (headers) {
         $scope.headers = headers;
-        console.log('Headers:', headers);
-      }).error(function () {
-        console.log('failure');
+        log.createLog('Headers received', headers);
+      }).error(function (response) {
+        log.createLog('Failed to retrieve headers', response);
       });
-
   }
 ]);
 
@@ -47,8 +47,21 @@ controllers.controller('HeaderAdminController', ['$scope', '$http', '$routeParam
 controllers.controller('MessagesAdminController', [
   '$scope', '$http', 'civiApiServices', 'loggingServices', 'notificationServices',
   function ($scope, $http, civiApi, log, notification) {
+
+    $scope.$on('$viewContentLoaded', function () {
+      cj('#crm-container textarea.huge:not(.textarea-processed), #crm-container textarea.form-textarea:not(.textarea-processed)').each(function () {
+        $this = cj(this);
+        if ($this.parents('div.civicrm-drupal-wysiwyg').length == 0)
+          $this.TextAreaResizer();
+      });
+    });
+
+
     $scope.test = 'Hello world';
     $scope.messages = {};
+    $scope.newMessage = {
+//      editing: true
+    };
 
     // civiApiService.get('SimpleMailMessages)
     // civiApiService.update('SimpleMailMessages', #id)
@@ -57,10 +70,10 @@ controllers.controller('MessagesAdminController', [
 
     civiApi.get('SimpleMailMessage')
       .success(function (messages) {
-        $scope.messages = messages;        
-        log.createLog('Messages retrieved', messages);        
+        $scope.messages = messages;
+        log.createLog('Messages retrieved', messages);
       }).error(function (response) {
-        log.createLog('Failed to retrive messages', response);        
+        log.createLog('Failed to retrive messages', response);
       });
 
     /**
@@ -68,7 +81,7 @@ controllers.controller('MessagesAdminController', [
      *
      * @returns {ui.slider.options.values|*|s.values|values|.options.values|b.values}
      */
-    $scope.getMessages = function() {      
+    $scope.getMessages = function () {
       return $scope.messages.values;
     };
 
@@ -78,30 +91,71 @@ controllers.controller('MessagesAdminController', [
      * @param index
      * @returns {*}
      */
-    $scope.getMessage = function (index) {      
+    $scope.getMessage = function (index) {
       return $scope.getMessages()[index];
     };
 
-    $scope.getMessageCopy = function (index) {      
+    $scope.getMessageCopy = function (index) {
       return angular.copy($scope.getMessage(index));
     };
 
-    $scope.sanitiseMessage = function (message) {      
+    $scope.sanitiseMessage = function (message) {
       if ("editing" in message) {
-        delete message.editing;  
+        delete message.editing;
       }
-      
+
+      if (!("is_active" in message)) {
+        message.is_active = 0;
+      }
+
       return message;
     };
 
+    // todo: simplify this - too many similarly named functions are confusing - remove all but the essential ones
     $scope.getSanitisedMessage = function (index) {
       return $scope.sanitiseMessage($scope.getMessageCopy(index));
     };
-    
-    $scope.disableEditingMessage = function(index) {
-      $scope.getMessage(index).editing = false;      
+
+    $scope.enableAddingMessage = function () {
+      $scope.newMessage.editing = true;
     };
-    
+
+    $scope.clearNewMessageForm = function () {
+      $scope.newMessage = {};
+    };
+
+    $scope.disableAddingMessage = function () {
+      $scope.newMessage.editing = false;
+      $scope.clearNewMessageForm();
+    };
+
+    $scope.enableEditingMessage = function (index) {
+      $scope.getMessage(index).editing = true;
+    };
+
+    $scope.disableEditingMessage = function (index) {
+      $scope.getMessage(index).editing = false;
+    };
+
+
+    $scope.addMessage = function () {
+      var message = $scope.sanitiseMessage(angular.copy($scope.newMessage));
+
+      civiApi.create('SimpleMailMessage', message)
+        .success(function (response) {
+          log.createLog('Create message response', response);
+
+          if (response.error_message) {
+            log.createLog('Failed to add message', response.error_message);
+            $scope.errorMessage = response.error_message;
+          } else {
+            notification.success('Message added');
+            $scope.messages.values = $scope.messages.values.concat(response.values);
+            $scope.disableAddingMessage();
+          }
+        })
+    }
+
     /**
      * Update a message
      *
@@ -113,11 +167,11 @@ controllers.controller('MessagesAdminController', [
       civiApi.update('SimpleMailMessage', message)
         .success(function (response) {
           log.createLog('Update message response', response);
-          
+
           $scope.disableEditingMessage(index);
 
           if (response.error_message) {
-            console.log('Failed to update the record:', response.error_message);
+            notification.error('Failed to update message', response.error_message);
             $scope.errorMessage = response.error_message;
           } else {
             notification.success('Message updated');
