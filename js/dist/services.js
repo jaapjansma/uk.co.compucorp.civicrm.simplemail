@@ -96,14 +96,20 @@ services.factory("loggingServices",
 services.factory("civiApiServices", ['$http',
   function ($http) {
     return {
+      status: {
+        SUCCESS: 'success',
+        FAILURE: 'failure'
+      },
+
       /**
        * Return a list of records for the given entity
        *
        * @param entityName
        * @returns {*}
        */
-      get: function (entityName) {
-        return this._post(entityName, {}, 'get');
+      get: function (entityName, id) {
+        var data = id ? {id: id} : {};
+        return this._post(entityName, data, 'get');
       },
 
       /**

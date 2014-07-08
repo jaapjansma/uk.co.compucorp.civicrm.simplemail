@@ -17,7 +17,11 @@ app.config(['$routeProvider',
         templateUrl: partialUrl('listHeaders.html'),
         controller: 'HeadersAdminController'
       })
-      .when('/headers/:headerId', {
+      .when('/headers/:headerId/edit', {
+        templateUrl: partialUrl('editHeader.html'),
+        controller: 'HeaderAdminController'
+      })
+       .when('/headers/new', {
         templateUrl: partialUrl('editHeader.html'),
         controller: 'HeaderAdminController'
       })

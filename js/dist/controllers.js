@@ -11,33 +11,120 @@ controllers.config(['$httpProvider', function ($httpProvider) {
 controllers.controller('HeadersAdminController', [
   '$scope', '$http', 'civiApiServices', 'loggingServices', 'notificationServices',
   function ($scope, $http, civiApi, log, notification) {
-    $scope.test = 'Hello world';
-    $scope.headers = [];
+    $scope.constants = {
+      ENTITY_NAME: 'SimpleMailHeader'
+    };
 
-    civiApi.get('SimpleMailHeader')
+    $scope.headers = {};
+
+    civiApi.get($scope.constants.ENTITY_NAME)
       .success(function (headers) {
         $scope.headers = headers;
         log.createLog('Headers received', headers);
       }).error(function (response) {
         log.createLog('Failed to retrieve headers', response);
       });
+
+
+    /**
+     * Retrieve the array of all headers out of the headers object
+     *
+     * @returns {ui.slider.options.values|*|s.values|values|.options.values|b.values}
+     */
+    $scope.getHeaders = function () {
+      return $scope.headers.values;
+    };
+
+    $scope.getHeader = function (index) {
+      return $scope.getHeaders()[index];
+    };
+
+    $scope.sanitiseHeader = function (header) {
+      return header;
+    };
+
+    $scope.deleteHeader = function (index) {
+      var header = $scope.sanitiseHeader(angular.copy($scope.getHeader(index)));
+
+      civiApi.remove($scope.constants.ENTITY_NAME, header)
+        .success(function (response) {
+          log.createLog('Delete message response', response);
+
+          if (response.error_message) {
+            notification.error('Failed to delete header', response.error_message);
+            $scope.errorMessage = response.error_message;
+          } else {
+            notification.success('Header deleted');
+            $scope.getHeaders().splice(index, 1);
+          }
+        });
+    };
   }
 ]);
 
 /**
  * A single header
  */
-controllers.controller('HeaderAdminController', ['$scope', '$http', '$routeParams',
-  function ($scope, $http, $routeParams) {
+controllers.controller('HeaderAdminController', [
+  '$scope', '$http', 'civiApiServices', 'loggingServices', 'notificationServices', '$routeParams', '$location',
+  function ($scope, $http, civiApi, log, notification, $routeParams, $location) {
     $scope.header = {};
 
-    $http.post('/civicrm/ajax/rest?json=1&sequential=1&entity=SimpleMailHeader&action=get&id=' + $routeParams.headerId)
-      .success(function (header) {
-        $scope.header = header;
-        console.log('Headers:', header);
-      }).error(function () {
-        console.log('failure');
-      });
+    $scope.constants = {
+      ENTITY_NAME: 'SimpleMailHeader'
+    };
+
+    if ($routeParams.headerId) {
+      civiApi.get($scope.constants.ENTITY_NAME, $routeParams.headerId)
+        .success(function (response) {
+          log.createLog('Header retrieved', response);
+
+          if (header.error_message) {
+            notification.error('Failed to retrieve the header', response.error_message);
+            $scope.redirectToListing();
+          } else {
+            $scope.header = response.values[0];
+          }
+        });
+    }
+
+    /**
+     * Redirect to the listing of headers
+     */
+    $scope.redirectToListing = function () {
+      $location.path('/headers');
+    };
+
+    /**
+     * Create or update header depending upon whether the header was loaded from the database or was being added as new
+     */
+    $scope.createOrUpdateHeader = function () {
+      if ($scope.header.id) {
+        civiApi.update($scope.constants.ENTITY_NAME, $scope.header)
+          .success(function (response) {
+            log.createLog('Update header response', response);
+
+            if (response.error_message) {
+              notification.error('Failed to update header', response.error_message);
+            } else {
+              notification.success('Header updated');
+              $scope.redirectToListing();
+            }
+          });
+      } else {
+        civiApi.create($scope.constants.ENTITY_NAME, $scope.header)
+          .success(function (response) {
+            log.createLog('Save header response', response);
+
+            if (response.error_message) {
+              notification.error('Failed to add header', response.error_message);
+            } else {
+              notification.success('Header added');
+              $scope.redirectToListing();
+            }
+          });
+      }
+    };
   }
 ]);
 
@@ -56,8 +143,10 @@ controllers.controller('MessagesAdminController', [
       });
     });
 
+    $scope.constants = {
+      ENTITY_NAME: 'SimpleMailMessage'
+    };
 
-    $scope.test = 'Hello world';
     $scope.messages = {};
     $scope.newMessage = {
 //      editing: true
@@ -68,7 +157,7 @@ controllers.controller('MessagesAdminController', [
     // civiApiService.create('SimpleMailMessages')
     // civiApiService.delete('SimpleMailMessages', #id)
 
-    civiApi.get('SimpleMailMessage')
+    civiApi.get($scope.constants.ENTITY_NAME)
       .success(function (messages) {
         $scope.messages = messages;
         log.createLog('Messages retrieved', messages);
@@ -138,10 +227,13 @@ controllers.controller('MessagesAdminController', [
     };
 
 
-    $scope.addMessage = function () {
+    /**
+     * Create a new message
+     */
+    $scope.createMessage = function () {
       var message = $scope.sanitiseMessage(angular.copy($scope.newMessage));
 
-      civiApi.create('SimpleMailMessage', message)
+      civiApi.create($scope.constants.ENTITY_NAME, message)
         .success(function (response) {
           log.createLog('Create message response', response);
 
@@ -154,7 +246,7 @@ controllers.controller('MessagesAdminController', [
             $scope.disableAddingMessage();
           }
         })
-    }
+    };
 
     /**
      * Update a message
@@ -164,7 +256,7 @@ controllers.controller('MessagesAdminController', [
     $scope.updateMessage = function (index) {
       var message = $scope.getSanitisedMessage(index);
 
-      civiApi.update('SimpleMailMessage', message)
+      civiApi.update($scope.constants.ENTITY_NAME, message)
         .success(function (response) {
           log.createLog('Update message response', response);
 
@@ -187,10 +279,11 @@ controllers.controller('MessagesAdminController', [
     $scope.deleteMessage = function (index) {
       var message = $scope.getSanitisedMessage(index);
 
-      civiApi.remove('SimpleMailMessage', message)
+      civiApi.remove($scope.constants.ENTITY_NAME, message)
         .success(function (response) {
           console.log(response);
 
+          // todo: this could be refactored out into the civiApiServices, so that we only need to send the callback functions for success and failure to it from here
           if (response.error_message) {
             console.log('Failed to update the record:', response.error_message);
             $scope.errorMessage = response.error_message;
@@ -200,14 +293,5 @@ controllers.controller('MessagesAdminController', [
           }
         });
     };
-
-    /**
-     * Save a message to the backend database
-     *
-     * @param messageId
-     */
-    $scope.save = function (messageId) {
-      $http.post('/civicrm/ajax/rest?entity=SimpleMailMessage&action=create&sequential=1&json=1')
-    }
   }
 ]);

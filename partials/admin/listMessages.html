@@ -21,8 +21,8 @@
     </p>
 
     <p class="clearfix">
-      <input type="button" class="button" ng-click="addMessage()" value="Save"/>
-      <input type="button" class="button" ng-click="disableAddingMessage()" value="Cancel"/>
+      <a class="button" href ng-click="createMessage()">Save</a>
+      <a class="button" href ng-click="disableAddingMessage()">Cancel</a>
     </p>
 
   </form>
@@ -53,15 +53,15 @@
                     ng-model="message.text"></textarea>
         </td>
         <td class="boolean">
-          <span ng-hide="message.editing">{{message.is_active === '1' ? 'True' : 'False'}}</span>
+          <span ng-hide="message.editing">{{message.is_active === '1' ? 'Yes' : 'No'}}</span>
           <input ng-show="message.editing" id="is-active-{{message.id}}" type="checkbox" ng-model="message.is_active"
                  ng-true-value="1" ng-false-value="0"/>
         </td>
         <td class="action-buttons">
-          <a ng-hide="message.editing" ng-click="enableEditingMessage($index)" class="button">Edit</a>
-          <a ng-hide="message.editing" ng-click="deleteMessage($index)" class="button">Delete</a>
-          <a ng-show="message.editing" ng-click="updateMessage($index)" class="button">Save</a>
-          <a ng-show="message.editing" ng-click="disableEditingMessage($index)" class="button">Cancel</a>
+          <a href ng-hide="message.editing" ng-click="enableEditingMessage($index)" class="button">Edit</a>
+          <a href ng-hide="message.editing" ng-click="deleteMessage($index)" class="button">Delete</a>
+          <a href ng-show="message.editing" ng-click="updateMessage($index)" class="button">Save</a>
+          <a href ng-show="message.editing" ng-click="disableEditingMessage($index)" class="button">Cancel</a>
         </td>
       </form>
     </tr>

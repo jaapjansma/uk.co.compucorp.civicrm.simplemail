@@ -1,11 +1,11 @@
 <div id="sm-headers-admin" class="sm-container" ng-controller="HeadersAdminController">
-  <p><a href ng-click="enableAddingHeader()">Add a new mailing header</a></p>
+  <p><a ng-href="#/headers/new" ng-click="enableAddingHeader()">Add a new mailing header</a></p>
 
   <table id="sm-headers-admin-table">
     <thead>
     <tr>
       <td class="id">ID</td>
-      <td class="label">Name</td>
+      <td class="label">Label</td>
       <td class="thumb">Thumbnail</td>
       <td class="boolean">Show logo</td>
       <td class="action-buttons">Action</td>
@@ -14,11 +14,11 @@
     <tr ng-repeat="header in headers.values">
       <td class="id">{{header.id}}</td>
       <td class="label">{{header.label}}</td>
-      <td class="thumb">{{header.thumb}}</td>
-      <td class="boolean">{{header.show_logo}}</td>
+      <td class="thumb">{{header.image}}</td>
+      <td class="boolean">{{header.show_logo === '1' ? 'Yes' : 'No'}}</td>
       <td class="action-buttons">
-        <a ng-click="editHeader($index)" class="button">Edit</a>
-        <a ng-click="deleteHeader($index)" class="button">Delete</a>
+        <a ng-href="#/headers/{{header.id}}/edit" ng-click="editHeader($index)" class="button">Edit</a>
+        <a href ng-click="deleteHeader($index)" class="button">Delete</a>
       </td>
     </tr>
   </table>
