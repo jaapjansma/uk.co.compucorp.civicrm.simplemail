@@ -1,4 +1,4 @@
-var controllers = angular.module('simpleMailApp.controllers', []);
+var controllers = angular.module('simpleMailAdminApp.controllers', []);
 
 controllers.config(['$httpProvider', function ($httpProvider) {
   // This is needed (Utils/Rest.php::ajax()) for CiviCRM to treat the request as genuine

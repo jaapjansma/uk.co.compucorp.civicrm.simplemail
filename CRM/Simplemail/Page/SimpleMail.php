@@ -10,6 +10,16 @@ class CRM_Simplemail_Page_SimpleMail extends CRM_Core_Page {
     // Example: Assign a variable for use in a template
     $this->assign('currentTime', date('Y-m-d H:i:s'));
 
+    CRM_Core_Resources::singleton()
+      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular.min.js', 80, 'page-footer')
+      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular-route.min.js', 90, 'page-footer')
+      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular-animate.min.js', 90, 'page-footer')
+      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/app.js', 100, 'page-footer')
+      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/services.js', 110, 'page-footer')
+      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/controllers.js', 120, 'page-footer')
+      ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/dist/style.css')
+    ;
+
     parent::run();
   }
 }

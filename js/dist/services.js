@@ -1,5 +1,5 @@
 /* Generic Services */
-var services = angular.module('simpleMailApp.services', []);
+var services = angular.module('simpleMailAdminApp.services', []);
 
 services.factory("notificationServices", ['loggingServices',
   function (log) {

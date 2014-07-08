@@ -1,15 +1,15 @@
-var app = angular.module('simpleMailApp', [
+var adminApp = angular.module('simpleMailAdminApp', [
   'ngRoute',
   'ngAnimate',
-  'simpleMailApp.controllers',
-  'simpleMailApp.services'
+  'simpleMailAdminApp.controllers',
+  'simpleMailAdminApp.services'
 ]);
 
 function partialUrl(url) {
   return '/civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/partials/admin/' + url;
 }
 
-app.config(['$routeProvider',
+adminApp.config(['$routeProvider',
   function ($routeProvider) {
     $routeProvider
       // todo: add resolvers to listing controllers in order to not render view until API has returned data
