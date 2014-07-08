@@ -2,7 +2,7 @@
 
 require_once 'CRM/Core/Page.php';
 
-class CRM_Simplemail_Page_SimpleMail extends CRM_Core_Page
+class CRM_Simplemail_Page_SimpleMailAdmin extends CRM_Core_Page
 {
   function run()
   {

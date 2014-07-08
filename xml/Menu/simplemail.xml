@@ -14,8 +14,8 @@
   </item>
   <item>
     <path>civicrm/admin/simple-mail</path>
-    <page_callback>CRM_Simplemail_Page_SimpleMail</page_callback>
-    <title>SimpleMail</title>
+    <page_callback>CRM_Simplemail_Page_SimpleMailAdmin</page_callback>
+    <title>SimpleMailAdmin</title>
     <access_arguments>access CiviCRM</access_arguments>
   </item>
 </menu>
