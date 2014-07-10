@@ -1,6 +1,19 @@
 /* Generic Services */
 var services = angular.module('simpleMail.services', []);
 
+services.factory("pathServices", [
+  function () {
+    return {
+      getPartialUrl: function(file) {
+        return this._getPartialsRootDir() + '/' + file;
+      },
+      _getPartialsRootDir: function () {
+        return '/civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/partials';
+      }
+    }
+  }
+]);
+
 services.factory("notificationServices", ['loggingServices',
   function (log) {
     /**
@@ -107,8 +120,9 @@ services.factory("civiApiServices", ['$http',
        * @param entityName
        * @returns {*}
        */
-      get: function (entityName, id) {
-        var data = id ? {id: id} : {};
+      get: function (entityName, config) {
+        var data = config ? config : {};
+//        var data = id ? {id: id} : {};
         return this._post(entityName, data, 'get');
       },
 

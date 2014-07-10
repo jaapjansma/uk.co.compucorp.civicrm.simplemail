@@ -17,8 +17,10 @@ controllers.controller('HeadersAdminController', [
 
     $scope.headers = {};
 
+    // todo: rename the argument in all success/error to response to stay consistent and predictable
     civiApi.get($scope.constants.ENTITY_NAME)
       .success(function (headers) {
+        // todo: may be just save the actual headers array in headers, so that getHeaders won't be needed and make the behaviour more predictable
         $scope.headers = headers;
         log.createLog('Headers received', headers);
       }).error(function (response) {
@@ -75,7 +77,7 @@ controllers.controller('HeaderAdminController', [
     };
 
     if ($routeParams.headerId) {
-      civiApi.get($scope.constants.ENTITY_NAME, $routeParams.headerId)
+      civiApi.get($scope.constants.ENTITY_NAME, {id: $routeParams.headerId})
         .success(function (response) {
           log.createLog('Header retrieved', response);
 

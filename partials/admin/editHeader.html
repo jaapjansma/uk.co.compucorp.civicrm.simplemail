@@ -1,28 +1,28 @@
 <div id="sm-header-admin" class="sm-container" ng-controller="HeaderAdminController">
   <form class="crm-form-block form-layout">
-    <p class="clearfix">
+    <div class="field-group inline clearfix">
       <label for="label">Label</label>
       <input id="label" type="text" ng-model="header.label"/>
-    </p>
+    </div>
 
-    <p class="clearfix">
+    <div class="field-group inline clearfix">
       <label for="image">Image</label>
       <input id="image" type="text" ng-model="header.image"/>
-    </p>
+    </div>
 
-    <p class="clearfix">
+    <div class="field-group inline clearfix">
       <label for="show_logo">Show logo on mailings with this header:</label>
       <input id="show_logo" type="text" ng-model="header.show_logo"/>
-    </p>
+    </div>
 
-    <p class="clearfix">
+    <div class="field-group inline clearfix">
       <label for="logo_image">Logo image</label>
       <input id="logo_image" type="text" ng-model="header.logo_image"/>
-    </p>
+    </div>
 
-    <p class="clearfix">
+    <div class="clearfix">
       <a href ng-click="createOrUpdateHeader()" class="button">Save</a>
       <a ng-href="#/headers" class="button">Cancel</a>
-    </p>
+    </div>
   </form>
 </div>

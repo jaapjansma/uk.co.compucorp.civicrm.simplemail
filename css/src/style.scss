@@ -1,13 +1,18 @@
 .sm-container {
   overflow: hidden;
   
+  .select2-container {
+    min-width: 10rem;
+    max-width: 20rem;
+  }
+  
   p {
     margin: 0.5rem 0rem;
   }
-  p:first-child {
+  p:first-child, div:first-child {
     margin-top: 0;
   }
-  p:last-child {
+  p:last-child, div:last-child {
     margin-bottom: 0;
   }
   .crm-form-block {
@@ -31,7 +36,10 @@
   textarea {
     resize: none;    
   }
-  label {
+  .field-group {
+    margin: 0.5rem 0;
+  }
+  .field-group.inline label {
     width: 20%;
     float: left;
     text-align: right;

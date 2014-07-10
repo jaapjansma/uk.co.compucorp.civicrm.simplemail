@@ -1,0 +1,60 @@
+<div class="sm-container">
+  <h1>Step 2 - Compose Mailing</h1>
+
+  <h3>Select header image:</h3>
+
+  <form class="crm-form-block">
+    <div class="field-group clearfix">
+      <select ui-select2 ng-model="selectedFilter" data-placeholder="Filter" name="" id="">
+        <option value=""></option>
+        <option ng-repeat="filter in headerFilterOptionValues" value="{{filter.id}}">{{filter.label}}</option>
+      </select>
+    </div>
+
+    <h3>Message details:</h3>
+
+    <div class="field-group clearfix">
+      <label for="">From address</label>
+      <select ui-select2 ng-model="selectedFilter" data-placeholder="Select from address" name="" id="">
+        <option value=""></option>
+        <option ng-repeat="filter in headerFilterOptionValues" value="{{filter.id}}">{{filter.label}}</option>
+      </select>
+    </div>
+
+    <div class="field-group clearfix">
+      <label for="subject">Email subject</label>
+      <input id="subject" name="subject" type="text"/>
+    </div>
+
+    <h3>Compose:</h3>
+
+    <p>Your email will be automatically formatted. To see available regions, click view region demonstration:</p>
+
+    <p><a href>View region demonstration (open in a new window)</a></p>
+
+    <div class="field-group clearfix">
+      <label for="title">Title/Strapline</label>
+      <input id="title" name="title" type="text"/>
+    </div>
+
+    <div class="field-group clearfix">
+      <label for="body">Main Body</label>
+      <textarea name="body" id="body" cols="30" rows="10"></textarea>
+    </div>
+
+    <div class="field-group clearfix">
+      <label for="contact-details">Contact details</label>
+      <textarea name="contact-details" id="contact-details" cols="10" rows="4"></textarea>
+    </div>
+
+    <div class="field-group clearfix">
+      <label for="contact-details">Campaign message</label>
+      <select ui-select2 ng-model="selectedMessage" data-placeholder="Select campaign message" name="" id="">
+        <option value=""></option>
+        <option ng-repeat="message in messages" value="{{$index}}">{{message.label}}</option>
+      </select>
+      {{selectedMessage}}
+      <textarea ng-click="test()" name="contact-details" id="contact-details" cols="10" rows="4" ></textarea>
+    </div>
+  </form>
+</div>

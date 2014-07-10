@@ -2,28 +2,28 @@
   <p><a href ng-click="enableAddingMessage()">Add new campaign messages</a></p>
 
   <form ng-show="newMessage.editing" class="crm-form-block form-layout">
-    <p class="form-field clearfix">
+    <div class="field-group inline clearfix">
       <label for="new-message-label">Label</label>
       <input id="new-message-label" name="new-message-label" type="text" class="form-text big required"
              ng-model="newMessage.label"/>
-    </p>
+    </div>
 
-    <div class="clearfix">
+    <div class="field-group inline clearfix">
       <label for="new-message-text">Text</label>
       <textarea name="body_html" id="body_html" cols="30" rows="3" class="form-textarea"
                 ng-model="newMessage.text"></textarea>
     </div>
 
-    <p class="clearfix">
+    <div class="field-group inline clearfix">
       <label for="new-message-active">Is active?</label>
       <input id="new-message-active" name="new-message-active" type="checkbox" ng-model="newMessage.is_active"
              ng-true-value="1" ng-false-value="0"/>
-    </p>
+    </div>
 
-    <p class="clearfix">
+    <div class="buttons clearfix">
       <a class="button" href ng-click="createMessage()">Save</a>
       <a class="button" href ng-click="disableAddingMessage()">Cancel</a>
-    </p>
+    </div>
 
   </form>
 
