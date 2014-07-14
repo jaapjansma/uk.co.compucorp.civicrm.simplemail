@@ -1,9 +1,59 @@
 .sm-container {
   overflow: hidden;
+
+  .read-only {
+    color: #808080;
+  }
   
-  .select2-container {
-    min-width: 10rem;
-    max-width: 20rem;
+  #campaign-message-preview {
+    height: 109px;
+  }
+  
+  .full-width {
+    width: 100%;
+  }
+  
+  .buttons {
+    background: none !important;
+  }
+  .left,
+  .right {
+    text-align: left;
+  }
+  .left {
+    float: left;
+  }
+  .right {
+    float: right;
+  }
+  .field-group.inline .auto-width {
+    width: auto;
+  }
+  .one-third {
+    width: 33%;
+    box-sizing: border-box;
+  }
+  .two-thirds {
+    width: 66%;
+    box-sizing: border-box;
+  }
+  
+  #contact-details {
+    height: 145px;
+  }
+      
+  .select2-container {    
+    width: 50%;    
+  }
+  
+  .cols {
+    .col {
+      margin-top: 0;
+      padding-left: 1rem;
+    }
+    .col:first-child {
+      padding-left: 0;
+    }
   }
   
   p {
@@ -39,7 +89,19 @@
   .field-group {
     margin: 0.5rem 0;
   }
-  .field-group.inline label {
+  .field-group label,
+  .field-group .label {
+    margin: 0.5rem 0;
+  }
+  input {
+    margin: 0.5rem 0;
+  }
+  
+  .field-group label {
+    display: block;    
+  }
+  .field-group.inline label,
+  .field-group.inline .label {
     width: 20%;
     float: left;
     text-align: right;

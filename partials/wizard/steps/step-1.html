@@ -1,15 +1,26 @@
 <div class="sm-container">
   <h1>Step 1 - Create Mailing</h1>
-<ul>
-  <li ng-repeat="filters in steps.1.fields.headerImageFilters()"></li>
-</ul>
-  <form action="">
-    <div class="field-group clearfix">
-      <label for="remove-duplicates">Remove duplicate emails?</label>
+  <ul>
+    <li ng-repeat="filters in steps.1.fields.headerImageFilters()"></li>
+  </ul>
+  <form class="crm-form-block">
+    <div class="field-group">
+      <label for="mailing-name">Name your mailing:</label>
+      <input name="mailing-name" id="mailing-name" type="text" class="two-thirds"/>
+    </div>
+
+
+    <div class="field-group inline clearfix">
+      <label for="remove-duplicates" class="auto-width">Remove duplicate emails?</label>
       <input name="remove-duplicates" id="remove-duplicates" type="checkbox"/>
     </div>
-    <select ui-select2 multiple ng-model="selected" data-placeholder="Select group(s)">
-      <option ng-repeat="group in groups" value="{{group.id}}">{{group.title}}</option>
-    </select>
+
+    <h2>Mailing Recipients</h2>
+    <div class="field-group required">
+      <label for="">Include group(s)</label>
+      <select ui-select2 multiple ng-model="selected" data-placeholder="Select group(s)">
+        <option ng-repeat="group in groups" value="{{group.id}}">{{group.title}}</option>
+      </select>
+    </div>
   </form>
 </div>

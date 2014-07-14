@@ -1,8 +1,36 @@
 .sm-container {
   overflow: hidden; }
+.sm-container .read-only {
+  color: #808080; }
+.sm-container #campaign-message-preview {
+  height: 109px; }
+.sm-container .full-width {
+  width: 100%; }
+.sm-container .buttons {
+  background: none !important; }
+.sm-container .left, .sm-container .right {
+  text-align: left; }
+.sm-container .left {
+  float: left; }
+.sm-container .right {
+  float: right; }
+.sm-container .field-group.inline .auto-width {
+  width: auto; }
+.sm-container .one-third {
+  width: 33%;
+  box-sizing: border-box; }
+.sm-container .two-thirds {
+  width: 66%;
+  box-sizing: border-box; }
+.sm-container #contact-details {
+  height: 145px; }
 .sm-container .select2-container {
-  min-width: 10rem;
-  max-width: 20rem; }
+  width: 50%; }
+.sm-container .cols .col {
+  margin-top: 0;
+  padding-left: 1rem; }
+.sm-container .cols .col:first-child {
+  padding-left: 0; }
 .sm-container p {
   margin: 0.5rem 0rem; }
 .sm-container p:first-child, .sm-container div:first-child {
@@ -26,7 +54,13 @@
   resize: none; }
 .sm-container .field-group {
   margin: 0.5rem 0; }
-.sm-container .field-group.inline label {
+.sm-container .field-group label, .sm-container .field-group .label {
+  margin: 0.5rem 0; }
+.sm-container input {
+  margin: 0.5rem 0; }
+.sm-container .field-group label {
+  display: block; }
+.sm-container .field-group.inline label, .sm-container .field-group.inline .label {
   width: 20%;
   float: left;
   text-align: right;

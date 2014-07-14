@@ -1,9 +1,9 @@
 <div class="sm-container">
   <h1>Step 2 - Compose Mailing</h1>
 
-  <h3>Select header image:</h3>
-
   <form class="crm-form-block">
+    <h2>Select header image:</h2>
+
     <div class="field-group clearfix">
       <select ui-select2 ng-model="selectedFilter" data-placeholder="Filter" name="" id="">
         <option value=""></option>
@@ -11,7 +11,7 @@
       </select>
     </div>
 
-    <h3>Message details:</h3>
+    <h2>Message details:</h2>
 
     <div class="field-group clearfix">
       <label for="">From address</label>
@@ -23,10 +23,10 @@
 
     <div class="field-group clearfix">
       <label for="subject">Email subject</label>
-      <input id="subject" name="subject" type="text"/>
+      <input id="subject" name="subject" type="text" class="full-width"/>
     </div>
 
-    <h3>Compose:</h3>
+    <h2>Compose:</h2>
 
     <p>Your email will be automatically formatted. To see available regions, click view region demonstration:</p>
 
@@ -34,27 +34,34 @@
 
     <div class="field-group clearfix">
       <label for="title">Title/Strapline</label>
-      <input id="title" name="title" type="text"/>
+      <input id="title" name="title" type="text" class="full-width"/>
     </div>
 
     <div class="field-group clearfix">
       <label for="body">Main Body</label>
-      <textarea name="body" id="body" cols="30" rows="10"></textarea>
+      <textarea name="body" id="body" cols="30" rows="10" class="full-width"></textarea>
     </div>
 
-    <div class="field-group clearfix">
-      <label for="contact-details">Contact details</label>
-      <textarea name="contact-details" id="contact-details" cols="10" rows="4"></textarea>
-    </div>
+    <div class="cols clearfix">
+      <div class="field-group col left one-third">
+        <label for="contact-details">Contact details</label>
+        <textarea name="contact-details" id="contact-details" class="full-width" cols="10" rows="4"></textarea>
+      </div>
 
-    <div class="field-group clearfix">
-      <label for="contact-details">Campaign message</label>
-      <select ui-select2 ng-model="selectedMessage" data-placeholder="Select campaign message" name="" id="">
-        <option value=""></option>
-        <option ng-repeat="message in messages" value="{{$index}}">{{message.label}}</option>
-      </select>
-      {{selectedMessage}}
-      <textarea ng-click="test()" name="contact-details" id="contact-details" cols="10" rows="4" ></textarea>
+      <div class="field-group col right two-thirds clearfix">
+        <div class="field-group clearfix">
+          <label for="campaign-message">Campaign message</label>
+          <select ui-select2 ng-model="selectedMessage" data-placeholder="Select campaign message" name="campaign-message" id="campaign-message">
+            <option value=""></option>
+            <option ng-repeat="message in messages" value="{{$index}}">{{message.label}}</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <textarea class="full-width read-only" ng-click="test()" name="campaign-message-preview"
+                    id="campaign-message-preview" cols="10" rows="4" ng-model="messages[selectedMessage].text" ng-readonly="true"></textarea>
+        </div>
+      </div>
     </div>
   </form>
 </div>
