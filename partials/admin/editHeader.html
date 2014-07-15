@@ -7,7 +7,12 @@
 
     <div class="field-group inline clearfix">
       <label for="image">Image</label>
-      <input id="image" type="text" ng-model="header.image"/>
+
+      <div class="field">
+        <p class="file-drop-zone" ng-file-over ng-file-drop>Drop image here</p>
+        <p>{{uploader.queue.length}} - {{uploader.progress}}</p>
+        <input id="image" type="file" ng-file-select/>
+      </div>
     </div>
 
     <div class="field-group inline clearfix">

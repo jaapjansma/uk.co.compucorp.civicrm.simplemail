@@ -1,5 +1,18 @@
 .sm-container {
   overflow: hidden;
+  
+  .file-drop-zone { 
+    border: 1px dashed gray;
+/*     width: 10rem; */
+/*     height: 5rem; */
+    text-align: center;
+    padding: 2rem;
+    border-radius: 3px;
+  }
+  
+  .field-group.inline .file-drop-zone {
+/*     margin-left: 10px; */    
+  }
 
   .read-only {
     color: #808080;
@@ -107,7 +120,8 @@
     text-align: right;
     margin-right: 1rem;
   }
-  .form-layout input {
+  .form-layout .field-group > input,
+  .form-layout .field-group .field {
     float: left;
   }
   .form-layout .form-field {

@@ -1,5 +1,14 @@
 .sm-container {
   overflow: hidden; }
+.sm-container .file-drop-zone {
+  border: 1px dashed gray;
+  /*     width: 10rem; */
+  /*     height: 5rem; */
+  text-align: center;
+  padding: 2rem;
+  border-radius: 3px; }
+.sm-container .field-group.inline .file-drop-zone {
+  /*     margin-left: 10px; */ }
 .sm-container .read-only {
   color: #808080; }
 .sm-container #campaign-message-preview {
@@ -65,7 +74,7 @@
   float: left;
   text-align: right;
   margin-right: 1rem; }
-.sm-container .form-layout input {
+.sm-container .form-layout .field-group > input, .sm-container .form-layout .field-group .field {
   float: left; }
 .sm-container .form-layout .form-field {
   clear: both; }

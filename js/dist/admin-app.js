@@ -12,7 +12,9 @@ var app = angular.module('simpleMail.adminApp', [
   'ngRoute',
   'ngAnimate',
   'simpleMail.adminApp.controllers',
-  'simpleMail.services'
+  'simpleMail.services',
+  'simpleMail.directives',
+  'angularFileUpload'
 ]);
 
 function partialUrl(url) {
@@ -31,7 +33,7 @@ app.config(['$routeProvider',
         templateUrl: partialUrl('editHeader.html'),
         controller: 'HeaderAdminController'
       })
-       .when('/headers/new', {
+      .when('/headers/new', {
         templateUrl: partialUrl('editHeader.html'),
         controller: 'HeaderAdminController'
       })
@@ -39,7 +41,7 @@ app.config(['$routeProvider',
         templateUrl: partialUrl('listMessages.html'),
         controller: 'MessagesAdminController'
       })
-     .otherwise({
+      .otherwise({
         redirectTo: '/'
       })
   }
