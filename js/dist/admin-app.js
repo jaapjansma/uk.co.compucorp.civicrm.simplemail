@@ -14,6 +14,7 @@ var app = angular.module('simpleMail.adminApp', [
   'simpleMail.adminApp.controllers',
   'simpleMail.services',
   'simpleMail.directives',
+  'simpleMail.constants',
   'angularFileUpload'
 ]);
 

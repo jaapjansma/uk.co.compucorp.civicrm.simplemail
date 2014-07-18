@@ -22,7 +22,8 @@ class CRM_Simplemail_Page_SimpleMailAdmin extends CRM_Core_Page
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/admin-app.js', 110, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/services.js', 120, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/directives.js', 130, 'page-footer')
-      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/admin-controllers.js', 140, 'page-footer')
+      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/constants.js', 140, 'page-footer')
+      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/admin-controllers.js', 150, 'page-footer')
       ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/dist/style.css')
     ;
 

@@ -14,6 +14,7 @@ services.factory("pathServices", [
   }
 ]);
 
+// todo: use the builtin log service of AngularJS and decorate it with custom behavior rather than this below
 services.factory("notificationServices", ['loggingServices',
   function (log) {
     /**

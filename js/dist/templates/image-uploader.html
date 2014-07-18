@@ -1,0 +1,10 @@
+<p ng-hide="images.header.uploaded" class="file-drop-zone" ng-file-over ng-file-drop>
+  <span>{{!images.header.uploading ? 'Drop image here' : 'Uploading, ' + uploader.progress + '% complete'}}</span>
+</p>
+
+<p ng-show="images.header.uploaded" class="image-preview">
+  <img class="thumb" ng-show="images.header.uploaded" ng-src="{{images.header.file}}"/>
+  <a href class="remove" ng-click="removeImage()">Remove</a>
+</p>
+<input id="image" type="file" ng-file-select/>
+<input id="header_image" type="text" ng-model=""/>
