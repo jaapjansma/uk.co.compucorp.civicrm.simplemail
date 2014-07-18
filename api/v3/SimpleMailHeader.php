@@ -6,7 +6,7 @@
  *
  * @param array $spec description of fields supported by this API call
  * @return void
- * @see http://wiki.civicrm.org/confluence/display/CRM/API+Architecture+Standards
+ * @see http://wiki.civicrm.org/confluence/display/crm/api+architecture+standards
  */
 function _civicrm_api3_simple_mail_header_create_spec(&$spec) {
   // $spec['some_parameter']['api.required'] = 1;
