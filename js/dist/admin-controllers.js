@@ -77,15 +77,39 @@ controllers.controller('HeaderAdminController', [
     };
 
 
+    $scope.images = {
+      header: {
+        uploaded: false,
+        uploading: false,
+        file: null
+      },
+      logo: {
+        uploaded: false,
+        uploading: false,
+        file: null
+      }
+    }
+
+    var formData = {
+//      entity: $scope.constants.ENTITY_NAME,
+//      action: 'get',
+//      key: 'value'
+    };
+
+    var serialisedData = jQuery.param(formData);
+
     // create a uploader with options
     var uploader = $scope.uploader = $fileUploader.create({
       scope: $scope,                          // to automatically update the html. Default: $rootScope
-      url: 'upload.php',
+      url: '/civicrm/ajax/rest?entity=SimpleMailHeader&action=uploadimage&json=1&sequential=1',
 //      queueLimit: 1,
       autoUpload: true,
-      formData: [
-        { key: 'value' }
-      ],
+      formData: [formData],
+//      formData: [serialisedData],
+      headers: {
+//        'Content-Type': 'application/x-form-urlencoded',
+        'X-Requested-with': 'XMLHttpRequest'
+      },
       filters: [
         function (item) {                    // first user filter
           console.info('filter1');
@@ -104,6 +128,7 @@ controllers.controller('HeaderAdminController', [
 
     uploader.bind('afteraddingall', function (event, items) {
       console.info('After adding all files', items);
+      $scope.images.header.uploading = true;
     });
 
     uploader.bind('beforeupload', function (event, item) {
@@ -128,6 +153,10 @@ controllers.controller('HeaderAdminController', [
 
     uploader.bind('complete', function (event, xhr, item, response) {
       console.info('Complete', xhr, item, response);
+      $scope.images.header.uploaded = true;
+      $scope.images.header.file = response.file;
+      $scope.images.header.uploading = false;
+      notification.success('Header uploaded');
     });
 
     uploader.bind('progressall', function (event, progress) {

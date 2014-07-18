@@ -1,16 +1,46 @@
+/* Generic colours */
+/* Themed colours */
+/* Fonts */
+/* Dimensions */
 .sm-container {
   overflow: hidden; }
-.sm-container .file-drop-zone {
+.sm-container .field {
+  width: 75%; }
+.sm-container .field .image-preview, .sm-container .field .file-drop-zone {
+  width: 50%; }
+.sm-container .field .image-preview {
+  position: relative; }
+.sm-container .field .image-preview .thumb {
+  width: 100%;
+  padding: 5px;
   border: 1px dashed gray;
-  /*     width: 10rem; */
-  /*     height: 5rem; */
+  border-radius: 3px;
+  box-sizing: border-box; }
+.sm-container .field .image-preview .remove {
+  text-indent: -9999em;
+  display: none;
+  width: 12px;
+  height: 12px;
+  position: absolute;
+  top: 6%;
+  padding: 5px;
+  box-sizing: border-box;
+  background: url(/sites/all/modules/civicrm/i/close.png) no-repeat;
+  right: 6%; }
+.sm-container .field .image-preview:hover .remove {
+  display: block; }
+.sm-container .field .file-drop-zone {
+  border: 1px dashed gray;
   text-align: center;
   padding: 2rem;
-  border-radius: 3px; }
-.sm-container .field-group.inline .file-drop-zone {
-  /*     margin-left: 10px; */ }
+  border-radius: 3px;
+  color: gray;
+  box-sizing: border-box; }
+.sm-container .file-drop-zone.ng-file-over {
+  background: lightgoldenrodyellow;
+  color: inherit; }
 .sm-container .read-only {
-  color: #808080; }
+  color: gray; }
 .sm-container #campaign-message-preview {
   height: 109px; }
 .sm-container .full-width {

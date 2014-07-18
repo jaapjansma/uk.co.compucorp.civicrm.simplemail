@@ -1,21 +1,74 @@
+/* Generic colours */
+$grey: #808080;
+
+/* Themed colours */
+$drop-zone: lightgoldenrodyellow;
+
+/* Fonts */
+$read-only: $grey;
+
+/* Dimensions */
+$one-third: 33%;
+$two-thirds: 66%;
+$one-quarter: 25%;
+$three-quarters: 75%;
+$one-half: 50%;
+$full: 100%;
+
 .sm-container {
   overflow: hidden;
   
-  .file-drop-zone { 
-    border: 1px dashed gray;
-/*     width: 10rem; */
-/*     height: 5rem; */
-    text-align: center;
-    padding: 2rem;
-    border-radius: 3px;
+  .field {
+    width: $three-quarters;
+    
+    .image-preview,
+    .file-drop-zone {
+      width: $one-half;
+    }
+    
+    .image-preview {
+      position: relative;
+      .thumb {
+        width: $full;
+        padding: 5px;
+        border: 1px dashed $grey;
+        border-radius: 3px;
+        box-sizing: border-box;
+      }
+      .remove {
+        text-indent: -9999em;
+        display: none;
+        width: 12px;
+        height: 12px;
+        position: absolute;
+        top: 6%;
+        padding: 5px;
+        box-sizing: border-box;
+        background: url(/sites/all/modules/civicrm/i/close.png) no-repeat;
+        right: 6%;
+      }
+    }
+    .image-preview:hover .remove {
+      display: block;
+    }
+    
+    .file-drop-zone {
+      border: 1px dashed $grey;
+      text-align: center;
+      padding: 2rem;
+      border-radius: 3px;
+      color: $grey;
+      box-sizing: border-box;
+    }
   }
   
-  .field-group.inline .file-drop-zone {
-/*     margin-left: 10px; */    
+  .file-drop-zone.ng-file-over {
+    background: $drop-zone;
+    color: inherit;
   }
-
+    
   .read-only {
-    color: #808080;
+    color: $read-only;
   }
   
   #campaign-message-preview {
@@ -23,7 +76,7 @@
   }
   
   .full-width {
-    width: 100%;
+    width: $full;
   }
   
   .buttons {
@@ -43,11 +96,11 @@
     width: auto;
   }
   .one-third {
-    width: 33%;
+    width: $one-third;
     box-sizing: border-box;
   }
   .two-thirds {
-    width: 66%;
+    width: $two-thirds;
     box-sizing: border-box;
   }
   
@@ -56,7 +109,7 @@
   }
       
   .select2-container {    
-    width: 50%;    
+    width: $one-half;    
   }
   
   .cols {

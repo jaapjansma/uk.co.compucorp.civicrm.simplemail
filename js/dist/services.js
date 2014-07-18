@@ -109,6 +109,7 @@ services.factory("loggingServices",
 services.factory("civiApiServices", ['$http',
   function ($http) {
     return {
+      // todo: this might not be needed/used - remove later
       status: {
         SUCCESS: 'success',
         FAILURE: 'failure'
