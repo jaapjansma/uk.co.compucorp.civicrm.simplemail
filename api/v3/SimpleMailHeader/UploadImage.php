@@ -22,7 +22,24 @@ function _civicrm_api3_simple_mail_header_uploadimage_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_header_uploadimage($params) {
-  $filePrefix = 'simple-mail/headers';
+  $extDirName = 'simple-mail';
+
+  $field = $params['field'];
+  $filePrefix = $extDirName;
+
+  switch ($field) {
+    case 'image':
+      $filePrefix .= DIRECTORY_SEPARATOR . 'image';
+      break;
+
+    case 'logo_image':
+      $filePrefix .= DIRECTORY_SEPARATOR . 'logo_image';
+      break;
+
+    default:
+      $filePrefix .= DIRECTORY_SEPARATOR . 'default';
+      break;
+  }
 
   $tempFile = $_FILES['file']['tmp_name'];
 
@@ -31,16 +48,18 @@ function civicrm_api3_simple_mail_header_uploadimage($params) {
   $dirName = civicrm_api3('setting', 'getvalue', array('name' => 'imageUploadDir')) . $filePrefix;
   CRM_Utils_File::createDir($dirName); // Create the upload directory if it doesn't already exist
 
-  $file = $dirName . '/' . $fileName;
+  $file = $dirName . DIRECTORY_SEPARATOR . $fileName;
 
   // Move the uploaded file to the upload directory
   if (move_uploaded_file($tempFile, $file)) {
-    $dirUrl = civicrm_api3('setting', 'getvalue', array('name' => 'imageUploadURL')) . $filePrefix;
-    $fileUrl = $dirUrl . '/' . $fileName;
+    $imageDirUrl = civicrm_api3('setting', 'getvalue', array('name' => 'imageUploadURL')) . $filePrefix;
+    $imageUrl = $imageDirUrl . '/' . $fileName;
 
-    return array('file' => $fileUrl);
+    return array(
+      'imageUrl' => $imageUrl,
+      'imageFileName' => $fileName
+    );
   } else {
     throw new API_Exception('Failed to move the uploaded file', 500);
   }
 }
-

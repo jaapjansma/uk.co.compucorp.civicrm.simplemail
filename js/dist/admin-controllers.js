@@ -76,38 +76,13 @@ controllers.controller('HeaderAdminController', [
       ENTITY_NAME: 'SimpleMailHeader'
     };
 
-
-    $scope.images = {
-      header: {
-        uploaded: false,
-        uploading: false,
-        file: null
-      },
-      logo: {
-        uploaded: false,
-        uploading: false,
-        file: null
-      }
-    }
-
-    var formData = {
-//      entity: $scope.constants.ENTITY_NAME,
-//      action: 'get',
-//      key: 'value'
-    };
-
-    var serialisedData = jQuery.param(formData);
-
     // create a uploader with options
-    var uploader = $scope.uploader = $fileUploader.create({
+    var uploader = $scope.imageUploader = $fileUploader.create({
       scope: $scope,                          // to automatically update the html. Default: $rootScope
       url: '/civicrm/ajax/rest?entity=SimpleMailHeader&action=uploadimage&json=1&sequential=1',
 //      queueLimit: 1,
       autoUpload: true,
-      formData: [formData],
-//      formData: [serialisedData],
       headers: {
-//        'Content-Type': 'application/x-form-urlencoded',
         'X-Requested-with': 'XMLHttpRequest'
       },
       filters: [
@@ -118,62 +93,121 @@ controllers.controller('HeaderAdminController', [
       ]
     });
 
-    uploader.bind('afteraddingfile', function (event, item) {
-      console.info('After adding a file', item);
-    });
+    /*
+     // Fires after adding a single file to the queue
+     uploader.bind('afteraddingfile', function (event, item) {
+     console.info('After adding a file', item);
+     });
 
-    uploader.bind('whenaddingfilefailed', function (event, item) {
-      console.info('When adding a file failed', item);
-    });
+     // Fires when adding a file fails
+     uploader.bind('whenaddingfilefailed', function (event, item) {
+     console.info('When adding a file failed', item);
+     });
 
-    uploader.bind('afteraddingall', function (event, items) {
-      console.info('After adding all files', items);
-      $scope.images.header.uploading = true;
-    });
+     // Fires after adding all dragged/selected images to the queue
+     uploader.bind('afteraddingall', function (event, items) {
+     console.info('After adding all files', items);
+     });
 
+     // Fires before uploading an item
+     uploader.bind('beforeupload', function (event, item) {
+     console.info('Before upload', item);
+     });
+
+     // On file upload progress
+     uploader.bind('progress', function (event, item, progress) {
+     console.info('Progress: ' + progress, item);
+     });
+     */
+
+    // Fires before uploading an item
     uploader.bind('beforeupload', function (event, item) {
       console.info('Before upload', item);
+
+      switch (item.field) {
+        case 'image':
+          $scope.header.uploadingField = 'image';
+          item.formData.push({field: 'image'});
+          break;
+
+        case 'logo_image':
+          $scope.header.uploadingField = 'logo_image';
+          item.formData.push({field: 'logo_image'});
+          break;
+
+        default:
+          break;
+      }
     });
 
-    uploader.bind('progress', function (event, item, progress) {
-      console.info('Progress: ' + progress, item);
-    });
-
+    // On file successfully uploaded
     uploader.bind('success', function (event, xhr, item, response) {
       console.info('Success', xhr, item, response);
+
+      $scope.header[item.field] = response.imageFileName;
+      $scope.header[item.field + '_url'] = response.imageUrl;
+
+      $scope.header.uploadingField = null;
+
+      notification.success('Image uploaded');
     });
 
-    uploader.bind('cancel', function (event, xhr, item) {
-      console.info('Cancel', xhr, item);
-    });
 
+    // todo: this would be used instead of just linking to the listing URL in the view, in order to provide a hook for cleanup, etc. such as removal of any uploaded images (as otherwise such unused, unreferenced images would be a waste)
+    $scope.cancel = function() {
+
+    }
+
+    // todo: this should also remove the image from the server as the images would keep piling in the directory even if not being used
+    $scope.remove = function (field) {
+      $scope.header[field] = $scope.header[field + '_url'] = undefined;
+    };
+
+    // On upload error
     uploader.bind('error', function (event, xhr, item, response) {
       console.info('Error', xhr, item, response);
     });
 
+    // On file upload complete (whether successful or not)
     uploader.bind('complete', function (event, xhr, item, response) {
       console.info('Complete', xhr, item, response);
-      $scope.images.header.uploaded = true;
-      $scope.images.header.file = response.file;
-      $scope.images.header.uploading = false;
-      notification.success('Header uploaded');
     });
 
+    // On upload queue progress
     uploader.bind('progressall', function (event, progress) {
       console.info('Total progress: ' + progress);
     });
 
-
+    // Populate the fields when editing an existing header
     if ($routeParams.headerId) {
       civiApi.get($scope.constants.ENTITY_NAME, {id: $routeParams.headerId})
         .success(function (response) {
           log.createLog('Header retrieved', response);
 
-          if (header.error_message) {
+          if (header.is_error) {
             notification.error('Failed to retrieve the header', response.error_message);
             $scope.redirectToListing();
           } else {
+
             $scope.header = response.values[0];
+
+            civiApi.getValue('Setting', {name: 'imageUploadURL'})
+              .success(function (response) {
+                log.createLog('Setting retrieved', response);
+
+                if (response.is_error) {
+                  notification.error('Failed to retrieve image upload URL setting', response.error_message);
+                } else {
+                  var baseUrl = response.result + 'simple-mail';
+
+                  if ($scope.header.image) {
+                    $scope.header.image_url = baseUrl + '/image/' + $scope.header.image;
+                  }
+                  if ($scope.header.logo_image) {
+                    $scope.header.logo_image_url = baseUrl + '/logo_image/' + $scope.header.logo_image;
+                  }
+                }
+              });
           }
         });
     }
@@ -185,10 +219,27 @@ controllers.controller('HeaderAdminController', [
       $location.path('/headers');
     };
 
+    $scope.validateHeader = function (form) {
+      var errors = false;
+
+      if (form.$error.required) {
+        errors = true;
+      }
+
+      return errors;
+   };
+
     /**
      * Create or update header depending upon whether the header was loaded from the database or was being added as new
      */
-    $scope.createOrUpdateHeader = function () {
+    $scope.createOrUpdateHeader = function (form) {
+      $scope.header.submitted = true;
+
+      if ($scope.validateHeader(form)) {
+        notification.error('Please fix the errors on the page');
+        return;
+      }
+
       if ($scope.header.id) {
         civiApi.update($scope.constants.ENTITY_NAME, $scope.header)
           .success(function (response) {

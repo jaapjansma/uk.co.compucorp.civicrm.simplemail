@@ -1,28 +1,46 @@
-<div id="sm-header-admin" class="sm-container" ng-controller="HeaderAdminController">
-  <form class="crm-form-block form-layout">
+<div id="sm-header-admin" class="sm-container">
+  <form name="headerForm" class="crm-form-block form-layout" novalidate>
     <div class="field-group inline clearfix">
       <label for="label">Label</label>
-      <input id="label" type="text" ng-model="header.label"/>
+
+      <div class="field">
+        <input id="label" name="label" type="text" ng-model="header.label" required/>
+
+        <p style="" ng-show="headerForm.label.$invalid && header.submitted" class="error">Label is a required field</p>
+      </div>
     </div>
 
     <div class="field-group inline clearfix">
       <label for="image">Image</label>
 
-      <div sm-image-uploader class="field"></div>
+      <div sm-image-uploader
+           class="field"
+           model="header"
+           uploader="imageUploader"
+           form="headerForm"
+           on-remove="remove('image')"
+           config="{field: 'image', required: true, name: 'image'}"></div>
     </div>
 
     <div class="field-group inline clearfix">
-      <label for="show_logo">Show logo on mailings with this header:</label>
-      <input id="show_logo" type="text" ng-model="header.show_logo"/>
+      <label for="show-logo">Show logo on mailings with this header:</label>
+      <input id="show-logo" type="checkbox" ng-model="header.show_logo"
+             ng-true-value="1" ng-false-value="0"/>
     </div>
 
     <div class="field-group inline clearfix">
       <label for="logo_image">Logo image</label>
-      <input id="logo_image" type="text" ng-model="header.logo_image"/>
+
+      <div sm-image-uploader
+           class="field"
+           model="header"
+           uploader="imageUploader"
+           on-remove="remove('logo_image')"
+           config="{field: 'logo_image', name: 'logo_image'}"></div>
     </div>
 
     <div class="clearfix">
-      <a href ng-click="createOrUpdateHeader()" class="button">Save</a>
+      <a href ng-click="createOrUpdateHeader(headerForm)" class="button">Save</a>
       <a ng-href="#/headers" class="button">Cancel</a>
     </div>
   </form>

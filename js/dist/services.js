@@ -123,9 +123,20 @@ services.factory("civiApiServices", ['$http',
        * @returns {*}
        */
       get: function (entityName, config) {
-        var data = config ? config : {};
-//        var data = id ? {id: id} : {};
+        var data = config || {};
         return this._post(entityName, data, 'get');
+      },
+
+      /**
+       * Return value corresponding to the given name for the entity
+       *
+       * @param entityName
+       * @param config
+       * @returns {*}
+       */
+      getValue: function(entityName, config) {
+        var data = config || {};
+        return this._post(entityName, data, 'getValue');
       },
 
       /**
