@@ -124,7 +124,7 @@ services.factory("civiApiServices", ['$http',
        */
       get: function (entityName, config) {
         var data = config || {};
-        return this._post(entityName, data, 'get');
+        return this.post(entityName, data, 'get');
       },
 
       /**
@@ -136,7 +136,7 @@ services.factory("civiApiServices", ['$http',
        */
       getValue: function(entityName, config) {
         var data = config || {};
-        return this._post(entityName, data, 'getValue');
+        return this.post(entityName, data, 'getValue');
       },
 
       /**
@@ -147,7 +147,7 @@ services.factory("civiApiServices", ['$http',
        * @returns {*}
        */
       create: function (entityName, data) {
-        return this._post(entityName, data, 'create');
+        return this.post(entityName, data, 'create');
       },
 
       /**
@@ -158,7 +158,7 @@ services.factory("civiApiServices", ['$http',
        * @returns {*}
        */
       update: function (entityName, data) {
-        return this._post(entityName, data, 'create');
+        return this.post(entityName, data, 'create');
       },
 
       /**
@@ -169,7 +169,7 @@ services.factory("civiApiServices", ['$http',
        * @returns {*}
        */
       remove: function (entityName, data) {
-        return this._post(entityName, data, 'delete')
+        return this.post(entityName, data, 'delete')
       },
 
       /**
@@ -180,7 +180,7 @@ services.factory("civiApiServices", ['$http',
        * @param action
        * @returns {*}
        */
-      _post: function (entityName, data, action) {
+      post: function (entityName, data, action) {
         data.entity = entityName;
         data.action = action;
         data.sequential = 1;

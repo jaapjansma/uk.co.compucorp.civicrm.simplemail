@@ -144,6 +144,9 @@ controllers.controller('HeaderAdminController', [
     uploader.bind('success', function (event, xhr, item, response) {
       console.info('Success', xhr, item, response);
 
+      // This will make that the existing file gets deleted from the server's file system, if someone uploads another file using the 'file' input element, instead of using the drop zone, so as to not leave orphan files behind
+      $scope.remove(item.field);
+
       $scope.header[item.field] = response.imageFileName;
       $scope.header[item.field + '_url'] = response.imageUrl;
 
@@ -151,17 +154,6 @@ controllers.controller('HeaderAdminController', [
 
       notification.success('Image uploaded');
     });
-
-
-    // todo: this would be used instead of just linking to the listing URL in the view, in order to provide a hook for cleanup, etc. such as removal of any uploaded images (as otherwise such unused, unreferenced images would be a waste)
-    $scope.cancel = function() {
-
-    }
-
-    // todo: this should also remove the image from the server as the images would keep piling in the directory even if not being used
-    $scope.remove = function (field) {
-      $scope.header[field] = $scope.header[field + '_url'] = undefined;
-    };
 
     // On upload error
     uploader.bind('error', function (event, xhr, item, response) {
@@ -177,6 +169,26 @@ controllers.controller('HeaderAdminController', [
     uploader.bind('progressall', function (event, progress) {
       console.info('Total progress: ' + progress);
     });
+
+    // todo: this would be used instead of just linking to the listing URL in the view, in order to provide a hook for cleanup, etc. such as removal of any uploaded images (as otherwise such unused, unreferenced images would be a waste)
+    $scope.cancel = function () {
+
+    }
+
+    // todo: this should also remove the image from the server as the images would keep piling in the directory even if not being used
+    $scope.remove = function (field) {
+      var fileName = $scope.header[field];
+      civiApi.post('SimpleMailHeader', {field: field, fileName: fileName}, 'deleteimage')
+        .success(function(response) {
+          if (response.is_error) {
+            notification.error('Failed to delete the image', response.error_message);
+          } else {
+            notification.success('Image deleted successfully');
+          }
+        });
+
+      $scope.header[field] = $scope.header[field + '_url'] = undefined;
+    };
 
     // Populate the fields when editing an existing header
     if ($routeParams.headerId) {
@@ -227,7 +239,7 @@ controllers.controller('HeaderAdminController', [
       }
 
       return errors;
-   };
+    };
 
     /**
      * Create or update header depending upon whether the header was loaded from the database or was being added as new
