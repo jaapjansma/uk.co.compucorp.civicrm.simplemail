@@ -8,10 +8,16 @@
     }}
   </span>
 </p>
-<p style="overflow: hidden" ng-hide="model[config.field + '_url'] === undefined && uploader.isHTML5" class="image-preview">
+<p style="overflow: hidden" ng-hide="model[config.field + '_url'] === undefined && uploader.isHTML5"
+   class="image-preview">
   <img class="thumb" ng-hide="model[config.field + '_url'] === undefined" ng-src="{{model[config.field + '_url']}}"/>
   <a href class="remove" ng-click="remove()">Remove</a>
 </p>
-<input id="{{config.name + '_select'}}" name="{{config.name + '_select'}}" type="file" ng-file-select/>
-<input id="{{config.name + '_field'}}" name="{{config.name + '_field'}}" ng-required="config.required" ng-hide="true" type="text" ng-model="model[config.field]"/>
-<p ng-show="config.required && !model[config.field].length && model.submitted" class="error">This is a required field</p>
+<input id="{{config.name + '_select'}}"
+       name="{{config.name + '_select'}}"
+       type="file"
+       ng-file-select="{field: '{{config.field}}'}"/>
+<input id="{{config.name + '_field'}}" name="{{config.name + '_field'}}" ng-required="config.required" ng-hide="true"
+       type="text" ng-model="model[config.field]"/>
+<p ng-show="config.required && !model[config.field].length && model.submitted" class="error">This is a required
+  field</p>
