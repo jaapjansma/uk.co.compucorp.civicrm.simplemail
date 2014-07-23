@@ -17,10 +17,10 @@ controllers.controller('HeadersAdminController', [
 
     $scope.headers = {};
 
-    // todo: rename the argument in all success/error to response to stay consistent and predictable
+    // TODO (robin): rename the argument in all success/error to response to stay consistent and predictable
     civiApi.get($scope.constants.ENTITY_NAME)
       .success(function (headers) {
-        // todo: may be just save the actual headers array in headers, so that getHeaders won't be needed and make the behaviour more predictable
+        // TODO (robin): may be just save the actual headers array in headers, so that getHeaders won't be needed and make the behaviour more predictable
         $scope.headers = headers;
         log.createLog('Headers received', headers);
       }).error(function (response) {
@@ -170,14 +170,15 @@ controllers.controller('HeaderAdminController', [
       console.info('Total progress: ' + progress);
     });
 
-    // todo: this would be used instead of just linking to the listing URL in the view, in order to provide a hook for cleanup, etc. such as removal of any uploaded images (as otherwise such unused, unreferenced images would be a waste)
+    // TODO (robin): this would be used instead of just linking to the listing URL in the view, in order to provide a hook for cleanup, etc. such as removal of any uploaded images (as otherwise such unused, unreferenced images would be a waste)
     $scope.cancel = function () {
 
-    }
+    };
 
-    // todo: this should also remove the image from the server as the images would keep piling in the directory even if not being used
     $scope.remove = function (field) {
       var fileName = $scope.header[field];
+
+      if (fileName) {
       civiApi.post('SimpleMailHeader', {field: field, fileName: fileName}, 'deleteimage')
         .success(function(response) {
           if (response.is_error) {
@@ -186,6 +187,7 @@ controllers.controller('HeaderAdminController', [
             notification.success('Image deleted successfully');
           }
         });
+      }
 
       $scope.header[field] = $scope.header[field + '_url'] = undefined;
     };
@@ -353,7 +355,7 @@ controllers.controller('MessagesAdminController', [
       return message;
     };
 
-    // todo: simplify this - too many similarly named functions are confusing - remove all but the essential ones
+    // TODO (robin): simplify this - too many similarly named functions are confusing - remove all but the essential ones
     $scope.getSanitisedMessage = function (index) {
       return $scope.sanitiseMessage($scope.getMessageCopy(index));
     };
@@ -436,7 +438,7 @@ controllers.controller('MessagesAdminController', [
         .success(function (response) {
           console.log(response);
 
-          // todo: this could be refactored out into the civiApiServices, so that we only need to send the callback functions for success and failure to it from here
+          // TODO (robin): this could be refactored out into the civiApiServices, so that we only need to send the callback functions for success and failure to it from here
           if (response.error_message) {
             console.log('Failed to update the record:', response.error_message);
             $scope.errorMessage = response.error_message;
