@@ -14,7 +14,7 @@ services.factory("pathServices", [
   }
 ]);
 
-// todo: use the builtin log service of AngularJS and decorate it with custom behavior rather than this below
+// TODO (robin): use the builtin log service of AngularJS and decorate it with custom behavior rather than this below
 services.factory("notificationServices", ['loggingServices',
   function (log) {
     /**
@@ -110,7 +110,7 @@ services.factory("loggingServices",
 services.factory("civiApiServices", ['$http',
   function ($http) {
     return {
-      // todo: this might not be needed/used - remove later
+      // TODO (robin): this might not be needed/used - remove later
       status: {
         SUCCESS: 'success',
         FAILURE: 'failure'

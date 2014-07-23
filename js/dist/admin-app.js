@@ -25,7 +25,7 @@ function partialUrl(url) {
 app.config(['$routeProvider',
   function ($routeProvider) {
     $routeProvider
-      // todo: add resolvers to listing controllers in order to not render view until API has returned data
+      // TODO (robin): add resolvers to listing controllers in order to not render view until API has returned data
       .when('/headers', {
         templateUrl: partialUrl('listHeaders.html'),
         controller: 'HeadersAdminController'
