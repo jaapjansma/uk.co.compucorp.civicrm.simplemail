@@ -3,6 +3,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS `civicrm_simplemailheader`;
 DROP TABLE IF EXISTS `civicrm_simplemailmessage`;
 DROP TABLE IF EXISTS `civicrm_simplemail`;
+DROP TABLE IF EXISTS `civicrm_simplemailrecipientgroup`;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -82,6 +83,31 @@ CREATE TABLE `civicrm_simplemail` (
   , CONSTRAINT FK_civicrm_simplemail_header_id FOREIGN KEY (`header_id`) REFERENCES `civicrm_simplemailheader` (`id`)
   ON DELETE SET NULL, CONSTRAINT FK_civicrm_simplemail_message_id FOREIGN KEY (`message_id`) REFERENCES `civicrm_simplemailmessage` (`id`)
   ON DELETE SET NULL
+)
+  ENGINE =InnoDB
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_unicode_ci;
+
+-- /*******************************************************
+-- *
+-- * civicrm_simplemailrecipientgroup
+-- *
+-- * Recipient group for Simple Mail
+-- *
+-- *******************************************************/
+CREATE TABLE `civicrm_simplemailrecipientgroup` (
+  `id`           INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique SimpleMailRecipientGroup ID',
+  `campaign_id`  INT UNSIGNED COMMENT 'The ID of a mailing wizard',
+  `group_type`   VARCHAR(8) COMMENT 'Are the members of the group included or excluded?',
+  `entity_table` VARCHAR(64)  NOT NULL
+  COMMENT 'Name of the table where item being referenced is stored',
+  `entity_id`    INT UNSIGNED NOT NULL
+  COMMENT 'Foreign key to the referenced item'
+  ,
+  PRIMARY KEY (`id`)
+
+  , CONSTRAINT FK_civicrm_simplemailrecipientgroup_campaign_id FOREIGN KEY (`campaign_id`) REFERENCES `civicrm_simplemail` (`id`)
+  ON DELETE CASCADE
 )
   ENGINE =InnoDB
   DEFAULT CHARACTER SET utf8

@@ -2,6 +2,8 @@
 
 class CRM_Simplemail_BAO_SimpleMailRecipientGroup extends CRM_Simplemail_DAO_SimpleMailRecipientGroup {
 
+  static protected $groups = null;
+
   /**
    * Create a new SimpleMailRecipientGroup based on array-data
    *
@@ -21,4 +23,20 @@ class CRM_Simplemail_BAO_SimpleMailRecipientGroup extends CRM_Simplemail_DAO_Sim
 
     return $instance;
   } */
+
+  /**
+   * Return recipient groups
+   *
+   * @return array
+   */
+  static public function getGroups() {
+    if (!static::$groups) {
+      static::$groups = array(
+        'Included' => ts('Included'),
+        'Excluded' => ts('Excluded')
+      );
+    }
+
+    return static::$groups;
+  }
 }
