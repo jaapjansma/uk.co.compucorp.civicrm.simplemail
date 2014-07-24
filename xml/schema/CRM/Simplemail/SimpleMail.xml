@@ -23,7 +23,7 @@
   <field>
     <name>name</name>
     <type>varchar</type>
-    <length>50</length>
+    <length>64</length>
     <title>Name</title>
     <comment>Name of the mailing campaign</comment>
     <required>true</required>
@@ -38,6 +38,26 @@
     <default>1</default>
     <comment>The step to resume from on the wizard</comment>
     <add>4.4</add>
+  </field>
+
+  <field>
+    <name>from_name</name>
+    <type>varchar</type>
+    <length>128</length>
+    <comment>Name for the from email address</comment>
+    <html>
+      <type>Text</type>
+    </html>
+  </field>
+
+  <field>
+    <name>from_email</name>
+    <type>varchar</type>
+    <length>128</length>
+    <comment>Email for the from email address</comment>
+    <html>
+      <type>Text</type>
+    </html>
   </field>
 
   <field>
@@ -57,7 +77,7 @@
   <field>
     <name>subject</name>
     <type>varchar</type>
-    <length>50</length>
+    <length>64</length>
     <title>Subject</title>
     <comment>Subject of the email</comment>
     <required>true</required>
@@ -67,7 +87,7 @@
   <field>
     <name>title</name>
     <type>varchar</type>
-    <length>50</length>
+    <length>64</length>
     <title>Title</title>
     <comment>Title/strapline for the email (in the title region)</comment>
     <required>true</required>
@@ -79,6 +99,15 @@
     <type>text</type>
     <title>Body</title>
     <comment>Body of the email</comment>
+    <required>true</required>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>contact_details</name>
+    <type>text</type>
+    <title>Contact Details</title>
+    <comment>Contact details</comment>
     <required>true</required>
     <add>4.4</add>
   </field>

@@ -23,7 +23,7 @@
   <field>
     <name>label</name>
     <type>varchar</type>
-    <length>30</length>
+    <length>64</length>
     <comment>Label for the message</comment>
     <title>Label</title>
     <required>true</required>
