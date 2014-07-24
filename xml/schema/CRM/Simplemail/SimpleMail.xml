@@ -26,7 +26,7 @@
     <length>64</length>
     <title>Name</title>
     <comment>Name of the mailing campaign</comment>
-    <required>true</required>
+    <!--<required>true</required>-->
     <add>4.4</add>
   </field>
 
@@ -34,7 +34,7 @@
     <name>resume_step</name>
     <type>tinyint unsigned</type>
     <title>Resume Step</title>
-    <required>true</required>
+    <!--<required>true</required>-->
     <default>1</default>
     <comment>The step to resume from on the wizard</comment>
     <add>4.4</add>
@@ -63,7 +63,7 @@
   <field>
     <name>header_id</name>
     <type>int unsigned</type>
-    <required>false</required>
+    <!--<required>false</required>-->
     <comment>The ID of a mailing header</comment>
     <add>4.4</add>
   </field>
@@ -80,7 +80,7 @@
     <length>64</length>
     <title>Subject</title>
     <comment>Subject of the email</comment>
-    <required>true</required>
+    <!--<required>true</required>-->
     <add>4.4</add>
   </field>
 
@@ -90,7 +90,7 @@
     <length>64</length>
     <title>Title</title>
     <comment>Title/strapline for the email (in the title region)</comment>
-    <required>true</required>
+    <!--<required>true</required>-->
     <add>4.4</add>
   </field>
 
@@ -99,7 +99,7 @@
     <type>text</type>
     <title>Body</title>
     <comment>Body of the email</comment>
-    <required>true</required>
+    <!--<required>true</required>-->
     <add>4.4</add>
   </field>
 
@@ -108,14 +108,14 @@
     <type>text</type>
     <title>Contact Details</title>
     <comment>Contact details</comment>
-    <required>true</required>
+    <!--<required>true</required>-->
     <add>4.4</add>
   </field>
 
   <field>
     <name>message_id</name>
     <type>int unsigned</type>
-    <required>false</required>
+    <!--<required>false</required>-->
     <comment>The ID of the campaign message</comment>
     <add>4.4</add>
   </field>
@@ -130,7 +130,7 @@
     <name>send_immediately</name>
     <type>boolean</type>
     <default>0</default>
-    <required>true</required>
+    <!--<required>true</required>-->
   </field>
 
   <field>
@@ -138,7 +138,7 @@
     <type>datetime</type>
     <title>Send On</title>
     <comment>Date scheduled for sending emails</comment>
-    <required>false</required>
+    <!--<required>false</required>-->
     <add>4.4</add>
   </field>
 

@@ -182,14 +182,12 @@ class CRM_Simplemail_DAO_SimpleMailRecipientGroup extends CRM_Core_DAO
           'name' => 'entity_table',
           'type' => CRM_Utils_Type::T_STRING,
           'title' => ts('Entity Table') ,
-          'required' => true,
           'maxlength' => 64,
           'size' => CRM_Utils_Type::BIG,
         ) ,
         'entity_id' => array(
           'name' => 'entity_id',
           'type' => CRM_Utils_Type::T_INT,
-          'required' => true,
         ) ,
       );
     }

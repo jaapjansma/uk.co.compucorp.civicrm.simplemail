@@ -211,7 +211,6 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
           'name' => 'name',
           'type' => CRM_Utils_Type::T_STRING,
           'title' => ts('Name') ,
-          'required' => true,
           'maxlength' => 64,
           'size' => CRM_Utils_Type::BIG,
         ) ,
@@ -219,7 +218,6 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
           'name' => 'resume_step',
           'type' => CRM_Utils_Type::T_TINYINTUNSIGNED,
           'title' => ts('Resume Step') ,
-          'required' => true,
           'default' => '1',
         ) ,
         'from_name' => array(
@@ -245,14 +243,12 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
         'header_id' => array(
           'name' => 'header_id',
           'type' => CRM_Utils_Type::T_INT,
-          'required' => false,
           'FKClassName' => 'CRM_Simplemail_DAO_SimpleMailHeader',
         ) ,
         'subject' => array(
           'name' => 'subject',
           'type' => CRM_Utils_Type::T_STRING,
           'title' => ts('Subject') ,
-          'required' => true,
           'maxlength' => 64,
           'size' => CRM_Utils_Type::BIG,
         ) ,
@@ -260,7 +256,6 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
           'name' => 'title',
           'type' => CRM_Utils_Type::T_STRING,
           'title' => ts('Title') ,
-          'required' => true,
           'maxlength' => 64,
           'size' => CRM_Utils_Type::BIG,
         ) ,
@@ -268,31 +263,26 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
           'name' => 'body',
           'type' => CRM_Utils_Type::T_TEXT,
           'title' => ts('Body') ,
-          'required' => true,
         ) ,
         'contact_details' => array(
           'name' => 'contact_details',
           'type' => CRM_Utils_Type::T_TEXT,
           'title' => ts('Contact Details') ,
-          'required' => true,
         ) ,
         'message_id' => array(
           'name' => 'message_id',
           'type' => CRM_Utils_Type::T_INT,
-          'required' => false,
           'FKClassName' => 'CRM_Simplemail_DAO_SimpleMailMessage',
         ) ,
         'send_immediately' => array(
           'name' => 'send_immediately',
           'type' => CRM_Utils_Type::T_BOOLEAN,
           'title' => ts('Send Immediately') ,
-          'required' => true,
         ) ,
         'send_on' => array(
           'name' => 'send_on',
           'type' => CRM_Utils_Type::T_DATE + CRM_Utils_Type::T_TIME,
           'title' => ts('Send On') ,
-          'required' => false,
         ) ,
       );
     }

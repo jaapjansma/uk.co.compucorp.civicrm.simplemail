@@ -69,28 +69,20 @@ CREATE TABLE `civicrm_simplemailmessage` (
 CREATE TABLE `civicrm_simplemail` (
 
 
-  `id`               INT UNSIGNED     NOT NULL AUTO_INCREMENT COMMENT 'Unique SimpleMail ID',
-  `name`             VARCHAR(64)      NOT NULL
-  COMMENT 'Name of the mailing campaign',
-  `resume_step`      TINYINT UNSIGNED NOT NULL  DEFAULT 1
+  `id`               INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique SimpleMail ID',
+  `name`             VARCHAR(64) COMMENT 'Name of the mailing campaign',
+  `resume_step`      TINYINT UNSIGNED DEFAULT 1
   COMMENT 'The step to resume from on the wizard',
   `from_name`        VARCHAR(128) COMMENT 'Name for the from email address',
   `from_email`       VARCHAR(128) COMMENT 'Email for the from email address',
-  `header_id`        INT UNSIGNED     NULL
-  COMMENT 'The ID of a mailing header',
-  `subject`          VARCHAR(64)      NOT NULL
-  COMMENT 'Subject of the email',
-  `title`            VARCHAR(64)      NOT NULL
-  COMMENT 'Title/strapline for the email (in the title region)',
-  `body`             TEXT             NOT NULL
-  COMMENT 'Body of the email',
-  `contact_details`  TEXT             NOT NULL
-  COMMENT 'Contact details',
-  `message_id`       INT UNSIGNED     NULL
-  COMMENT 'The ID of the campaign message',
-  `send_immediately` TINYINT          NOT NULL  DEFAULT 0,
-  `send_on`          DATETIME         NULL
-  COMMENT 'Date scheduled for sending emails'
+  `header_id`        INT UNSIGNED COMMENT 'The ID of a mailing header',
+  `subject`          VARCHAR(64) COMMENT 'Subject of the email',
+  `title`            VARCHAR(64) COMMENT 'Title/strapline for the email (in the title region)',
+  `body`             TEXT COMMENT 'Body of the email',
+  `contact_details`  TEXT COMMENT 'Contact details',
+  `message_id`       INT UNSIGNED COMMENT 'The ID of the campaign message',
+  `send_immediately` TINYINT DEFAULT 0,
+  `send_on`          DATETIME COMMENT 'Date scheduled for sending emails'
   ,
   PRIMARY KEY (`id`)
 
@@ -116,10 +108,8 @@ CREATE TABLE `civicrm_simplemailrecipientgroup` (
   `id`           INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique SimpleMailRecipientGroup ID',
   `campaign_id`  INT UNSIGNED COMMENT 'The ID of a mailing wizard',
   `group_type`   VARCHAR(8) COMMENT 'Are the members of the group included or excluded?',
-  `entity_table` VARCHAR(64)  NOT NULL
-  COMMENT 'Name of the table where item being referenced is stored',
-  `entity_id`    INT UNSIGNED NOT NULL
-  COMMENT 'Foreign key to the referenced item'
+  `entity_table` VARCHAR(64) COMMENT 'Name of the table where item being referenced is stored',
+  `entity_id`    INT UNSIGNED COMMENT 'Foreign key to the referenced item'
   ,
   PRIMARY KEY (`id`)
 
