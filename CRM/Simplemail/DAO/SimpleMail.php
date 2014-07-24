@@ -107,6 +107,18 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
    */
   public $resume_step;
   /**
+   * Name for the from email address
+   *
+   * @var string
+   */
+  public $from_name;
+  /**
+   * Email for the from email address
+   *
+   * @var string
+   */
+  public $from_email;
+  /**
    * The ID of a mailing header
    *
    * @var int unsigned
@@ -130,6 +142,12 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
    * @var text
    */
   public $body;
+  /**
+   * Contact details
+   *
+   * @var text
+   */
+  public $contact_details;
   /**
    * The ID of the campaign message
    *
@@ -194,7 +212,7 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
           'type' => CRM_Utils_Type::T_STRING,
           'title' => ts('Name') ,
           'required' => true,
-          'maxlength' => 50,
+          'maxlength' => 64,
           'size' => CRM_Utils_Type::BIG,
         ) ,
         'resume_step' => array(
@@ -203,6 +221,26 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
           'title' => ts('Resume Step') ,
           'required' => true,
           'default' => '1',
+        ) ,
+        'from_name' => array(
+          'name' => 'from_name',
+          'type' => CRM_Utils_Type::T_STRING,
+          'title' => ts('From Name') ,
+          'maxlength' => 128,
+          'size' => CRM_Utils_Type::HUGE,
+          'html' => array(
+            'type' => 'Text',
+          ) ,
+        ) ,
+        'from_email' => array(
+          'name' => 'from_email',
+          'type' => CRM_Utils_Type::T_STRING,
+          'title' => ts('From Email') ,
+          'maxlength' => 128,
+          'size' => CRM_Utils_Type::HUGE,
+          'html' => array(
+            'type' => 'Text',
+          ) ,
         ) ,
         'header_id' => array(
           'name' => 'header_id',
@@ -215,7 +253,7 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
           'type' => CRM_Utils_Type::T_STRING,
           'title' => ts('Subject') ,
           'required' => true,
-          'maxlength' => 50,
+          'maxlength' => 64,
           'size' => CRM_Utils_Type::BIG,
         ) ,
         'title' => array(
@@ -223,13 +261,19 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
           'type' => CRM_Utils_Type::T_STRING,
           'title' => ts('Title') ,
           'required' => true,
-          'maxlength' => 50,
+          'maxlength' => 64,
           'size' => CRM_Utils_Type::BIG,
         ) ,
         'body' => array(
           'name' => 'body',
           'type' => CRM_Utils_Type::T_TEXT,
           'title' => ts('Body') ,
+          'required' => true,
+        ) ,
+        'contact_details' => array(
+          'name' => 'contact_details',
+          'type' => CRM_Utils_Type::T_TEXT,
+          'title' => ts('Contact Details') ,
           'required' => true,
         ) ,
         'message_id' => array(
@@ -268,10 +312,13 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
         'id' => 'id',
         'name' => 'name',
         'resume_step' => 'resume_step',
+        'from_name' => 'from_name',
+        'from_email' => 'from_email',
         'header_id' => 'header_id',
         'subject' => 'subject',
         'title' => 'title',
         'body' => 'body',
+        'contact_details' => 'contact_details',
         'message_id' => 'message_id',
         'send_immediately' => 'send_immediately',
         'send_on' => 'send_on',

@@ -9,14 +9,16 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 -- /*******************************************************
 -- *
--- * civicrm_simplemail_header
+-- * civicrm_simplemailheader
 -- *
--- * Header images for Simple Mail
+-- * Header for Simple Mail
 -- *
 -- *******************************************************/
 CREATE TABLE `civicrm_simplemailheader` (
+
+
   `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique Header ID',
-  `label`      VARCHAR(30)  NOT NULL
+  `label`      VARCHAR(64)  NOT NULL
   COMMENT 'Label for the header image',
   `image`      VARCHAR(255) NOT NULL
   COMMENT 'Header image',
@@ -25,6 +27,8 @@ CREATE TABLE `civicrm_simplemailheader` (
   COMMENT 'Logo image'
   ,
   PRIMARY KEY (`id`)
+
+
 )
   ENGINE =InnoDB
   DEFAULT CHARACTER SET utf8
@@ -32,20 +36,24 @@ CREATE TABLE `civicrm_simplemailheader` (
 
 -- /*******************************************************
 -- *
--- * civicrm_simplemail_message
+-- * civicrm_simplemailmessage
 -- *
--- * Campaign messages for Simple Mail
+-- * Message for Simple Mail
 -- *
 -- *******************************************************/
 CREATE TABLE `civicrm_simplemailmessage` (
+
+
   `id`        INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique Message ID',
-  `label`     VARCHAR(30)  NOT NULL
+  `label`     VARCHAR(64)  NOT NULL
   COMMENT 'Label for the message',
   `text`      TEXT         NOT NULL
   COMMENT 'Long text for the message',
   `is_active` TINYINT      NOT NULL  DEFAULT 1
   ,
   PRIMARY KEY (`id`)
+
+
 )
   ENGINE =InnoDB
   DEFAULT CHARACTER SET utf8
@@ -59,19 +67,25 @@ CREATE TABLE `civicrm_simplemailmessage` (
 -- *
 -- *******************************************************/
 CREATE TABLE `civicrm_simplemail` (
+
+
   `id`               INT UNSIGNED     NOT NULL AUTO_INCREMENT COMMENT 'Unique SimpleMail ID',
-  `name`             VARCHAR(50)      NOT NULL
+  `name`             VARCHAR(64)      NOT NULL
   COMMENT 'Name of the mailing campaign',
   `resume_step`      TINYINT UNSIGNED NOT NULL  DEFAULT 1
   COMMENT 'The step to resume from on the wizard',
+  `from_name`        VARCHAR(128) COMMENT 'Name for the from email address',
+  `from_email`       VARCHAR(128) COMMENT 'Email for the from email address',
   `header_id`        INT UNSIGNED     NULL
   COMMENT 'The ID of a mailing header',
-  `subject`          VARCHAR(50)      NOT NULL
+  `subject`          VARCHAR(64)      NOT NULL
   COMMENT 'Subject of the email',
-  `title`            VARCHAR(50)      NOT NULL
+  `title`            VARCHAR(64)      NOT NULL
   COMMENT 'Title/strapline for the email (in the title region)',
   `body`             TEXT             NOT NULL
   COMMENT 'Body of the email',
+  `contact_details`  TEXT             NOT NULL
+  COMMENT 'Contact details',
   `message_id`       INT UNSIGNED     NULL
   COMMENT 'The ID of the campaign message',
   `send_immediately` TINYINT          NOT NULL  DEFAULT 0,
@@ -79,6 +93,7 @@ CREATE TABLE `civicrm_simplemail` (
   COMMENT 'Date scheduled for sending emails'
   ,
   PRIMARY KEY (`id`)
+
 
   , CONSTRAINT FK_civicrm_simplemail_header_id FOREIGN KEY (`header_id`) REFERENCES `civicrm_simplemailheader` (`id`)
   ON DELETE SET NULL, CONSTRAINT FK_civicrm_simplemail_message_id FOREIGN KEY (`message_id`) REFERENCES `civicrm_simplemailmessage` (`id`)
@@ -96,6 +111,8 @@ CREATE TABLE `civicrm_simplemail` (
 -- *
 -- *******************************************************/
 CREATE TABLE `civicrm_simplemailrecipientgroup` (
+
+
   `id`           INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique SimpleMailRecipientGroup ID',
   `campaign_id`  INT UNSIGNED COMMENT 'The ID of a mailing wizard',
   `group_type`   VARCHAR(8) COMMENT 'Are the members of the group included or excluded?',
@@ -105,6 +122,7 @@ CREATE TABLE `civicrm_simplemailrecipientgroup` (
   COMMENT 'Foreign key to the referenced item'
   ,
   PRIMARY KEY (`id`)
+
 
   , CONSTRAINT FK_civicrm_simplemailrecipientgroup_campaign_id FOREIGN KEY (`campaign_id`) REFERENCES `civicrm_simplemail` (`id`)
   ON DELETE CASCADE

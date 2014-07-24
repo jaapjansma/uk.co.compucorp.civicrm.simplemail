@@ -148,8 +148,8 @@ class CRM_Simplemail_DAO_SimpleMailHeader extends CRM_Core_DAO
           'type' => CRM_Utils_Type::T_STRING,
           'title' => ts('Name') ,
           'required' => true,
-          'maxlength' => 30,
-          'size' => CRM_Utils_Type::MEDIUM,
+          'maxlength' => 64,
+          'size' => CRM_Utils_Type::BIG,
         ) ,
         'image' => array(
           'name' => 'image',

@@ -142,8 +142,8 @@ class CRM_Simplemail_DAO_SimpleMailMessage extends CRM_Core_DAO
           'type' => CRM_Utils_Type::T_STRING,
           'title' => ts('Label') ,
           'required' => true,
-          'maxlength' => 30,
-          'size' => CRM_Utils_Type::MEDIUM,
+          'maxlength' => 64,
+          'size' => CRM_Utils_Type::BIG,
         ) ,
         'text' => array(
           'name' => 'text',
