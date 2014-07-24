@@ -4,7 +4,7 @@
   <base>CRM/Simplemail</base>
   <class>SimpleMail</class>
   <name>civicrm_simplemail</name>
-  <comment>FIXME</comment>
+  <comment>Campaign details for Simple Mail</comment>
   <add>4.4</add>
   <log>true</log>
 
@@ -21,17 +21,96 @@
   </primaryKey>
 
   <field>
-    <name>contact_id</name>
+    <name>name</name>
+    <type>varchar</type>
+    <length>50</length>
+    <title>Name</title>
+    <comment>Name of the mailing campaign</comment>
+    <required>true</required>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>resume_step</name>
+    <type>tinyint unsigned</type>
+    <title>Resume Step</title>
+    <required>true</required>
+    <default>1</default>
+    <comment>The step to resume from on the wizard</comment>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>header_id</name>
     <type>int unsigned</type>
-    <comment>FK to Contact</comment>
+    <required>false</required>
+    <comment>The ID of a mailing header</comment>
     <add>4.4</add>
   </field>
   <foreignKey>
-    <name>contact_id</name>
-    <table>civicrm_contact</table>
+    <name>header_id</name>
+    <table>civicrm_simplemailheader</table>
     <key>id</key>
-    <add>4.4</add>
-    <onDelete>CASCADE</onDelete>
+    <onDelete>SET NULL</onDelete>
   </foreignKey>
+
+  <field>
+    <name>subject</name>
+    <type>varchar</type>
+    <length>50</length>
+    <title>Subject</title>
+    <comment>Subject of the email</comment>
+    <required>true</required>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>title</name>
+    <type>varchar</type>
+    <length>50</length>
+    <title>Title</title>
+    <comment>Title/strapline for the email (in the title region)</comment>
+    <required>true</required>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>body</name>
+    <type>text</type>
+    <title>Body</title>
+    <comment>Body of the email</comment>
+    <required>true</required>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>message_id</name>
+    <type>int unsigned</type>
+    <required>false</required>
+    <comment>The ID of the campaign message</comment>
+    <add>4.4</add>
+  </field>
+  <foreignKey>
+    <name>message_id</name>
+    <table>civicrm_simplemailmessage</table>
+    <key>id</key>
+    <onDelete>SET NULL</onDelete>
+  </foreignKey>
+
+  <field>
+    <name>send_immediately</name>
+    <type>boolean</type>
+    <default>0</default>
+    <required>true</required>
+  </field>
+
+  <field>
+    <name>send_on</name>
+    <type>datetime</type>
+    <title>Send On</title>
+    <comment>Date scheduled for sending emails</comment>
+    <required>false</required>
+    <add>4.4</add>
+  </field>
 
 </table>
