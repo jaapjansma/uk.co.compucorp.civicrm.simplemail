@@ -5,18 +5,18 @@ controllers.config(['$httpProvider', function ($httpProvider) {
   $httpProvider.defaults.headers.common["X-Requested-With"] = 'XMLHttpRequest';
 }]);
 
-controllers.controller('StepOneController', [
+controllers.controller('MailingsController', [
   '$scope', '$http', 'civiApiServices', 'loggingServices', 'notificationServices',
   function ($scope, $http, civiApi, log, notification) {
 
     $scope.constants = {
-      ENTITY_NAME: 'Group'
+      ENTITY_NAME: 'SimpleMail'
     };
 
     civiApi.get($scope.constants.ENTITY_NAME)
       .success(function (response) {
-        log.createLog('Groups received', response);
-        $scope.groups = response.values;
+        log.createLog('Mailings received', response);
+        $scope.mailings = response.values;
       });
   }
 ]);
@@ -26,34 +26,51 @@ controllers.controller('StepOneController', [
  * Step 1 of the wizard
  */
 controllers.controller('CreateMailingController', [
-  '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices',
-  function ($scope, $http, $routeParams, $location, civiApi, log, notification) {
+  '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'paths', 'mailingServices',
+  function ($scope, $http, $routeParams, $location, civiApi, log, notification, paths, mailing) {
+    // Set the current step of the wizard
+    mailing.setCurrentStep(1);
 
-    $scope.partialUrl = function (url) {
-      return '/civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/partials/wizard/steps/' + url;
-    };
+    // Set whether links to previous/next step be shown
+    $scope.showPrevStepLink = mailing.showPrevStepLink();
+    $scope.showNextStepLink = mailing.showNextStepLink();
 
-    $scope.currentStep = 1;
-    $scope.partial = $scope.partialUrl('step-1.html');
+    // Set the partial path for the current step
+    $scope.partial = mailing.getStepPartialPath();
 
     $scope.constants = {
       ENTITY_NAME: 'Group'
     };
 
+    // Initialise empty mailing
+    $scope.mailing = {};
+
+    // Get the current mailing
+    mailing.getCurrent()
+      .success(function (response) {
+        log.createLog('Mailing received', response);
+        $scope.mailing = response.values[0];
+      })
+      .error(function (response) {
+        log.createLog('Failed to retrieve mailing', response);
+      });
+
+    // Get the list of mailing recipient groups
     civiApi.get($scope.constants.ENTITY_NAME)
       .success(function (response) {
         log.createLog('Groups received', response);
         $scope.groups = response.values;
       });
 
+    // Proceed to next step
     $scope.nextStep = function () {
-      $scope.currentStep++;
-      $location.path('/steps/' + $scope.currentStep);
+      mailing.nextStep($scope.mailing);
     };
 
+
+    // Go back to previous step
     $scope.prevStep = function () {
-      $scope.currentStep--;
-      $location.path('/steps/' + $scope.currentStep);
+      mailing.prevStep($scope.mailing);
     };
   }
 ]);
@@ -62,31 +79,48 @@ controllers.controller('CreateMailingController', [
  * Step 2 of the wizard
  */
 controllers.controller('ComposeMailingController', [
-  '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices',
-  function ($scope, $http, $routeParams, $location, civiApi, log, notification) {
+  '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'paths', 'mailingServices',
+  function ($scope, $http, $routeParams, $location, civiApi, log, notification, paths, mailing) {
+    // Set the current step of the wizard
+    mailing.setCurrentStep(2);
 
-    $scope.partialUrl = function (url) {
-      return '/civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/partials/wizard/steps/' + url;
-    };
+    // Set whether links to previous/next step be shown
+    $scope.showPrevStepLink = mailing.showPrevStepLink();
+    $scope.showNextStepLink = mailing.showNextStepLink();
 
-    $scope.currentStep = 2;
-    $scope.partial = $scope.partialUrl('step-2.html');
+    // Set the partial path for the current step
+    $scope.partial = mailing.getStepPartialPath();
 
     $scope.constants = {
       ENTITY_NAME: 'Group'
     };
 
+    // Initialise empty mailing
+    $scope.mailing = {};
+
+    // TODO (robin): is this needed?
     $scope.selectedMessage = 0;
 
+    // TODO (robin): is this needed?
     $scope.$watch('selectedMessage', function (newVal, oldVal) {
       console.log('Changed');
       if (oldVal == newVal) return;
     });
 
-
+    // TODO (robin): delete this?
     $scope.test = function () {
       $scope.selectedMessage++;
     };
+
+    // Get the current mailing
+    mailing.getCurrent()
+      .success(function (response) {
+        log.createLog('Mailing retrieved', response);
+        $scope.mailing = response.values[0];
+      })
+      .error(function (response) {
+        console.log('Failed to retrieve mailing', response);
+      });
 
     // Get the option group
     civiApi.get('OptionGroup', {name: 'mailing_header_filter_options'})
@@ -108,6 +142,7 @@ controllers.controller('ComposeMailingController', [
 
       });
 
+    // Get the messages
     civiApi.get('SimpleMailMessage', {is_active: 1}).
       success(function (response) {
         log.createLog('Messages retrieved', response);
@@ -117,17 +152,16 @@ controllers.controller('ComposeMailingController', [
 
       });
 
-
+    // Proceed to next step
     $scope.nextStep = function () {
-      $scope.currentStep++;
-      $location.path('/steps/' + $scope.currentStep);
+      mailing.nextStep($scope.mailing);
     };
 
+
+    // Go back to previous step
     $scope.prevStep = function () {
-      $scope.currentStep--;
-      $location.path('/steps/' + $scope.currentStep);
+      mailing.prevStep($scope.mailing);
     };
-
   }
 ]);
 
@@ -135,15 +169,24 @@ controllers.controller('ComposeMailingController', [
  * Step 3
  */
 controllers.controller('TestMailingController', [
-  '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices',
-  function ($scope, $http, $routeParams, $location, civiApi, log, notification) {
+  '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'mailingServices',
+  function ($scope, $http, $routeParams, $location, civiApi, log, notification, mailing) {
+    // Set the current step of the wizard
+    mailing.setCurrentStep(3);
 
-    $scope.partialUrl = function (url) {
-      return '/civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/partials/wizard/steps/' + url;
+    // Set whether links to previous/next step be shown
+    $scope.showPrevStepLink = mailing.showPrevStepLink();
+    $scope.showNextStepLink = mailing.showNextStepLink();
+
+    // Set the partial path for the current step
+    $scope.partial = mailing.getStepPartialPath();
+
+    $scope.constants = {
+      ENTITY_NAME: 'Group'
     };
 
-    $scope.currentStep = 3;
-    $scope.partial = $scope.partialUrl('step-3.html');
+    // Initialise empty mailing
+    $scope.mailing = {};
 
     $scope.constants = {
       ENTITY_NAME: 'Group'
@@ -155,16 +198,16 @@ controllers.controller('TestMailingController', [
         $scope.groups = response.values;
       });
 
+
+    // Proceed to next step
     $scope.nextStep = function () {
-      $scope.currentStep++;
-      $location.path('/steps/' + $scope.currentStep);
+      mailing.nextStep($scope.mailing);
     };
 
+    // Go back to previous step
     $scope.prevStep = function () {
-      $scope.currentStep--;
-      $location.path('/steps/' + $scope.currentStep);
+      mailing.prevStep($scope.mailing);
     };
-
   }
 ]);
 
@@ -172,115 +215,42 @@ controllers.controller('TestMailingController', [
  * Step 4 of the wizard
  */
 controllers.controller('ScheduleAndSendController', [
-  '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices',
-  function ($scope, $http, $routeParams, $location, civiApi, log, notification) {
+  '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'mailingServices',
+  function ($scope, $http, $routeParams, $location, civiApi, log, notification, mailing) {
+    // Set the current step of the wizard
+    mailing.setCurrentStep(4);
 
-    $scope.partialUrl = function (url) {
-      return '/civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/partials/wizard/steps/' + url;
-    };
+    // Set whether links to previous/next step be shown
+    $scope.showPrevStepLink = mailing.showPrevStepLink();
+    $scope.showNextStepLink = mailing.showNextStepLink();
 
-    // Activate the jQuery datepicker plugin once the partial has been included
-    $scope.$on('$includeContentLoaded', function(e) {
-      cj( "#datepicker" ).datepicker();
-    });
-
-    $scope.currentStep = 4;
-    $scope.partial = $scope.partialUrl('step-4.html');
+    // Set the partial path for the current step
+    $scope.partial = mailing.getStepPartialPath();
 
     $scope.constants = {
       ENTITY_NAME: 'Group'
     };
 
+    // Initialise empty mailing
+    $scope.mailing = {};
+
+    // Activate the jQuery datepicker plugin once the partial has been included
+    $scope.$on('$includeContentLoaded', function (e) {
+      cj("#datepicker").datepicker();
+    });
+
+    $scope.constants = {
+      ENTITY_NAME: 'Group'
+    };
+
+    // Proceed to next step
     $scope.nextStep = function () {
-      $scope.currentStep++;
-      $location.path('/steps/' + $scope.currentStep);
+      mailing.nextStep($scope.mailing);
     };
 
+    // Go back to previous step
     $scope.prevStep = function () {
-      $scope.currentStep--;
-      $location.path('/steps/' + $scope.currentStep);
+      mailing.prevStep($scope.mailing);
     };
-
   }
 ]);
-
-/*
- controllers.controller('StepsController', [
- '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices',
- function ($scope, $http, $routeParams, $location, civiApi, log, notification) {
-
- $scope.constants = {
- ENTITY_NAME: 'Group'
- };
-
- $scope.partialUrl = function (url) {
- return '/civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/partials/wizard/steps/' + url;
- };
- ///civicrm/ajax/rest?entity=OptionGroup&action=get&name=mailing_header_filter_options&debug=1&sequential=1&json=1
- $scope.steps = {
- 1: {
- partial: $scope.partialUrl('step-1.html'),
- fields: {
- headerImageFilters: function () {
- console.log('hello');
- //            var headerFilterOption = civiApi.get('OptionGroup', {name: 'mailing_header_filter_options'})
- //              .success(function(response) {
- //               log.createLog('Mailing header filter option response', response);
- //              })
- //              .error(function(response) {
- //
- //              });
-
- var filters = {};
-
- return filters;
- },
- fromAddresses: function () {
- return [
- {
- email: 'robinmitra1@gmail.com',
- name: 'Robin Mitra'
- },
- {
- email: 'bill@microsoft.com',
- name: 'Bill Gates'
- },
- {
- email: 'steve@apple.com',
- name: 'Steve Jobs'
- },
- {
- email: 'richard@virgin.com',
- name: 'Richard Branson'
- }
- ];
- }
- }
- },
- 2: $scope.partialUrl('step-2.html')
- };
-
- if ($routeParams.step) {
- $scope.currentStep = +$routeParams.step;
- } else {
- $scope.currentStep = 1;
- }
-
- civiApi.get($scope.constants.ENTITY_NAME)
- .success(function (response) {
- log.createLog('Groups received', response);
- $scope.groups = response.values;
- });
-
- $scope.nextStep = function () {
- $scope.currentStep++;
- $location.path('/steps/' + $scope.currentStep);
- };
-
- $scope.prevStep = function () {
- $scope.currentStep--;
- $location.path('/steps/' + $scope.currentStep);
- };
- }
- ]);
- */

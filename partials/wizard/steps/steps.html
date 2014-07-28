@@ -3,13 +3,13 @@
 
   <div class="buttons">
     <div class="pagination">
-      <a href ng-click="prevStep()" ng-if="currentStep > 1" class="button">Prev Step</a>
-      <a href ng-click="nextStep()" class="button">Next Step</a>
+      <a href ng-click="prevStep()" ng-if="showPrevStepLink" class="button">Prev Step</a>
+      <a href ng-click="nextStep()" ng-if="showNextStepLink" class="button">Next Step</a>
     </div>
 
     <div class="action">
       <a href ng-click="saveAndContinue()" class="button">Save &amp; Continue Later</a>
-      <a href ng-click="candel()" class="button">Cancel</a>
+      <a href ng-click="cancel()" class="button">Cancel</a>
     </div>
   </div>
 </div>
