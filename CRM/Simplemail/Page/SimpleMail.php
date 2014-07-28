@@ -19,7 +19,8 @@ class CRM_Simplemail_Page_SimpleMail extends CRM_Core_Page {
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular-select2.js', 90, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/app.js', 100, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/services.js', 110, 'page-footer')
-      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/controllers.js', 120, 'page-footer')
+      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/constants.js', 120, 'page-footer')
+      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/controllers.js', 130, 'page-footer')
       ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/vendors/select2.css')
       ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/dist/style.css')
     ;
