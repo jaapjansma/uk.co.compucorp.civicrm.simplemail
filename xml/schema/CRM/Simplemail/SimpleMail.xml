@@ -32,7 +32,7 @@
 
   <field>
     <name>resume_step</name>
-    <type>tinyint unsigned</type>
+    <type>int unsigned</type>
     <title>Resume Step</title>
     <!--<required>true</required>-->
     <default>1</default>

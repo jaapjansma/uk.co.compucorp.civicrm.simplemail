@@ -103,7 +103,7 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
   /**
    * The step to resume from on the wizard
    *
-   * @var tinyint unsigned
+   * @var int unsigned
    */
   public $resume_step;
   /**
@@ -216,7 +216,7 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
         ) ,
         'resume_step' => array(
           'name' => 'resume_step',
-          'type' => CRM_Utils_Type::T_TINYINTUNSIGNED,
+          'type' => CRM_Utils_Type::T_INT,
           'title' => ts('Resume Step') ,
           'default' => '1',
         ) ,
