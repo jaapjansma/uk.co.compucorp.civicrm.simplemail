@@ -1,0 +1,23 @@
+<div id="sm-headers-admin" class="sm-container">
+  <p><a ng-href="#/mailings/new">Create a new mailing</a></p>
+
+  <table id="sm-headers-admin-table">
+    <thead>
+    <tr>
+      <th class="id">ID</th>
+      <th class="name">Label</th>
+      <th class="subject">Thumbnail</th>
+      <th class="action-buttons">Action</th>
+    </tr>
+    </thead>
+    <tr ng-repeat="mailing in mailings">
+      <td class="id">{{mailing.id}}</td>
+      <td class="name">{{mailing.name}}</td>
+      <td class="subject">{{mailing.subject}}</td>
+      <td class="action-buttons">
+        <a ng-href="#/mailings/{{mailing.id}}" class="button">Edit</a>
+        <a href ng-click="deleteMailing($index)" class="button">Delete</a>
+      </td>
+    </tr>
+  </table>
+</div>
