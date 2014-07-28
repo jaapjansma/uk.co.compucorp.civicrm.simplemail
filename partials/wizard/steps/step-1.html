@@ -1,14 +1,11 @@
 <div class="sm-container">
   <h1>Step 1 - Create Mailing</h1>
-  <ul>
-    <li ng-repeat="filters in steps.1.fields.headerImageFilters()"></li>
-  </ul>
-  <form class="crm-form-block">
+
+ <form class="crm-form-block">
     <div class="field-group">
       <label for="mailing-name">Name your mailing:</label>
-      <input name="mailing-name" id="mailing-name" type="text" class="two-thirds"/>
+      <input name="mailing-name" id="mailing-name" type="text" class="two-thirds" ng-model="mailing.name"/>
     </div>
-
 
     <div class="field-group inline clearfix">
       <label for="remove-duplicates" class="auto-width">Remove duplicate emails?</label>
