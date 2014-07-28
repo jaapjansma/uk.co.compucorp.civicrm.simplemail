@@ -8,41 +8,50 @@ var app = angular.module('simpleMail.app', [
   'ngAnimate',
   'ui.select2',
   'simpleMail.app.controllers',
-  'simpleMail.services'
+  'simpleMail.services',
+  'simpleMail.constants'
 ]);
 
 function partialUrl(url) {
   return '/civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/partials/wizard/steps/' + url;
 }
 
-app.config(['$routeProvider',
-  function ($routeProvider) {
+app.config(['$routeProvider', 'paths',
+  function ($routeProvider, paths) {
     $routeProvider
       // TODO (robin): add resolvers to listing controllers in order to not render view until API has returned data
-      .when('/steps/1', {
+      .when('/mailings', {
+        templateUrl: paths.PARTIALS_DIR() + '/wizard/listMailings.html',
+        controller: 'MailingsController'
+      })
+      .when('/mailings/:mailingId', {
+        redirectTo: '/mailings/:mailingId/steps/1'
+      })
+      .when('/mailings/:mailingId/steps', {
+        redirectTo: '/mailings/:mailingId/steps/1'
+      })
+      .when('/mailings/:mailingId/steps/1', {
         templateUrl: partialUrl('steps.html'),
-//        controller: 'StepsController'
         controller: 'CreateMailingController'
+      })
+      .when('/mailings/:mailingId/steps/2', {
+        templateUrl: partialUrl('steps.html'),
+        controller: 'ComposeMailingController'
       })
       .when('/steps/2', {
         templateUrl: partialUrl('steps.html'),
         controller: 'ComposeMailingController'
       })
-      .when('/steps/3', {
+      .when('/mailings/:mailingId/steps/3', {
         templateUrl: partialUrl('steps.html'),
         controller: 'TestMailingController'
       })
-      .when('/steps/4', {
+      .when('/mailings/:mailingId/steps/4', {
         templateUrl: partialUrl('steps.html'),
         controller: 'ScheduleAndSendController'
       })
-//      .when('/steps/2', {
-//        templateUrl: partialUrl('steps.html'),
-//        controller: 'StepsController'
-//      })
       .otherwise({
-        templateUrl: partialUrl('steps.html'),
-        controller: 'StepsController'
+        redirectTo: '/mailings'
       });
   }
 ]);
