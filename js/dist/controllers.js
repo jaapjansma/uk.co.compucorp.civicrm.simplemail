@@ -21,7 +21,6 @@ controllers.controller('MailingsController', [
   }
 ]);
 
-
 /**
  * Step 1 of the wizard
  */
@@ -67,7 +66,6 @@ controllers.controller('CreateMailingController', [
       mailing.nextStep($scope.mailing);
     };
 
-
     // Go back to previous step
     $scope.prevStep = function () {
       mailing.prevStep($scope.mailing);
@@ -79,8 +77,12 @@ controllers.controller('CreateMailingController', [
  * Step 2 of the wizard
  */
 controllers.controller('ComposeMailingController', [
-  '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'paths', 'mailingServices',
-  function ($scope, $http, $routeParams, $location, civiApi, log, notification, paths, mailing) {
+  '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'paths', 'mailingServices', 'selectedMessageTextFilter',
+  function ($scope, $http, $routeParams, $location, civiApi, log, notification, paths, mailing, selectedMessageText) {
+    $scope.model = {
+      selectedMessage: {}
+    };
+
     // Set the current step of the wizard
     mailing.setCurrentStep(2);
 
@@ -98,25 +100,19 @@ controllers.controller('ComposeMailingController', [
     // Initialise empty mailing
     $scope.mailing = {};
 
-    // TODO (robin): is this needed?
-    $scope.selectedMessage = 0;
-
-    // TODO (robin): is this needed?
-    $scope.$watch('selectedMessage', function (newVal, oldVal) {
-      console.log('Changed');
-      if (oldVal == newVal) return;
+    $scope.$watch('model.selectedMessage.id', function (newVal, oldVal) {
+      if (oldVal !== newVal) {
+        $scope.mailing.message_id = newVal;
+        $scope.model.selectedMessage.text  = selectedMessageText($scope.messages, $scope.model.selectedMessage.id);
+      }
     });
-
-    // TODO (robin): delete this?
-    $scope.test = function () {
-      $scope.selectedMessage++;
-    };
 
     // Get the current mailing
     mailing.getCurrent()
       .success(function (response) {
         log.createLog('Mailing retrieved', response);
         $scope.mailing = response.values[0];
+        $scope.model.selectedMessage.id = +$scope.mailing.message_id;
       })
       .error(function (response) {
         console.log('Failed to retrieve mailing', response);
@@ -157,7 +153,6 @@ controllers.controller('ComposeMailingController', [
       mailing.nextStep($scope.mailing);
     };
 
-
     // Go back to previous step
     $scope.prevStep = function () {
       mailing.prevStep($scope.mailing);
@@ -192,12 +187,21 @@ controllers.controller('TestMailingController', [
       ENTITY_NAME: 'Group'
     };
 
+    // Get the current mailing
+    mailing.getCurrent()
+      .success(function (response) {
+        log.createLog('Mailing received', response);
+        $scope.mailing = response.values[0];
+      })
+      .error(function (response) {
+        log.createLog('Failed to retrieve mailing', response);
+      });
+
     civiApi.get($scope.constants.ENTITY_NAME)
       .success(function (response) {
         log.createLog('Groups received', response);
         $scope.groups = response.values;
       });
-
 
     // Proceed to next step
     $scope.nextStep = function () {

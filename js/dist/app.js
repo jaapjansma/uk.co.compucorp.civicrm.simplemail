@@ -9,7 +9,8 @@ var app = angular.module('simpleMail.app', [
   'ui.select2',
   'simpleMail.app.controllers',
   'simpleMail.services',
-  'simpleMail.constants'
+  'simpleMail.constants',
+  'simpleMail.filters'
 ]);
 
 function partialUrl(url) {

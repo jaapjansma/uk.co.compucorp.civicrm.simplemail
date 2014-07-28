@@ -15,7 +15,7 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
      * The ID of the current mailing
      * @type {$scope.mailingId|*}
      */
-    var mailingId = $routeParams.mailingId;
+    var mailingId = $routeParams.mailingId || null;
 
     /**
      * First step of the mailing wizard
@@ -81,7 +81,7 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
        * @returns {*|Object|HttpPromise}
        */
       getCurrent: function () {
-        return this.get(mailingId);
+        return mailingId ? this.get(mailingId) : null;
       },
 
       /**

@@ -23,7 +23,7 @@
 
     <div class="field-group clearfix">
       <label for="subject">Email subject</label>
-      <input id="subject" name="subject" type="text" class="full-width"/>
+      <input id="subject" name="subject" type="text" class="full-width" ng-model="mailing.subject"/>
     </div>
 
     <h2>Compose:</h2>
@@ -34,32 +34,34 @@
 
     <div class="field-group clearfix">
       <label for="title">Title/Strapline</label>
-      <input id="title" name="title" type="text" class="full-width"/>
+      <input id="title" name="title" type="text" class="full-width" ng-model="mailing.title"/>
     </div>
 
     <div class="field-group clearfix">
       <label for="body">Main Body</label>
-      <textarea name="body" id="body" cols="30" rows="10" class="full-width"></textarea>
+      <textarea name="body" id="body" cols="30" rows="10" class="full-width" ng-model="mailing.body"></textarea>
     </div>
 
     <div class="cols clearfix">
       <div class="field-group col left one-third">
         <label for="contact-details">Contact details</label>
-        <textarea name="contact-details" id="contact-details" class="full-width" cols="10" rows="4"></textarea>
+        <textarea name="contact-details" id="contact-details" class="full-width" cols="10" rows="4"
+                  ng-model="mailing.contact_details"></textarea>
       </div>
 
       <div class="field-group col right two-thirds clearfix">
         <div class="field-group clearfix">
           <label for="campaign-message">Campaign message</label>
-          <select ui-select2 ng-model="selectedMessage" data-placeholder="Select campaign message" name="campaign-message" id="campaign-message">
+          <select ui-select2 ng-model="model.selectedMessage.id" data-placeholder="Select campaign message"
+                  name="campaign-message" id="campaign-message">
             <option value=""></option>
-            <option ng-repeat="message in messages" value="{{$index}}">{{message.label}}</option>
+            <option selected="selected" ng-repeat="message in messages" value="{{message.id}}">{{message.label}} {{message.id}}</option>
           </select>
         </div>
 
         <div class="field-group">
-          <textarea class="full-width read-only" ng-click="test()" name="campaign-message-preview"
-                    id="campaign-message-preview" cols="10" rows="4" ng-model="messages[selectedMessage].text" ng-readonly="true"></textarea>
+          <textarea class="full-width read-only" name="campaign-message-preview"
+                    id="campaign-message-preview" cols="10" rows="4" ng-readonly="true">{{model.selectedMessage.text}}</textarea>
         </div>
       </div>
     </div>
