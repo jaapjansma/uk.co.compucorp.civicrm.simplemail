@@ -1,5 +1,157 @@
-/* Generic Services */
+/**
+ * Generic services
+ *
+ * @type {*|module}
+ */
 var services = angular.module('simpleMail.services', []);
+
+services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServices', 'paths',
+  function ($location, $routeParams, civiApi, paths) {
+    var constants = {
+      ENTITY: 'SimpleMail'
+    };
+
+    /**
+     * The ID of the current mailing
+     * @type {$scope.mailingId|*}
+     */
+    var mailingId = $routeParams.mailingId;
+
+    /**
+     * First step of the mailing wizard
+     *
+     * @type {number}
+     */
+    var firstStep = 1;
+
+    /**
+     * Last step of the mailing wizard
+     *
+     * @type {number}
+     */
+    var lastStep = 4;
+
+    /**
+     * Current step of the wizard, initialised to first step
+     *
+     * @type {number}
+     */
+    var currentStep = firstStep;
+
+    /**
+     * Root path of mailings
+     *
+     * @type {string}
+     */
+    var pathRoot = '/mailings';
+
+    /**
+     * Get the URL corresponding to the current step
+     *
+     * @returns {string}
+     */
+    var getStepUrl = function () {
+      return pathRoot + '/' + mailingId + '/steps/' + currentStep;
+    };
+
+    return {
+      /**
+       * Get mailing by ID
+       *
+       * @param id
+       * @returns {*|Object|HttpPromise}
+       */
+      get: function (id) {
+        return civiApi.get(constants.ENTITY, {id: id});
+      },
+
+      /**
+       * Save progress of the mailing
+       *
+       * @param mailing
+       * @returns {constants.ENTITY}
+       */
+      saveProgress: function (mailing) {
+        return civiApi.create(constants.ENTITY, mailing);
+      },
+
+      /**
+       * Get the current mailing (as specified by the mailing ID in the URL segment)
+       *
+       * @returns {*|Object|HttpPromise}
+       */
+      getCurrent: function () {
+        return this.get(mailingId);
+      },
+
+      /**
+       * Set the current step. This should be defined at each step in order for next/prev step buttons to work correctly.
+       *
+       * @param step
+       */
+      setCurrentStep: function (step) {
+        currentStep = step;
+      },
+
+      /**
+       * Proceed to the next step of the mailing wizard
+       *
+       * @param mailing
+       */
+      nextStep: function (mailing) {
+        this.saveProgress(mailing)
+          .success(function (response) {
+            console.log('Save progress response', response);
+
+            currentStep++;
+            $location.path(getStepUrl());
+          });
+      },
+
+      /**
+       * Go back to the previous step of the mailing wizard
+       *
+       * @param mailing
+       */
+      prevStep: function (mailing) {
+        this.saveProgress(mailing)
+          .success(function (response) {
+            console.log('Save progress response', response);
+
+            currentStep--;
+            $location.path(getStepUrl());
+          });
+      },
+
+      /**
+       * Get the partial path for the current step
+       *
+       * @returns {string}
+       */
+      getStepPartialPath: function () {
+        return paths.PARTIALS_DIR() + '/wizard/steps/step-' + currentStep + '.html';
+      },
+
+      /**
+       * Whether the link to previous step be shown
+       *
+       * @returns {boolean}
+       */
+      showPrevStepLink: function () {
+        return currentStep !== firstStep;
+      },
+
+      /**
+       * Whether the link to next step be shown
+       *
+       * @returns {boolean}
+       */
+      showNextStepLink: function () {
+        return currentStep !== lastStep;
+      }
+    }
+  }
+]);
 
 services.factory("pathServices", [
   function () {
@@ -134,7 +286,7 @@ services.factory("civiApiServices", ['$http',
        * @param config
        * @returns {*}
        */
-      getValue: function(entityName, config) {
+      getValue: function (entityName, config) {
         var data = config || {};
         return this.post(entityName, data, 'getValue');
       },
