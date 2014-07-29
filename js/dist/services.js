@@ -71,8 +71,51 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
        * @param mailing
        * @returns {constants.ENTITY}
        */
-      saveProgress: function (mailing) {
+      saveProgress: function (mailing) {       
+        if (currentStep === firstStep) {
+          if (angular.isDefined(mailing.recipientGroups) && mailing.recipientGroups.length) {
+            this.saveRecipientGroups(mailing.recipientGroups);  
+          }
+        }
+
         return civiApi.create(constants.ENTITY, mailing);
+      },
+
+
+      saveRecipientGroups: function(groups) {
+        // TODO (robin): Rename campaign_id to mailing_id in the entity and throughout
+        civiApi.get('SimpleMailRecipientGroup', {campaign_id: mailingId})
+          .success(function(response) {
+            console.log('Existing Groups', response.values);
+            console.log('Current Groups', groups);
+
+            if (response.values.length) {
+              console.log('More than 1');
+
+            } else {
+              console.log('Nothing found, adding');
+              for(var i = 0, end = groups.length; i < end; i++) {
+                var data = {
+                  campaign_id: mailingId,
+                  group_type: 'Included',
+                  entity_table: 'civicrm_group',
+                  entity_id: groups[i]
+                };
+
+                civiApi.create('SimpleMailRecipientGroup', data)
+                  .success(function(response) {
+                    console.log('Added', response);
+                  })
+                  .error(function(response) {
+                    console.log('Failed to add', response);
+                  });
+              }
+            }
+
+          })
+          .error(function(response) {
+
+          });
       },
 
       /**

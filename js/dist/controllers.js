@@ -27,6 +27,10 @@ controllers.controller('MailingsController', [
 controllers.controller('CreateMailingController', [
   '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'paths', 'mailingServices',
   function ($scope, $http, $routeParams, $location, civiApi, log, notification, paths, mailing) {
+    $scope.model = {
+      selectedGroups: {}
+    };
+
     // Set the current step of the wizard
     mailing.setCurrentStep(1);
 
@@ -43,6 +47,13 @@ controllers.controller('CreateMailingController', [
 
     // Initialise empty mailing
     $scope.mailing = {};
+
+    $scope.$watch('model.selectedGroups', function (newVal, oldVal) {
+      console.log('Old', oldVal);
+      console.log('New', newVal);
+
+      $scope.mailing.recipientGroups = newVal;
+    });
 
     // Get the current mailing
     mailing.getCurrent()
@@ -103,7 +114,7 @@ controllers.controller('ComposeMailingController', [
     $scope.$watch('model.selectedMessage.id', function (newVal, oldVal) {
       if (oldVal !== newVal) {
         $scope.mailing.message_id = newVal;
-        $scope.model.selectedMessage.text  = selectedMessageText($scope.messages, $scope.model.selectedMessage.id);
+        $scope.model.selectedMessage.text = selectedMessageText($scope.messages, $scope.model.selectedMessage.id);
       }
     });
 
@@ -131,7 +142,7 @@ controllers.controller('ComposeMailingController', [
             $scope.headerFilterOptionValues = response.values;
           })
           .error(function (response) {
-
+            // TODO
           });
       })
       .error(function (response) {
@@ -145,7 +156,7 @@ controllers.controller('ComposeMailingController', [
         $scope.messages = response.values;
       })
       .error(function (response) {
-
+        // TODO
       });
 
     // Proceed to next step
