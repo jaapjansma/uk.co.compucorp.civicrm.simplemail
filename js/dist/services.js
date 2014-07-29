@@ -83,8 +83,7 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
 
 
       saveRecipientGroups: function(groups) {
-        // TODO (robin): Rename campaign_id to mailing_id in the entity and throughout
-        civiApi.get('SimpleMailRecipientGroup', {campaign_id: mailingId})
+        civiApi.get('SimpleMailRecipientGroup', {mailing_id: mailingId})
           .success(function(response) {
             console.log('Existing Groups', response.values);
             console.log('Current Groups', groups);
@@ -96,7 +95,7 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
               console.log('Nothing found, adding');
               for(var i = 0, end = groups.length; i < end; i++) {
                 var data = {
-                  campaign_id: mailingId,
+                  mailing_id: mailingId,
                   group_type: 'Included',
                   entity_table: 'civicrm_group',
                   entity_id: groups[i]

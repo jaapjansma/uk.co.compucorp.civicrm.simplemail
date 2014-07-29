@@ -4,7 +4,7 @@
   <base>CRM/Simplemail</base>
   <class>SimpleMail</class>
   <name>civicrm_simplemail</name>
-  <comment>Campaign details for Simple Mail</comment>
+  <comment>Mailing details for Simple Mail</comment>
   <add>4.4</add>
   <log>true</log>
 
@@ -25,7 +25,7 @@
     <type>varchar</type>
     <length>64</length>
     <title>Name</title>
-    <comment>Name of the mailing campaign</comment>
+    <comment>Name of the mailing</comment>
     <!--<required>true</required>-->
     <add>4.4</add>
   </field>

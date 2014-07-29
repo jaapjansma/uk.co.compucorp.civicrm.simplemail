@@ -95,11 +95,11 @@ class CRM_Simplemail_DAO_SimpleMailRecipientGroup extends CRM_Core_DAO
    */
   public $id;
   /**
-   * The ID of a mailing wizard
+   * The ID of a mailing
    *
    * @var int unsigned
    */
-  public $campaign_id;
+  public $mailing_id;
   /**
    * Are the members of the group included or excluded?
    *
@@ -140,7 +140,7 @@ class CRM_Simplemail_DAO_SimpleMailRecipientGroup extends CRM_Core_DAO
   {
     if (!self::$_links) {
       self::$_links = static ::createReferenceColumns(__CLASS__);
-      self::$_links[] = new CRM_Core_Reference_Basic(self::getTableName() , 'campaign_id', 'civicrm_simplemail', 'id');
+      self::$_links[] = new CRM_Core_Reference_Basic(self::getTableName() , 'mailing_id', 'civicrm_simplemail', 'id');
       self::$_links[] = new CRM_Core_Reference_Dynamic(self::getTableName() , 'entity_id', NULL, 'id', 'entity_table');
     }
     return self::$_links;
@@ -160,8 +160,8 @@ class CRM_Simplemail_DAO_SimpleMailRecipientGroup extends CRM_Core_DAO
           'type' => CRM_Utils_Type::T_INT,
           'required' => true,
         ) ,
-        'campaign_id' => array(
-          'name' => 'campaign_id',
+        'mailing_id' => array(
+          'name' => 'mailing_id',
           'type' => CRM_Utils_Type::T_INT,
           'FKClassName' => 'CRM_Simplemail_DAO_SimpleMail',
         ) ,
@@ -171,12 +171,6 @@ class CRM_Simplemail_DAO_SimpleMailRecipientGroup extends CRM_Core_DAO
           'title' => ts('Group Type') ,
           'maxlength' => 8,
           'size' => CRM_Utils_Type::EIGHT,
-          'html' => array(
-            'type' => 'Select',
-          ) ,
-          'pseudoconstant' => array(
-            'callback' => 'CRM_Simplemail_BAO_SimpleMailRecipientGroup::getGroups',
-          )
         ) ,
         'entity_table' => array(
           'name' => 'entity_table',
@@ -205,7 +199,7 @@ class CRM_Simplemail_DAO_SimpleMailRecipientGroup extends CRM_Core_DAO
     if (!(self::$_fieldKeys)) {
       self::$_fieldKeys = array(
         'id' => 'id',
-        'campaign_id' => 'campaign_id',
+        'mailing_id' => 'mailing_id',
         'group_type' => 'group_type',
         'entity_table' => 'entity_table',
         'entity_id' => 'entity_id',

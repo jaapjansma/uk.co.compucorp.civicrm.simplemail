@@ -21,13 +21,13 @@
   </primaryKey>
 
   <field>
-    <name>campaign_id</name>
+    <name>mailing_id</name>
     <type>int unsigned</type>
-    <comment>The ID of a mailing wizard</comment>
+    <comment>The ID of a mailing</comment>
     <add>4.4</add>
   </field>
   <foreignKey>
-    <name>campaign_id</name>
+    <name>mailing_id</name>
     <table>civicrm_simplemail</table>
     <key>id</key>
     <add>4.4</add>
@@ -39,13 +39,7 @@
     <type>varchar</type>
     <length>8</length>
     <comment>Are the members of the group included or excluded?</comment>
-    <pseudoconstant>
-      <callback>CRM_Simplemail_BAO_SimpleMailRecipientGroup::getGroups</callback>
-    </pseudoconstant>
-    <html>
-      <type>Select</type>
-    </html>
-  </field>
+ </field>
 
   <field>
     <name>entity_table</name>

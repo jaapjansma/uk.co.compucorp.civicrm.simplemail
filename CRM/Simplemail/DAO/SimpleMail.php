@@ -95,7 +95,7 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
    */
   public $id;
   /**
-   * Name of the mailing campaign
+   * Name of the mailing
    *
    * @var string
    */
