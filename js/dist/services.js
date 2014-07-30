@@ -71,10 +71,10 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
        * @param mailing
        * @returns {constants.ENTITY}
        */
-      saveProgress: function (mailing) {       
+      saveProgress: function (mailing) {
         if (currentStep === firstStep) {
-          if (angular.isDefined(mailing.recipientGroups) && mailing.recipientGroups.length) {
-            this.saveRecipientGroups(mailing.recipientGroups);  
+          if (angular.isDefined(mailing.recipientGroupIds) && mailing.recipientGroupIds.length) {
+            this.saveRecipientGroupIds(mailing.recipientGroupIds);
           }
         }
 
@@ -82,9 +82,10 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
       },
 
 
-      saveRecipientGroups: function(groups) {
-        civiApi.get('SimpleMailRecipientGroup', {mailing_id: mailingId})
-          .success(function(response) {
+      saveRecipientGroupIds: function (groups) {
+//        civiApi.get('SimpleMailRecipientGroup', {mailing_id: mailingId})
+        this.getRecipientGroups()
+          .success(function (response) {
             console.log('Existing Groups', response.values);
             console.log('Current Groups', groups);
 
@@ -93,7 +94,7 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
 
             } else {
               console.log('Nothing found, adding');
-              for(var i = 0, end = groups.length; i < end; i++) {
+              for (var i = 0, end = groups.length; i < end; i++) {
                 var data = {
                   mailing_id: mailingId,
                   group_type: 'Included',
@@ -102,17 +103,17 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
                 };
 
                 civiApi.create('SimpleMailRecipientGroup', data)
-                  .success(function(response) {
+                  .success(function (response) {
                     console.log('Added', response);
                   })
-                  .error(function(response) {
+                  .error(function (response) {
                     console.log('Failed to add', response);
                   });
               }
             }
 
           })
-          .error(function(response) {
+          .error(function (response) {
 
           });
       },
@@ -124,6 +125,15 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
        */
       getCurrent: function () {
         return mailingId ? this.get(mailingId) : null;
+      },
+
+      /**
+       * Get all recipient groups for the current mailing
+       *
+       * @returns {*|Object|HttpPromise|*|Object|HttpPromise}
+       */
+      getRecipientGroups: function () {
+        return civiApi.get('SimpleMailRecipientGroup', {mailing_id: mailingId});
       },
 
       /**

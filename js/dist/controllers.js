@@ -28,7 +28,7 @@ controllers.controller('CreateMailingController', [
   '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'paths', 'mailingServices',
   function ($scope, $http, $routeParams, $location, civiApi, log, notification, paths, mailing) {
     $scope.model = {
-      selectedGroups: {}
+      selectedGroupIds: {}
     };
 
     // Set the current step of the wizard
@@ -48,11 +48,18 @@ controllers.controller('CreateMailingController', [
     // Initialise empty mailing
     $scope.mailing = {};
 
-    $scope.$watch('model.selectedGroups', function (newVal, oldVal) {
+    $scope.$watch('model.selectedGroupIds', function (newVal, oldVal) {
       console.log('Old', oldVal);
       console.log('New', newVal);
 
-      $scope.mailing.recipientGroups = newVal;
+//      var diff = [];
+
+//      for (var i = 0, end = oldVal.length; i < end; i++) {
+//
+//      }
+
+      // TODO (robin): Should the diff computation come here?
+      $scope.mailing.recipientGroupIds = newVal;
     });
 
     // Get the current mailing
@@ -60,6 +67,18 @@ controllers.controller('CreateMailingController', [
       .success(function (response) {
         log.createLog('Mailing received', response);
         $scope.mailing = response.values[0];
+        mailing.getRecipientGroups()
+          .success(function(response) {
+            console.log('Groups retrieved', response);
+            var recipientGroupIds = [], recipientGroups = response.values;
+
+            for (var i = 0, end = response.values.length; i < end; i++) {
+              recipientGroupIds.push(recipientGroups[i].id);
+            }
+
+            $scope.mailing.recipientGroupIds = recipientGroupIds;
+            $scope.model.selectedGroupIds = recipientGroupIds;
+          });
       })
       .error(function (response) {
         log.createLog('Failed to retrieve mailing', response);
