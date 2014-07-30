@@ -205,19 +205,6 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
   }
 ]);
 
-services.factory("pathServices", [
-  function () {
-    return {
-      getPartialUrl: function(file) {
-        return this._getPartialsRootDir() + '/' + file;
-      },
-      _getPartialsRootDir: function () {
-        return '/civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/partials';
-      }
-    }
-  }
-]);
-
 // TODO (robin): use the builtin log service of AngularJS and decorate it with custom behavior rather than this below
 services.factory("notificationServices", ['loggingServices',
   function (log) {
