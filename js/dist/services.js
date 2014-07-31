@@ -1,3 +1,6 @@
+// TODO (robin): Check code documentation towards the end to fix any inconsistencies due to code updates
+// TODO (robin): Update select2 to 3.5.0 in order to fix: Cannot read property 'hasClass' of null
+
 /**
  * Generic services
  *
@@ -5,38 +8,45 @@
  */
 var services = angular.module('simpleMail.services', []);
 
-services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServices', 'paths',
-  function ($location, $routeParams, civiApi, paths) {
+services.factory('utilityServices', [
+  function () {
+    return {
+      /**
+       * Get elements in array 1 that are not in array 2
+       *
+       * @param array1
+       * @param array2
+       */
+      arrayDiff: function (array1, array2) {
+        var diff = [];
+
+        for (var i = 0, end = array1.length; i < end; i++) {
+          if (-1 === array2.indexOf(array1[i])) {
+            diff.push(array1[i]);
+          }
+        }
+
+        return diff;
+      }
+    }
+  }
+]);
+
+services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServices', 'paths', 'utilityServices',
+  function ($location, $routeParams, civiApi, paths, utility) {
     var constants = {
       ENTITY: 'SimpleMail'
     };
 
     /**
-     * The ID of the current mailing
-     * @type {$scope.mailingId|*}
-     */
-    var mailingId = $routeParams.mailingId || null;
-
-    /**
-     * First step of the mailing wizard
+     * Steps for the mailing wizard
      *
-     * @type {number}
+     * @enum {number}
      */
-    var firstStep = 1;
-
-    /**
-     * Last step of the mailing wizard
-     *
-     * @type {number}
-     */
-    var lastStep = 4;
-
-    /**
-     * Current step of the wizard, initialised to first step
-     *
-     * @type {number}
-     */
-    var currentStep = firstStep;
+    var Steps = {
+      FIRST: 1,
+      LAST: 4
+    };
 
     /**
      * Root path of mailings
@@ -50,18 +60,110 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
      *
      * @returns {string}
      */
-    var getStepUrl = function () {
-      return pathRoot + '/' + mailingId + '/steps/' + currentStep;
+    var getStepUrl = function (params) {
+      return pathRoot + '/' + params.mailingId + '/steps/' + params.step;
+    };
+
+    /**
+     * Get the partial path for the current step
+     *
+     * @returns {string}
+     */
+    var getStepPartialPath = function (step) {
+      return paths.PARTIALS_DIR() + '/wizard/steps/step-' + step + '.html';
     };
 
     return {
       /**
+       * Mailing configuration and settings
+       */
+      config: {
+        /**
+         * The ID of the current mailing
+         */
+        mailingId: null,
+
+        /**
+         * Current step of the wizard, initialised to first step
+         */
+        step: Steps.FIRST
+      },
+
+      /**
+       * Initialise a step
+       *
+       * @returns {self} Returns self for chaining
+       */
+      initStep: function (params) {
+        this.setStep(params.step);
+        this.setScope(params.scope);
+
+        this.setupMailing();
+        this.setupButtons();
+        this.setupPartials();
+
+        return this;
+      },
+
+      /**
+       * Setup and initialise the current mailing
+       */
+      setupMailing: function () {
+        this.setMailingId($routeParams.mailingId);
+      },
+
+
+      /**
+       * Set the scope for the mailing
+       *
+       * @param scope
+       */
+      setScope: function (scope) {
+        this.config.scope = scope;
+      },
+
+      /**
+       * Get the scope for the mailing
+       *
+       * @returns {*}
+       */
+      getScope: function () {
+        return this.config.scope;
+      },
+
+      /**
+       * Set the partial path for the current step
+       */
+      setupPartials: function () {
+        this.getScope().partial = getStepPartialPath(this.getStep());
+      },
+
+      /**
+       * Get the current mailing ID
+       *
+       * @returns {null|number}
+       */
+      getMailingId: function () {
+        return this.config.mailingId;
+      },
+
+      /**
+       * Set the current mailing ID
+       *
+       * @param {number} id
+       */
+      setMailingId: function (id) {
+        this.config.mailingId = +id;
+      },
+
+      /**
        * Get mailing by ID
        *
-       * @param id
+       * @param {int} id
        * @returns {*|Object|HttpPromise}
        */
       get: function (id) {
+        // TODO (robin): Returning HTTP Promises throughout the services could be replaced with returning a generic promise and performing various validation and repetitive tasks in the service, rather that duplicating it in the controllers (e.g. generic implementation of success() and error() could be done within the service to improve re-usability, and a generic promise could be returned back so that every call to an HTTP service doesn't require boilerplate implementation of success() and error() repetitively
         return civiApi.get(constants.ENTITY, {id: id});
       },
 
@@ -72,7 +174,7 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
        * @returns {constants.ENTITY}
        */
       saveProgress: function (mailing) {
-        if (currentStep === firstStep) {
+        if (this.getStep() === Steps.FIRST) {
           if (angular.isDefined(mailing.recipientGroupIds) && mailing.recipientGroupIds.length) {
             this.saveRecipientGroupIds(mailing.recipientGroupIds);
           }
@@ -82,40 +184,72 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
       },
 
 
-      saveRecipientGroupIds: function (groups) {
-//        civiApi.get('SimpleMailRecipientGroup', {mailing_id: mailingId})
-        this.getRecipientGroups()
-          .success(function (response) {
-            console.log('Existing Groups', response.values);
-            console.log('Current Groups', groups);
+      saveRecipientGroupIds: function (newGroupIds) {
+        var self = this;
+        // TODO (robin): This could probably be optimised to avoid another API call
+        this.getRecipientGroupIds().then(function (oldGroupIds) {
+          console.log('Old groups', oldGroupIds);
+          console.log('New groups', newGroupIds);
 
-            if (response.values.length) {
-              console.log('More than 1');
+          var removed = utility.arrayDiff(oldGroupIds, newGroupIds);
+          var added = utility.arrayDiff(newGroupIds, oldGroupIds);
 
-            } else {
-              console.log('Nothing found, adding');
-              for (var i = 0, end = groups.length; i < end; i++) {
-                var data = {
-                  mailing_id: mailingId,
-                  group_type: 'Included',
-                  entity_table: 'civicrm_group',
-                  entity_id: groups[i]
-                };
+          console.log('Removed', removed);
+          console.log('Added', added);
 
-                civiApi.create('SimpleMailRecipientGroup', data)
-                  .success(function (response) {
-                    console.log('Added', response);
-                  })
-                  .error(function (response) {
-                    console.log('Failed to add', response);
+          if (removed.length) {
+            self.getRecipientGroups()
+              .success(function (response) {
+                var groups = response.values;
+
+                for (var i = 0, end = removed.length; i < end; i++) {
+                  var removeId = null;
+
+                  angular.forEach(groups, function (value, key) {
+
+                    if (value.entity_id === removed[i]) {
+                      removeId = value.id;
+                    }
                   });
-              }
+
+                  civiApi.remove('SimpleMailRecipientGroup', {id: removeId})
+                    .success(function (response) {
+                      if (!response.is_error) {
+                        console.log('Group deleted', response);
+                      } else {
+                        console.log('Failed to delete group', response);
+                      }
+                    })
+                    .error(function (response) {
+                      console.log('Failed to delete group', response);
+                    });
+                }
+              });
+          }
+
+          if (added.length) {
+            for (i = 0, end = added.length; i < end; i++) {
+              var data = {
+                mailing_id: self.getMailingId(),
+                group_type: 'Included',
+                entity_table: 'civicrm_group',
+                entity_id: added[i]
+              };
+
+              civiApi.create('SimpleMailRecipientGroup', data)
+                .success(function (response) {
+                  if (!response.is_error) {
+                    console.log('Group added', response);
+                  } else {
+                    console.log('Failed to add group', response);
+                  }
+                })
+                .error(function (response) {
+                  console.log('Failed to add group', response);
+                });
             }
-
-          })
-          .error(function (response) {
-
-          });
+          }
+        });
       },
 
       /**
@@ -124,7 +258,28 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
        * @returns {*|Object|HttpPromise}
        */
       getCurrent: function () {
+        var mailingId = this.getMailingId();
+
         return mailingId ? this.get(mailingId) : null;
+      },
+
+      getRecipientGroupIds: function () {
+        return this.getRecipientGroups()
+          .then(function (response) {
+            var groupIds = [];
+
+            if (!response.data.is_error) {
+              var groups = response.data.values;
+
+              for (var i = 0, end = groups.length; i < end; i++) {
+                groupIds.push(groups[i].entity_id);
+              }
+            }
+
+            console.log('Group IDs', groupIds);
+
+            return groupIds;
+          });
       },
 
       /**
@@ -133,16 +288,19 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
        * @returns {*|Object|HttpPromise|*|Object|HttpPromise}
        */
       getRecipientGroups: function () {
-        return civiApi.get('SimpleMailRecipientGroup', {mailing_id: mailingId});
+        return civiApi.get('SimpleMailRecipientGroup', {mailing_id: this.getMailingId()});
       },
 
       /**
        * Set the current step. This should be defined at each step in order for next/prev step buttons to work correctly.
        *
        * @param step
+       * @returns {*}
        */
-      setCurrentStep: function (step) {
-        currentStep = step;
+      setStep: function (step) {
+        this.config.step = step;
+
+        return this;
       },
 
       /**
@@ -151,13 +309,21 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
        * @param mailing
        */
       nextStep: function (mailing) {
+        var self = this;
+
         this.saveProgress(mailing)
           .success(function (response) {
             console.log('Save progress response', response);
 
-            currentStep++;
-            $location.path(getStepUrl());
+            self.redirectToStep(++self.config.step);
           });
+      },
+
+      redirectToStep: function (step) {
+        $location.path(getStepUrl({
+          mailingId: this.getMailingId(),
+          step: step
+        }));
       },
 
       /**
@@ -166,22 +332,22 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
        * @param mailing
        */
       prevStep: function (mailing) {
+        var self = this;
+
         this.saveProgress(mailing)
           .success(function (response) {
             console.log('Save progress response', response);
 
-            currentStep--;
-            $location.path(getStepUrl());
+            self.redirectToStep(--self.config.step);
           });
       },
 
-      /**
-       * Get the partial path for the current step
-       *
-       * @returns {string}
-       */
-      getStepPartialPath: function () {
-        return paths.PARTIALS_DIR() + '/wizard/steps/step-' + currentStep + '.html';
+      cancel: function () {
+        $location.path(pathRoot);
+      },
+
+      getStep: function () {
+        return this.config.step;
       },
 
       /**
@@ -190,7 +356,7 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
        * @returns {boolean}
        */
       showPrevStepLink: function () {
-        return currentStep !== firstStep;
+        return this.getStep() !== Steps.FIRST;
       },
 
       /**
@@ -199,11 +365,42 @@ services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServic
        * @returns {boolean}
        */
       showNextStepLink: function () {
-        return currentStep !== lastStep;
+        return this.getStep() !== Steps.LAST;
+      },
+
+      getMailing: function () {
+        return this.config.mailing;
+      },
+
+      setupButtons: function () {
+        var self = this;
+        var scope = this.getScope();
+        var mailing = this.getMailing();
+
+        // Set whether links to previous/next step be shown
+        scope.showPrevStepLink = this.showPrevStepLink();
+        scope.showNextStepLink = this.showNextStepLink();
+
+        // Proceed to next step
+        scope.nextStep = function () {
+          self.nextStep(scope.mailing);
+        };
+
+        // Go back to previous step
+        scope.prevStep = function () {
+          self.prevStep(scope.mailing);
+        }
+
+        scope.cancel = function () {
+          self.cancel();
+        };
+
+        return this;
       }
     }
   }
-]);
+])
+;
 
 // TODO (robin): use the builtin log service of AngularJS and decorate it with custom behavior rather than this below
 services.factory("notificationServices", ['loggingServices',
@@ -310,7 +507,8 @@ services.factory("civiApiServices", ['$http',
       /**
        * Return a list of records for the given entity
        *
-       * @param entityName
+       * @param {string} entityName
+       * @param {object=} config Optional configuration
        * @returns {*}
        */
       get: function (entityName, config) {
@@ -321,8 +519,8 @@ services.factory("civiApiServices", ['$http',
       /**
        * Return value corresponding to the given name for the entity
        *
-       * @param entityName
-       * @param config
+       * @param {string} entityName
+       * @param {object=} config Optional configuration
        * @returns {*}
        */
       getValue: function (entityName, config) {

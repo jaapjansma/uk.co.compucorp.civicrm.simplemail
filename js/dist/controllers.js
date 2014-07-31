@@ -15,7 +15,7 @@ controllers.controller('MailingsController', [
 
     civiApi.get($scope.constants.ENTITY_NAME)
       .success(function (response) {
-        log.createLog('Mailings received', response);
+        log.createLog('Mailings retrieved', response);
         $scope.mailings = response.values;
       });
   }
@@ -31,15 +31,8 @@ controllers.controller('CreateMailingController', [
       selectedGroupIds: {}
     };
 
-    // Set the current step of the wizard
-    mailing.setCurrentStep(1);
-
-    // Set whether links to previous/next step be shown
-    $scope.showPrevStepLink = mailing.showPrevStepLink();
-    $scope.showNextStepLink = mailing.showNextStepLink();
-
-    // Set the partial path for the current step
-    $scope.partial = mailing.getStepPartialPath();
+    // Initialise the step
+    mailing.initStep({step: 1, scope: $scope});
 
     $scope.constants = {
       ENTITY_NAME: 'Group'
@@ -49,31 +42,23 @@ controllers.controller('CreateMailingController', [
     $scope.mailing = {};
 
     $scope.$watch('model.selectedGroupIds', function (newVal, oldVal) {
-      console.log('Old', oldVal);
-      console.log('New', newVal);
-
-//      var diff = [];
-
-//      for (var i = 0, end = oldVal.length; i < end; i++) {
-//
-//      }
-
-      // TODO (robin): Should the diff computation come here?
-      $scope.mailing.recipientGroupIds = newVal;
+      if (oldVal !== newVal) {
+        $scope.mailing.recipientGroupIds = newVal;
+      }
     });
 
     // Get the current mailing
     mailing.getCurrent()
       .success(function (response) {
-        log.createLog('Mailing received', response);
+        log.createLog('Mailing retrieved', response);
         $scope.mailing = response.values[0];
         mailing.getRecipientGroups()
-          .success(function(response) {
+          .success(function (response) {
             console.log('Groups retrieved', response);
             var recipientGroupIds = [], recipientGroups = response.values;
 
             for (var i = 0, end = response.values.length; i < end; i++) {
-              recipientGroupIds.push(recipientGroups[i].id);
+              recipientGroupIds.push(recipientGroups[i].entity_id);
             }
 
             $scope.mailing.recipientGroupIds = recipientGroupIds;
@@ -87,25 +72,15 @@ controllers.controller('CreateMailingController', [
     // Get the list of mailing recipient groups
     civiApi.get($scope.constants.ENTITY_NAME)
       .success(function (response) {
-        log.createLog('Groups received', response);
+        log.createLog('Groups retrieved', response);
         $scope.groups = response.values;
       });
-
-    // Proceed to next step
-    $scope.nextStep = function () {
-      mailing.nextStep($scope.mailing);
-    };
-
-    // Go back to previous step
-    $scope.prevStep = function () {
-      mailing.prevStep($scope.mailing);
-    };
   }
 ]);
 
 /**
- * Step 2 of the wizard
- */
+* Step 2 of the wizard
+*/
 controllers.controller('ComposeMailingController', [
   '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'paths', 'mailingServices', 'selectedMessageTextFilter',
   function ($scope, $http, $routeParams, $location, civiApi, log, notification, paths, mailing, selectedMessageText) {
@@ -113,15 +88,8 @@ controllers.controller('ComposeMailingController', [
       selectedMessage: {}
     };
 
-    // Set the current step of the wizard
-    mailing.setCurrentStep(2);
-
-    // Set whether links to previous/next step be shown
-    $scope.showPrevStepLink = mailing.showPrevStepLink();
-    $scope.showNextStepLink = mailing.showNextStepLink();
-
-    // Set the partial path for the current step
-    $scope.partial = mailing.getStepPartialPath();
+    // Initialise the step
+    mailing.initStep({step: 2, scope: $scope});
 
     $scope.constants = {
       ENTITY_NAME: 'Group'
@@ -149,16 +117,16 @@ controllers.controller('ComposeMailingController', [
       });
 
     // Get the option group
-    civiApi.get('OptionGroup', {name: 'mailing_header_filter_options'})
+    civiApi.get('OptionGroup', {name: 'from_email_address'})
       .success(function (response) {
-        log.createLog('Mailing header filter option response', response);
-        $scope.headerFilterOptionGroup = response.values[0];
+        log.createLog('From-email address option response', response);
+        $scope.fromEmailOptionGroup = response.values[0];
 
         // Get the option values
-        civiApi.get('OptionValue', {option_group_id: $scope.headerFilterOptionGroup.id})
+        civiApi.get('OptionValue', {option_group_id: $scope.fromEmailOptionGroup.id})
           .success(function (response) {
-            log.createLog('Mailing header filter group options response', response);
-            $scope.headerFilterOptionValues = response.values;
+            log.createLog('From-email address group options response', response);
+            $scope.fromEmailOptionValues = response.values;
           })
           .error(function (response) {
             // TODO
@@ -177,34 +145,17 @@ controllers.controller('ComposeMailingController', [
       .error(function (response) {
         // TODO
       });
-
-    // Proceed to next step
-    $scope.nextStep = function () {
-      mailing.nextStep($scope.mailing);
-    };
-
-    // Go back to previous step
-    $scope.prevStep = function () {
-      mailing.prevStep($scope.mailing);
-    };
   }
 ]);
 
 /**
- * Step 3
- */
+* Step 3
+*/
 controllers.controller('TestMailingController', [
   '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'mailingServices',
   function ($scope, $http, $routeParams, $location, civiApi, log, notification, mailing) {
-    // Set the current step of the wizard
-    mailing.setCurrentStep(3);
-
-    // Set whether links to previous/next step be shown
-    $scope.showPrevStepLink = mailing.showPrevStepLink();
-    $scope.showNextStepLink = mailing.showNextStepLink();
-
-    // Set the partial path for the current step
-    $scope.partial = mailing.getStepPartialPath();
+    // Initialise the step
+    mailing.initStep({step: 3, scope: $scope});
 
     $scope.constants = {
       ENTITY_NAME: 'Group'
@@ -220,7 +171,7 @@ controllers.controller('TestMailingController', [
     // Get the current mailing
     mailing.getCurrent()
       .success(function (response) {
-        log.createLog('Mailing received', response);
+        log.createLog('Mailing retrieved', response);
         $scope.mailing = response.values[0];
       })
       .error(function (response) {
@@ -229,37 +180,20 @@ controllers.controller('TestMailingController', [
 
     civiApi.get($scope.constants.ENTITY_NAME)
       .success(function (response) {
-        log.createLog('Groups received', response);
+        log.createLog('Groups retrieved', response);
         $scope.groups = response.values;
       });
-
-    // Proceed to next step
-    $scope.nextStep = function () {
-      mailing.nextStep($scope.mailing);
-    };
-
-    // Go back to previous step
-    $scope.prevStep = function () {
-      mailing.prevStep($scope.mailing);
-    };
   }
 ]);
 
 /**
- * Step 4 of the wizard
- */
+* Step 4 of the wizard
+*/
 controllers.controller('ScheduleAndSendController', [
   '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'mailingServices',
   function ($scope, $http, $routeParams, $location, civiApi, log, notification, mailing) {
-    // Set the current step of the wizard
-    mailing.setCurrentStep(4);
-
-    // Set whether links to previous/next step be shown
-    $scope.showPrevStepLink = mailing.showPrevStepLink();
-    $scope.showNextStepLink = mailing.showNextStepLink();
-
-    // Set the partial path for the current step
-    $scope.partial = mailing.getStepPartialPath();
+    // Initialise the step
+    mailing.initStep({step: 4, scope: $scope});
 
     $scope.constants = {
       ENTITY_NAME: 'Group'
@@ -275,16 +209,6 @@ controllers.controller('ScheduleAndSendController', [
 
     $scope.constants = {
       ENTITY_NAME: 'Group'
-    };
-
-    // Proceed to next step
-    $scope.nextStep = function () {
-      mailing.nextStep($scope.mailing);
-    };
-
-    // Go back to previous step
-    $scope.prevStep = function () {
-      mailing.prevStep($scope.mailing);
     };
   }
 ]);

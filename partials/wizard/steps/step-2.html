@@ -17,7 +17,7 @@
       <label for="">From address</label>
       <select ui-select2 ng-model="selectedFilter" data-placeholder="Select from address" name="" id="">
         <option value=""></option>
-        <option ng-repeat="filter in headerFilterOptionValues" value="{{filter.id}}">{{filter.label}}</option>
+        <option ng-repeat="email in fromEmailOptionValues" value="{{email.id}}">{{email.label}}</option>
       </select>
     </div>
 
@@ -55,7 +55,7 @@
           <select ui-select2 ng-model="model.selectedMessage.id" data-placeholder="Select campaign message"
                   name="campaign-message" id="campaign-message">
             <option value=""></option>
-            <option selected="selected" ng-repeat="message in messages" value="{{message.id}}">{{message.label}} {{message.id}}</option>
+            <option selected="selected" ng-repeat="message in messages" value="{{message.id}}">{{message.label}}</option>
           </select>
         </div>
 
