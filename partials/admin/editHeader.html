@@ -28,8 +28,8 @@
              ng-true-value="1" ng-false-value="0"/>
     </div>
 
-    <!-- TODO (robin): Only show the below image uploader when the above checkbox is checked -->
-    <div class="field-group inline clearfix">
+    <!-- TODO (robin): Also delete the image uploaded one the above checkbox is unchecked -->
+    <div class="field-group inline clearfix" ng-show="header.show_logo">
       <label for="logo_image">Logo image</label>
 
       <div sm-image-uploader
