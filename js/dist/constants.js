@@ -1,18 +1,22 @@
-var constants = angular.module('simpleMail.constants', []);
+(function () {
+  "use strict";
 
-constants.constant('paths', {
-  EXT_DIR: '/civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail',
+  var constants = angular.module('simpleMail.constants', []);
 
-  /**
-   * @return {string}
-   */
-  TEMPLATES_DIR: function () {
-    return this.EXT_DIR + '/js/dist/templates'
-  },
-  /**
-   * @return {string}
-   */
-  PARTIALS_DIR: function () {
-    return this.EXT_DIR + '/partials'
-  }
-});
+  constants.constant('paths', {
+    EXT_DIR: '/civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail',
+
+    /**
+     * @return {string}
+     */
+    TEMPLATES_DIR: function () {
+      return this.EXT_DIR + '/js/dist/templates'
+    },
+    /**
+     * @return {string}
+     */
+    PARTIALS_DIR: function () {
+      return this.EXT_DIR + '/partials'
+    }
+  });
+})();

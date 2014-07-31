@@ -1,17 +1,21 @@
-var directives = angular.module('simpleMail.directives', []);
+(function () {
+  "use strict";
 
-directives.directive('smImageUploader', ['paths',
-  function (paths) {
-    return {
-      restrict: 'A',
-      scope: {
-        model: '=',
-        uploader: '=',
-        form: '=',
-        config: '=',
-        remove: '&onRemove'
-      },
-      templateUrl: paths.TEMPLATES_DIR() + '/image-uploader.html'
-    };
-  }
-]);
+  var directives = angular.module('simpleMail.directives', []);
+
+  directives.directive('smImageUploader', ['paths',
+    function (paths) {
+      return {
+        restrict: 'A',
+        scope: {
+          model: '=',
+          uploader: '=',
+          form: '=',
+          config: '=',
+          remove: '&onRemove'
+        },
+        templateUrl: paths.TEMPLATES_DIR() + '/image-uploader.html'
+      };
+    }
+  ]);
+})();
