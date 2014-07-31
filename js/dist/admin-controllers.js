@@ -1,6 +1,11 @@
 (function () {
   "use strict";
 
+  /**
+   * Controllers for the admin section of the app
+   *
+   * @type {*|module}
+   */
   var controllers = angular.module('simpleMail.adminApp.controllers', []);
 
   controllers.config(['$httpProvider', function ($httpProvider) {
@@ -9,7 +14,7 @@
   }]);
 
   /**
-   * Headers
+   * Admin listing of headers
    */
   controllers.controller('HeadersAdminController', [
     '$scope', '$http', 'civiApiServices', 'loggingServices', 'notificationServices',
@@ -68,7 +73,7 @@
   ]);
 
   /**
-   * A single header
+   * Detail page of a header
    */
   controllers.controller('HeaderAdminController', [
     '$scope', '$http', '$fileUploader', 'civiApiServices', 'loggingServices', 'notificationServices', '$routeParams', '$location',
@@ -83,7 +88,7 @@
       var uploader = $scope.imageUploader = $fileUploader.create({
         scope: $scope,                          // to automatically update the html. Default: $rootScope
         url: '/civicrm/ajax/rest?entity=SimpleMailHeader&action=uploadimage&json=1&sequential=1',
-  //      queueLimit: 1,
+        //      queueLimit: 1,
         autoUpload: true,
         headers: {
           'X-Requested-with': 'XMLHttpRequest'
@@ -185,14 +190,14 @@
         var fileName = $scope.header[field];
 
         if (fileName) {
-        civiApi.post('SimpleMailHeader', {field: field, fileName: fileName}, 'deleteimage')
-          .success(function(response) {
-            if (response.is_error) {
-              notification.error('Failed to delete the image', response.error_message);
-            } else {
-              notification.success('Image deleted successfully');
-            }
-          });
+          civiApi.post('SimpleMailHeader', {field: field, fileName: fileName}, 'deleteimage')
+            .success(function (response) {
+              if (response.is_error) {
+                notification.error('Failed to delete the image', response.error_message);
+              } else {
+                notification.success('Image deleted successfully');
+              }
+            });
         }
 
         $scope.header[field] = $scope.header[field + '_url'] = undefined;
@@ -290,7 +295,7 @@
   ]);
 
   /**
-   * Messages
+   * Admin list and inline editing of messages
    */
   controllers.controller('MessagesAdminController', [
     '$scope', '$http', 'civiApiServices', 'loggingServices', 'notificationServices',
@@ -310,13 +315,8 @@
 
       $scope.messages = {};
       $scope.newMessage = {
-  //      editing: true
+        //      editing: true
       };
-
-      // civiApiService.get('SimpleMailMessages)
-      // civiApiService.update('SimpleMailMessages', #id)
-      // civiApiService.create('SimpleMailMessages')
-      // civiApiService.delete('SimpleMailMessages', #id)
 
       civiApi.get($scope.constants.ENTITY_NAME)
         .success(function (messages) {

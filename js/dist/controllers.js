@@ -1,6 +1,11 @@
 (function () {
   "use strict";
 
+  /**
+   * Controllers for the mailing wizard section of the app
+   *
+   * @type {*|module}
+   */
   var controllers = angular.module('simpleMail.app.controllers', []);
 
   controllers.config(['$httpProvider', function ($httpProvider) {
@@ -8,6 +13,9 @@
     $httpProvider.defaults.headers.common["X-Requested-With"] = 'XMLHttpRequest';
   }]);
 
+  /**
+   * Listing of mailing wizards
+   */
   controllers.controller('MailingsController', [
     '$scope', '$http', 'civiApiServices', 'loggingServices', 'notificationServices',
     function ($scope, $http, civiApi, log, notification) {
