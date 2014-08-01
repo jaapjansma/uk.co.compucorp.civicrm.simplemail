@@ -240,15 +240,7 @@
                 }
               });
           });
-
-//          if (this.getStep() === Steps.FIRST) {
-//            if (angular.isDefined(mailing.recipientGroupIds) && mailing.recipientGroupIds.length) {
-//              this.saveRecipientGroupIds(mailing.recipientGroupIds);
-//            }
-//          }
-//
-//          return civiApi.create(constants.ENTITY, mailing);
-        },
+       },
 
 
         saveRecipientGroupIds: function (newGroupIds) {

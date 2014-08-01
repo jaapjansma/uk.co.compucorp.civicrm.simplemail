@@ -106,33 +106,6 @@
           $scope.mailing = response;
           $scope.model.selectedMessage.id = +$scope.mailing.message_id;
         });
-//        .then(function () {
-//          return mailing.getRecipientGroupIds()
-//          .then(function (response) {
-//            $scope.mailing.recipientGroupIds = response;
-//            $scope.model.selectedMessage.id = +$scope.mailing.message_id;
-//          });
-//        });
-
-//      // Get the current mailing
-//      mailing.getCurrent()
-//        .then(function (response) {
-//          $scope.mailing = response;
-//          $scope.model.selectedMessage.id = +$scope.mailing.message_id;
-//        })
-//        .catch(function (response) {
-//          console.log('Failed to retrieve mailing', response);
-//        });
-
-//      mailing.getCurrent()
-//        .success(function (response) {
-//          log.createLog('Mailing retrieved', response);
-//          $scope.mailing = response.values[0];
-//          $scope.model.selectedMessage.id = +$scope.mailing.message_id;
-//        })
-//        .error(function (response) {
-//          console.log('Failed to retrieve mailing', response);
-//        });
 
       // Get the option group
       civiApi.get('OptionGroup', {name: 'from_email_address'})
@@ -191,16 +164,6 @@
         .then(function (response) {
           $scope.mailing = response;
         });
-
-// Get the current mailing
-//      mailing.getCurrent()
-//        .success(function (response) {
-//          log.createLog('Mailing retrieved', response);
-//          $scope.mailing = response.values[0];
-//        })
-//        .error(function (response) {
-//          log.createLog('Failed to retrieve mailing', response);
-//        });
 
       civiApi.get($scope.constants.ENTITY_NAME)
         .success(function (response) {
