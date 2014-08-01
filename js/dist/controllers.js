@@ -52,32 +52,16 @@
       // Initialise empty mailing
       $scope.mailing = {};
 
-      $scope.$watch('model.selectedGroupIds', function (newVal, oldVal) {
-        if (oldVal !== newVal) {
-          $scope.mailing.recipientGroupIds = newVal;
-        }
-      });
-
-      // Get the current mailing
-      mailing.getCurrent()
-        .success(function (response) {
-          log.createLog('Mailing retrieved', response);
-          $scope.mailing = response.values[0];
-          mailing.getRecipientGroups()
-            .success(function (response) {
-              console.log('Groups retrieved', response);
-              var recipientGroupIds = [], recipientGroups = response.values;
-
-              for (var i = 0, end = response.values.length; i < end; i++) {
-                recipientGroupIds.push(recipientGroups[i].entity_id);
-              }
-
-              $scope.mailing.recipientGroupIds = recipientGroupIds;
-              $scope.model.selectedGroupIds = recipientGroupIds;
-            });
+      mailing.getMailing()
+        .then(function (response) {
+          $scope.mailing = response;
         })
-        .error(function (response) {
-          log.createLog('Failed to retrieve mailing', response);
+        // Group IDs are set within 'then' below as, otherwise, $scope.mailing would get overridden by the above 'then',
+        // in case group IDs got retrieve before the mailing. Chaining it to promise like done here solves this.
+        .then(function () {
+          mailing.getRecipientGroupIds().then(function (response) {
+            $scope.mailing.recipientGroupIds = response;
+          });
         });
 
       // Get the list of mailing recipient groups
@@ -117,15 +101,38 @@
       });
 
       // Get the current mailing
-      mailing.getCurrent()
-        .success(function (response) {
-          log.createLog('Mailing retrieved', response);
-          $scope.mailing = response.values[0];
+      mailing.getMailing()
+        .then(function (response) {
+          $scope.mailing = response;
           $scope.model.selectedMessage.id = +$scope.mailing.message_id;
-        })
-        .error(function (response) {
-          console.log('Failed to retrieve mailing', response);
         });
+//        .then(function () {
+//          return mailing.getRecipientGroupIds()
+//          .then(function (response) {
+//            $scope.mailing.recipientGroupIds = response;
+//            $scope.model.selectedMessage.id = +$scope.mailing.message_id;
+//          });
+//        });
+
+//      // Get the current mailing
+//      mailing.getCurrent()
+//        .then(function (response) {
+//          $scope.mailing = response;
+//          $scope.model.selectedMessage.id = +$scope.mailing.message_id;
+//        })
+//        .catch(function (response) {
+//          console.log('Failed to retrieve mailing', response);
+//        });
+
+//      mailing.getCurrent()
+//        .success(function (response) {
+//          log.createLog('Mailing retrieved', response);
+//          $scope.mailing = response.values[0];
+//          $scope.model.selectedMessage.id = +$scope.mailing.message_id;
+//        })
+//        .error(function (response) {
+//          console.log('Failed to retrieve mailing', response);
+//        });
 
       // Get the option group
       civiApi.get('OptionGroup', {name: 'from_email_address'})
@@ -180,14 +187,20 @@
       };
 
       // Get the current mailing
-      mailing.getCurrent()
-        .success(function (response) {
-          log.createLog('Mailing retrieved', response);
-          $scope.mailing = response.values[0];
-        })
-        .error(function (response) {
-          log.createLog('Failed to retrieve mailing', response);
+      mailing.getMailing()
+        .then(function (response) {
+          $scope.mailing = response;
         });
+
+// Get the current mailing
+//      mailing.getCurrent()
+//        .success(function (response) {
+//          log.createLog('Mailing retrieved', response);
+//          $scope.mailing = response.values[0];
+//        })
+//        .error(function (response) {
+//          log.createLog('Failed to retrieve mailing', response);
+//        });
 
       civiApi.get($scope.constants.ENTITY_NAME)
         .success(function (response) {
@@ -212,6 +225,12 @@
 
       // Initialise empty mailing
       $scope.mailing = {};
+
+      // Get the current mailing
+      mailing.getMailing()
+        .then(function (response) {
+          $scope.mailing = response;
+        });
 
       // Activate the jQuery datepicker plugin once the partial has been included
       $scope.$on('$includeContentLoaded', function (e) {

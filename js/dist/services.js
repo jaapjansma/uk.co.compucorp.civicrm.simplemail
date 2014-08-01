@@ -35,8 +35,8 @@
     }
   ]);
 
-  services.factory('mailingServices', ['$location', '$routeParams', 'civiApiServices', 'paths', 'utilityServices',
-    function ($location, $routeParams, civiApi, paths, utility) {
+  services.factory('mailingServices', ['$location', '$routeParams', '$q', 'civiApiServices', 'paths', 'utilityServices',
+    function ($location, $routeParams, $q, civiApi, paths, utility) {
       var constants = {
         ENTITY: 'SimpleMail'
       };
@@ -103,31 +103,51 @@
          * @returns {self} Returns self for chaining
          */
         initStep: function (params) {
-          this.setStep(params.step);
-          this.setScope(params.scope);
+          this.setStep(params.step)
+            .setScope(params.scope);
 
-          this.setupMailing();
-          this.setupButtons();
-          this.setupPartials();
+          this.setupMailing()
+            .setupButtons()
+            .setupPartials();
 
           return this;
         },
 
         /**
          * Setup and initialise the current mailing
+         *
+         * @returns {self} Returns self for chaining
          */
         setupMailing: function () {
-          this.setMailingId($routeParams.mailingId);
-        },
+          var mailingId = $routeParams.mailingId;
 
+          var mailing = mailingId === "new"
+            ? {}
+            : this.get(mailingId)
+            .then(function (response) {
+              return response;
+            })
+            .catch(function (response) {
+              console.log('Failed to retrieve mailing', response);
+              return {};
+            });
+
+          this.setMailingId(mailingId);
+          this.setMailing(mailing);
+
+          return this;
+        },
 
         /**
          * Set the scope for the mailing
          *
-         * @param scope
+         * @param {$rootScope.Scope} scope
+         * @returns {self} Returns self for chaining
          */
         setScope: function (scope) {
           this.config.scope = scope;
+
+          return this;
         },
 
         /**
@@ -144,6 +164,8 @@
          */
         setupPartials: function () {
           this.getScope().partial = getStepPartialPath(this.getStep());
+
+          return this;
         },
 
         /**
@@ -164,6 +186,15 @@
           this.config.mailingId = +id;
         },
 
+        getMailing: function () {
+          return $q.when(this.config.mailing);
+        },
+
+        setMailing: function (mailing) {
+          this.config.mailing = mailing;
+//           this.config.mailing = $q.when(mailing);
+        },
+
         /**
          * Get mailing by ID
          *
@@ -172,29 +203,58 @@
          */
         get: function (id) {
           // TODO (robin): Returning HTTP Promises throughout the services could be replaced with returning a generic promise and performing various validation and repetitive tasks in the service, rather that duplicating it in the controllers (e.g. generic implementation of success() and error() could be done within the service to improve re-usability, and a generic promise could be returned back so that every call to an HTTP service doesn't require boilerplate implementation of success() and error() repetitively
-          return civiApi.get(constants.ENTITY, {id: id});
+          return civiApi.get(constants.ENTITY, {id: id})
+            .then(function (response) {
+              if (response.data.is_error) return $q.reject(response);
+
+              console.log('Mailing retrieved', response);
+              return response.data.values[0];
+            });
         },
 
         /**
          * Save progress of the mailing
          *
-         * @param mailing
          * @returns {constants.ENTITY}
          */
-        saveProgress: function (mailing) {
-          if (this.getStep() === Steps.FIRST) {
-            if (angular.isDefined(mailing.recipientGroupIds) && mailing.recipientGroupIds.length) {
-              this.saveRecipientGroupIds(mailing.recipientGroupIds);
-            }
-          }
+        saveProgress: function () {
+          var self = this;
 
-          return civiApi.create(constants.ENTITY, mailing);
+          return this.getMailing().then(function (response) {
+            var mailing = response;
+
+            return civiApi.create(constants.ENTITY, mailing)
+              .then(function (response) {
+                if (response.data.is_error) return $q.reject(response);
+
+                console.log('Mailing saved', response);
+                return response;
+              })
+              // Group IDs need to be saved *after* saving mailing as in case of a new mailing there won't be a mailing
+              // ID. However, by saving the mailing first, we can get the id of the newly created mailing.
+              .then(function (response) {
+                if (self.getStep() === Steps.FIRST) {
+                  if (angular.isDefined(mailing.recipientGroupIds) && mailing.recipientGroupIds.length) {
+                    self.saveRecipientGroupIds(mailing.recipientGroupIds);
+                  }
+                }
+              });
+          });
+
+//          if (this.getStep() === Steps.FIRST) {
+//            if (angular.isDefined(mailing.recipientGroupIds) && mailing.recipientGroupIds.length) {
+//              this.saveRecipientGroupIds(mailing.recipientGroupIds);
+//            }
+//          }
+//
+//          return civiApi.create(constants.ENTITY, mailing);
         },
 
 
         saveRecipientGroupIds: function (newGroupIds) {
           var self = this;
-          // TODO (robin): This could probably be optimised to avoid another API call
+
+          // TODO (robin): This could probably be optimised to avoid the additional API call
           this.getRecipientGroupIds().then(function (oldGroupIds) {
             console.log('Old groups', oldGroupIds);
             console.log('New groups', newGroupIds);
@@ -207,18 +267,15 @@
 
             if (removed.length) {
               self.getRecipientGroups()
-                .success(function (response) {
-                  var groups = response.values;
-
-                  for (var i = 0, end = removed.length; i < end; i++) {
+                .then(function (response) {
+                  for (var i = 0, iEnd = removed.length; i < iEnd; i++) {
                     var removeId = null;
 
-                    angular.forEach(groups, function (value, key) {
-
-                      if (value.entity_id === removed[i]) {
-                        removeId = value.id;
+                    for (var j = 0, jEnd = response.length; j < jEnd; j++) {
+                      if (response[j].entity_id === removed[i]) {
+                        removeId = +response[j].id;
                       }
-                    });
+                    }
 
                     civiApi.remove('SimpleMailRecipientGroup', {id: removeId})
                       .success(function (response) {
@@ -272,16 +329,16 @@
         },
 
         getRecipientGroupIds: function () {
+          var self = this;
+
+          console.log('Message ID', self.config.scope.mailing.message_id);
           return this.getRecipientGroups()
             .then(function (response) {
               var groupIds = [];
+              console.log('Message ID', self.config.scope.mailing.message_id);
 
-              if (!response.data.is_error) {
-                var groups = response.data.values;
-
-                for (var i = 0, end = groups.length; i < end; i++) {
-                  groupIds.push(groups[i].entity_id);
-                }
+              for (var i = 0, end = response.length; i < end; i++) {
+                groupIds.push(response[i].entity_id);
               }
 
               console.log('Group IDs', groupIds);
@@ -296,7 +353,13 @@
          * @returns {*|Object|HttpPromise|*|Object|HttpPromise}
          */
         getRecipientGroups: function () {
-          return civiApi.get('SimpleMailRecipientGroup', {mailing_id: this.getMailingId()});
+          return civiApi.get('SimpleMailRecipientGroup', {mailing_id: this.getMailingId()})
+            .then(function (response) {
+              if (response.data.is_error) return $q.reject(response);
+
+              console.log('Recipient groups retrieved', response);
+              return response.data.values;
+            });
         },
 
         /**
@@ -312,18 +375,36 @@
         },
 
         /**
+         * Go back to the previous step of the mailing wizard
+         *
+         * @param mailing
+         */
+        prevStep: function (mailing) {
+          var self = this;
+
+          this.saveProgress()
+            .then(function () {
+              self.redirectToStep(--self.config.step);
+            })
+            .catch(function (response) {
+              console.log('Failed to save progress', response);
+            });
+        },
+
+        /**
          * Proceed to the next step of the mailing wizard
          *
          * @param mailing
          */
-        nextStep: function (mailing) {
+        nextStep: function () {
           var self = this;
 
-          this.saveProgress(mailing)
-            .success(function (response) {
-              console.log('Save progress response', response);
-
+          this.saveProgress()
+            .then(function () {
               self.redirectToStep(++self.config.step);
+            })
+            .catch(function (response) {
+              console.log('Failed to save progress', response);
             });
         },
 
@@ -332,22 +413,6 @@
             mailingId: this.getMailingId(),
             step: step
           }));
-        },
-
-        /**
-         * Go back to the previous step of the mailing wizard
-         *
-         * @param mailing
-         */
-        prevStep: function (mailing) {
-          var self = this;
-
-          this.saveProgress(mailing)
-            .success(function (response) {
-              console.log('Save progress response', response);
-
-              self.redirectToStep(--self.config.step);
-            });
         },
 
         cancel: function () {
@@ -376,14 +441,10 @@
           return this.getStep() !== Steps.LAST;
         },
 
-        getMailing: function () {
-          return this.config.mailing;
-        },
-
         setupButtons: function () {
           var self = this;
           var scope = this.getScope();
-          var mailing = this.getMailing();
+
 
           // Set whether links to previous/next step be shown
           scope.showPrevStepLink = this.showPrevStepLink();
@@ -391,12 +452,14 @@
 
           // Proceed to next step
           scope.nextStep = function () {
-            self.nextStep(scope.mailing);
+            self.setMailing(scope.mailing);
+            self.nextStep();
           };
 
           // Go back to previous step
           scope.prevStep = function () {
-            self.prevStep(scope.mailing);
+            self.setMailing(scope.mailing);
+            self.prevStep();
           }
 
           scope.cancel = function () {
@@ -407,8 +470,7 @@
         }
       }
     }
-  ])
-  ;
+  ]);
 
 // TODO (robin): use the builtin log service of AngularJS and decorate it with custom behavior rather than this below
   services.factory("notificationServices", ['loggingServices',

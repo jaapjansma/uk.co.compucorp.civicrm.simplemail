@@ -15,7 +15,7 @@
     <h2>Mailing Recipients</h2>
     <div class="field-group required">
       <label for="">Include group(s)</label>
-      <select ui-select2 multiple ng-model="model.selectedGroupIds" data-placeholder="Select group(s)">
+      <select ui-select2 multiple ng-model="mailing.recipientGroupIds" data-placeholder="Select group(s)">
         <option ng-repeat="group in groups" value="{{group.id}}">{{group.title}}</option>
       </select>
     </div>
