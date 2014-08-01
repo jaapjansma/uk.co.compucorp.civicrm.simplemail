@@ -52,7 +52,7 @@
       <div class="field-group col right two-thirds clearfix">
         <div class="field-group clearfix">
           <label for="campaign-message">Campaign message</label>
-          <select ui-select2 ng-model="model.selectedMessage.id" data-placeholder="Select campaign message"
+          <select ui-select2 ng-model="mailing.message_id" data-placeholder="Select campaign message"
                   name="campaign-message" id="campaign-message">
             <option value=""></option>
             <option selected="selected" ng-repeat="message in messages" value="{{message.id}}">{{message.label}}</option>

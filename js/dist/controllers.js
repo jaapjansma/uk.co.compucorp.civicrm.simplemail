@@ -93,10 +93,10 @@
       // Initialise empty mailing
       $scope.mailing = {};
 
-      $scope.$watch('model.selectedMessage.id', function (newVal, oldVal) {
+      $scope.$watch('mailing.message_id', function (newVal, oldVal) {
         if (oldVal !== newVal) {
           $scope.mailing.message_id = newVal;
-          $scope.model.selectedMessage.text = selectedMessageText($scope.messages, $scope.model.selectedMessage.id);
+          $scope.model.selectedMessage.text = selectedMessageText($scope.messages, $scope.mailing.message_id);
         }
       });
 
@@ -104,7 +104,19 @@
       mailing.getMailing()
         .then(function (response) {
           $scope.mailing = response;
-          $scope.model.selectedMessage.id = +$scope.mailing.message_id;
+        })
+        .then(function (response) {
+          // Get the messages - note: this is within 'then' as otherwise it is possible that messages are not retrieved
+          // the mailing is, thereby making the selectedMessageText filter fail to populate the message text reliably
+          civiApi.get('SimpleMailMessage', {is_active: 1}).
+            success(function (response) {
+              log.createLog('Messages retrieved', response);
+              $scope.messages = response.values;
+              $scope.model.selectedMessage.text = selectedMessageText($scope.messages, $scope.mailing.message_id);
+            })
+            .error(function (response) {
+              // TODO
+            });
         });
 
       // Get the option group
@@ -126,17 +138,7 @@
         .error(function (response) {
 
         });
-
-      // Get the messages
-      civiApi.get('SimpleMailMessage', {is_active: 1}).
-        success(function (response) {
-          log.createLog('Messages retrieved', response);
-          $scope.messages = response.values;
-        })
-        .error(function (response) {
-          // TODO
-        });
-    }
+   }
   ]);
 
   /**
