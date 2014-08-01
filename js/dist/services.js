@@ -228,11 +228,14 @@
                 if (response.data.is_error) return $q.reject(response);
 
                 console.log('Mailing saved', response);
-                return response;
+
+                if (isNaN(self.getMailingId())) {
+                  self.setMailingId(+response.data.values[0].id);
+                }
               })
               // Group IDs need to be saved *after* saving mailing as in case of a new mailing there won't be a mailing
               // ID. However, by saving the mailing first, we can get the id of the newly created mailing.
-              .then(function (response) {
+              .then(function () {
                 if (self.getStep() === Steps.FIRST) {
                   if (angular.isDefined(mailing.recipientGroupIds) && mailing.recipientGroupIds.length) {
                     self.saveRecipientGroupIds(mailing.recipientGroupIds);
@@ -242,7 +245,12 @@
           });
        },
 
-
+        /**
+         * Save recipient group IDs for the mailing in the linking table. This adds or remove entries from the linking
+         * table, depending upon whether groups were added or deleted.
+         *
+         * @param newGroupIds
+         */
         saveRecipientGroupIds: function (newGroupIds) {
           var self = this;
 
