@@ -212,6 +212,20 @@
             });
         },
 
+
+        submitMassEmail: function () {
+          civiApi.post('SimpleMail', {id: this.getMailingId()}, 'submitmassemail')
+            .then(function (response) {
+              if (response.data.is_error) return $q.reject(response)
+              console.log(response);
+
+              return true;
+            })
+            .catch(function(response) {
+              console.log('Failed to submit mailing for mass email', response);
+            });
+       },
+
         /**
          * Save progress of the mailing
          *
@@ -462,6 +476,11 @@
           scope.prevStep = function () {
             self.setMailing(scope.mailing);
             self.prevStep();
+          }
+
+          scope.submitMassEmail = function() {
+            self.setMailing(scope.mailing);
+            self.submitMassEmail();
           }
 
           scope.cancel = function () {
