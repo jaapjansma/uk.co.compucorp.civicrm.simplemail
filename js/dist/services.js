@@ -450,6 +450,8 @@
           scope.showPrevStepLink = this.showPrevStepLink();
           scope.showNextStepLink = this.showNextStepLink();
 
+          if (this.getStep() === Steps.LAST) scope.showSubmitMassEmailLink = true;
+
           // Proceed to next step
           scope.nextStep = function () {
             self.setMailing(scope.mailing);

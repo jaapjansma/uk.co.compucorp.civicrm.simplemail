@@ -8,7 +8,8 @@
     </div>
 
     <div class="action">
-      <a href ng-click="saveAndContinue()" class="button">Save &amp; Continue Later</a>
+      <a href ng-click="saveAndContinue()" class="button" ng-if="!showSubmitMassEmailLink">Save &amp; Continue Later</a>
+      <a href ng-click="submitMassEmail()" class="button" ng-show="showSubmitMassEmailLink">Submit Mass Email</a>
       <a href ng-click="cancel()" class="button">Cancel</a>
     </div>
   </div>
