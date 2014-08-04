@@ -13,7 +13,9 @@ class CRM_Simplemail_Page_SimpleMail extends CRM_Core_Page {
     CRM_Core_Resources::singleton()
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/jquery.min.js', 40, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/select2.min.js', 50, 'page-footer')
-      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular.min.js', 60, 'page-footer')
+    // TODO (robin): Use angular.min.js for production
+      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular.js', 60, 'page-footer')
+//      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular.min.js', 60, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular-route.min.js', 70, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular-animate.min.js', 80, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular-select2.js', 90, 'page-footer')
