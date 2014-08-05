@@ -16,6 +16,8 @@ function _civicrm_api3_simple_mail_submitmassemail_spec(&$spec) {
 /**
  * SimpleMail.SubmitMassEmail API
  *
+ * TODO (robin): Refactor this towards the end
+ *
  * @param array $params
  *
  * @return array API result descriptor
@@ -26,17 +28,12 @@ function _civicrm_api3_simple_mail_submitmassemail_spec(&$spec) {
 function civicrm_api3_simple_mail_submitmassemail($params) {
   require_once 'sites/all/modules/civicrm/api/class.api.php';
 
-//  require_once '/api/class.api.php';
-  if (!array_key_exists('id', $params)) {
+  if (!isset($params['id'])) {
     throw new API_Exception(
-      'Failed to submit for mass email as mailing ID not provided', 405);
+      'Failed to submit for mass email as Simple Mail mailing ID was not provided', 405);
   }
 
-  $entity = 'SimpleMail';
-
-  $apiParams = array(
-    'id' => (int) $params['id']
-  );
+  $smMailingId = (int) $params['id'];
 
   // /civicrm/ajax/rest?entity=SimpleMail&action=submitmassemail&id=1
 
@@ -44,16 +41,46 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
 
   $template = '<h1>Hello World</h1><p>This is a dummy email template</p>';
 
-
   $api = new civicrm_api3();
 
+  /////////////////////////////////
+  // Get the Simple Mail mailing //
+  /////////////////////////////////
+  $entity = 'SimpleMail';
+  $apiParams = array(
+    'id' => $smMailingId
+  );
+
   $api->$entity->Get($apiParams);
+
+  $mailing = reset($api->values());
 
   if ($api->is_error()) {
     throw new API_Exception('An error occured when trying to retrieve mailing: ' . $api->errorMsg(), 500);
   }
 
-  $mailing = reset($api->values());
+  //////////////////////////////////////////////////////////
+  // Get the recipient groups for the Simple Mail mailing //
+  //////////////////////////////////////////////////////////
+  $entity = 'SimpleMailRecipientGroup';
+  $apiParams = array(
+    'mailing_id' => $smMailingId
+  );
+  $api->$entity->Get($apiParams);
+
+  $groups = $api->values();
+
+  if ($api->is_error()) {
+    throw new API_Exception('An error occured when trying to retrieve recipient groups: ' . $api->errorMsg(), 500);
+  }
+
+  $crmMailingParamGroups = array(
+    'include' => array()
+  );
+
+  foreach ($groups as $group) {
+    $crmMailingParamGroups['include'][] = $group->entity_id;
+  }
 
   $template .= $mailing->body;
 
@@ -64,7 +91,7 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
     'from_email'         => $mailing->from_email,
     'subject'            => $mailing->subject,
     'body_html'          => $template,
-    'groups'             => array('include' => array('4', '5')),
+    'groups'             => $crmMailingParamGroups,
     'scheduled_date'     => str_replace(array('-', ':', ' '), '', $mailing->send_on),
     'scheduled_id'       => $session->get('userID'),
     'approver_id'        => $session->get('userID'),
@@ -77,6 +104,18 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
   );
 
   $crmMailing = CRM_Mailing_BAO_Mailing::create($crmMailingParams, $crmMailingId);
+
+  $dedupeEmail = FALSE;
+
+  // also compute the recipients and store them in the mailing recipients table
+  CRM_Mailing_BAO_Mailing::getRecipients(
+    $crmMailing->id,
+    $crmMailing->id,
+    NULL,
+    NULL,
+    TRUE,
+    $dedupeEmail
+  );
 
   return array('crmMailingId' => $crmMailing->id);
 }
