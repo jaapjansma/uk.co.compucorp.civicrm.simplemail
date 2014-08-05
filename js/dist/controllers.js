@@ -17,8 +17,8 @@
    * Listing of mailing wizards
    */
   controllers.controller('MailingsController', [
-    '$scope', '$http', 'civiApiServices', 'loggingServices', 'notificationServices',
-    function ($scope, $http, civiApi, log, notification) {
+    '$scope', '$http', '$q', 'civiApiServices', 'loggingServices', 'notificationServices',
+    function ($scope, $http, $q, civiApi, log, notification) {
 
       $scope.constants = {
         ENTITY_NAME: 'SimpleMail'
@@ -29,6 +29,59 @@
           log.createLog('Mailings retrieved', response);
           $scope.mailings = response.values;
         });
+
+      $scope.deleteMailing = function (index) {
+        var mailing = $scope.mailings[index];
+
+        // First delete the corresponding CiviCRM mailing, if one exists
+        if ('crm_mailing_id' in mailing) {
+          civiApi.post('SimpleMail', {id: mailing.id}, 'deletemassemail')
+            .then(function (response) {
+              if (response.data.is_error) return $q.reject(response);
+
+              console.log(response);
+              return response;
+            })
+            // Delete the Simple Mail mailing, if the deletion of CiviCRM mailing is successful
+            .then(function () {
+              civiApi.remove($scope.constants.ENTITY_NAME, mailing)
+                .then(function (response) {
+                  if (response.data.is_error) return $q.reject(response);
+
+                  console.log(response);
+
+                  notification.success('Mailing deleted');
+                  $scope.mailings.splice(index, 1);
+
+                  return response;
+                })
+                .catch(function (response) {
+                  // Forward the rejection
+                  $q.reject(response);
+                });
+            })
+            .catch(function (response) {
+              notification.error('Failed to delete mailing due to an error');
+              console.log('Failed to delete mailing due to an error', response);
+            });
+        } else {
+          civiApi.remove($scope.constants.ENTITY_NAME, mailing)
+            .then(function (response) {
+              if (response.data.is_error) return $q.reject(response);
+
+              console.log(response);
+
+              notification.success('Mailing deleted');
+              $scope.mailings.splice(index, 1);
+
+              return response;
+            })
+            .catch(function (response) {
+              notification.error('Failed to delete mailing due to an error');
+              console.log('Failed to delete mailing due to an error', response);
+            });
+        }
+      };
     }
   ]);
 
