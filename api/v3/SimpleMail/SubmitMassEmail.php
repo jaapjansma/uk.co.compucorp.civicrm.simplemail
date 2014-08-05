@@ -57,13 +57,6 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
 
   $template .= $mailing->body;
 
-//  if ($mailing['now']) {
-//    $params['scheduled_date'] = date('YmdHis');
-//  }
-//  else {
-//    $params['scheduled_date'] = CRM_Utils_Date::processDate($params['start_date'] . ' ' . $params['start_date_time']);
-//  }
-
   $session = CRM_Core_Session::singleton();
 
   $crmMailingParams = array(
