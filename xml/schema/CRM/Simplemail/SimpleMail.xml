@@ -21,6 +21,20 @@
   </primaryKey>
 
   <field>
+    <name>crm_mailing_id</name>
+    <type>int unsigned</type>
+    <!--<required>false</required>-->
+    <comment>The ID of CiviCRM mailing, once it has been generated from Simple Mail</comment>
+    <add>4.4</add>
+  </field>
+  <foreignKey>
+    <name>crm_mailing_id</name>
+    <table>civicrm_mailing</table>
+    <key>id</key>
+    <onDelete>SET NULL</onDelete>
+  </foreignKey>
+
+  <field>
     <name>name</name>
     <type>varchar</type>
     <length>64</length>

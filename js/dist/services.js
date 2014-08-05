@@ -35,8 +35,8 @@
     }
   ]);
 
-  services.factory('mailingServices', ['$location', '$routeParams', '$q', 'civiApiServices', 'paths', 'utilityServices',
-    function ($location, $routeParams, $q, civiApi, paths, utility) {
+  services.factory('mailingServices', ['$location', '$routeParams', '$q', 'civiApiServices', 'paths', 'utilityServices', 'notificationServices',
+    function ($location, $routeParams, $q, civiApi, paths, utility, notification) {
       var constants = {
         ENTITY: 'SimpleMail'
       };
@@ -74,6 +74,13 @@
        */
       var getStepPartialPath = function (step) {
         return paths.PARTIALS_DIR() + '/wizard/steps/step-' + step + '.html';
+      };
+
+      /**
+       * Redirect to the listing of headers
+       */
+      var redirectToListing = function () {
+        $location.path(pathRoot);
       };
 
       return {
@@ -213,18 +220,60 @@
         },
 
 
+        // TODO (robin): Validation before submitting request
         submitMassEmail: function () {
-          civiApi.post('SimpleMail', {id: this.getMailingId()}, 'submitmassemail')
-            .then(function (response) {
-              if (response.data.is_error) return $q.reject(response)
-              console.log(response);
+          var self = this;
 
-              return true;
-            })
-            .catch(function(response) {
-              console.log('Failed to submit mailing for mass email', response);
-            });
-       },
+          var date = new Date();
+
+          var year = date.getFullYear(),
+            month = String('00' + (1 + date.getMonth())).slice(-2),
+            day = String('00' + date.getDate()).slice(-2),
+            hours = String('00' + date.getHours()).slice(-2),
+            minutes = String('00' + date.getMinutes()).slice(-2),
+            seconds = String('00' + date.getSeconds()).slice(-2);
+
+          var now = year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
+
+          this.getMailing().then(function (response) {
+            var mailing = response;
+
+            if (mailing.send_immediately === "1") {
+              // If the mailing already has an associated CiviCRM mail, don't do anything
+              if ('crm_mailing_id' in mailing) {
+                return false;
+              } else {
+                mailing.send_on = now;
+              }
+            }
+
+            // Save the mailing
+            civiApi.create(constants.ENTITY, mailing)
+              .then(function () {
+                // Send the API request to submit mass email
+                civiApi.post('SimpleMail', {id: self.getMailingId()}, 'submitmassemail')
+                  .then(function (response) {
+                    if (response.data.is_error) return $q.reject(response);
+
+                    console.log(response);
+                    mailing.crm_mailing_id = response.data.crmMailingId;
+
+                    civiApi.create(constants.ENTITY, mailing)
+                      .then(function(response) {
+                        console.log(response);
+                        notification.success('Mailing submitted for mass emailing');
+
+                        redirectToListing();
+                      });
+
+                    return true;
+                  })
+                  .catch(function (response) {
+                    console.log('Failed to submit mailing for mass email', response);
+                  });
+              });
+          });
+        },
 
         /**
          * Save progress of the mailing
@@ -333,7 +382,7 @@
 
         /**
          * Get the current mailing (as specified by the mailing ID in the URL segment)
-         *
+         * @deprecated TODO (robin): Remove this as no longer being used
          * @returns {*|Object|HttpPromise}
          */
         getCurrent: function () {

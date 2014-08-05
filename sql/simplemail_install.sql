@@ -34,6 +34,7 @@ CREATE TABLE `civicrm_simplemailheader` (
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_unicode_ci;
 
+
 -- /*******************************************************
 -- *
 -- * civicrm_simplemailmessage
@@ -68,8 +69,8 @@ CREATE TABLE `civicrm_simplemailmessage` (
 -- *******************************************************/
 CREATE TABLE `civicrm_simplemail` (
 
-
   `id`               INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique SimpleMail ID',
+  `crm_mailing_id` INT UNSIGNED COMMENT 'The ID of CiviCRM mailing, once it has been generated from Simple Mail',
   `name`             VARCHAR(64) COMMENT 'Name of the mailing',
   `resume_step`      INT UNSIGNED DEFAULT 1
   COMMENT 'The step to resume from on the wizard',
@@ -87,13 +88,15 @@ CREATE TABLE `civicrm_simplemail` (
   PRIMARY KEY (`id`)
 
 
-  , CONSTRAINT FK_civicrm_simplemail_header_id FOREIGN KEY (`header_id`) REFERENCES `civicrm_simplemailheader` (`id`)
+  , CONSTRAINT FK_civicrm_simplemail_crm_mailing_id FOREIGN KEY (`crm_mailing_id`) REFERENCES `civicrm_mailing` (`id`)
+  ON DELETE SET NULL, CONSTRAINT FK_civicrm_simplemail_header_id FOREIGN KEY (`header_id`) REFERENCES `civicrm_simplemailheader` (`id`)
   ON DELETE SET NULL, CONSTRAINT FK_civicrm_simplemail_message_id FOREIGN KEY (`message_id`) REFERENCES `civicrm_simplemailmessage` (`id`)
   ON DELETE SET NULL
 )
   ENGINE =InnoDB
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_unicode_ci;
+
 
 -- /*******************************************************
 -- *

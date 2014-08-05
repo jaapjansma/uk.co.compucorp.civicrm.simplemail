@@ -95,6 +95,12 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
    */
   public $id;
   /**
+   * The ID of CiviCRM mailing, once it has been generated from Simple Mail
+   *
+   * @var int unsigned
+   */
+  public $crm_mailing_id;
+  /**
    * Name of the mailing
    *
    * @var string
@@ -187,6 +193,7 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
   {
     if (!self::$_links) {
       self::$_links = static ::createReferenceColumns(__CLASS__);
+      self::$_links[] = new CRM_Core_Reference_Basic(self::getTableName() , 'crm_mailing_id', 'civicrm_mailing', 'id');
       self::$_links[] = new CRM_Core_Reference_Basic(self::getTableName() , 'header_id', 'civicrm_simplemailheader', 'id');
       self::$_links[] = new CRM_Core_Reference_Basic(self::getTableName() , 'message_id', 'civicrm_simplemailmessage', 'id');
     }
@@ -206,6 +213,11 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
           'name' => 'id',
           'type' => CRM_Utils_Type::T_INT,
           'required' => true,
+        ) ,
+        'crm_mailing_id' => array(
+          'name' => 'crm_mailing_id',
+          'type' => CRM_Utils_Type::T_INT,
+          'FKClassName' => 'CRM_Mailing_DAO_Mailing',
         ) ,
         'name' => array(
           'name' => 'name',
@@ -300,6 +312,7 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
     if (!(self::$_fieldKeys)) {
       self::$_fieldKeys = array(
         'id' => 'id',
+        'crm_mailing_id' => 'crm_mailing_id',
         'name' => 'name',
         'resume_step' => 'resume_step',
         'from_name' => 'from_name',

@@ -72,7 +72,7 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
     'subject'            => $mailing->subject,
     'body_html'          => $template,
     'groups'             => array('include' => array('4', '5')),
-    'scheduled_date'     => date('YmdHis'),
+    'scheduled_date'     => str_replace(array('-', ':', ' '), '', $mailing->send_on),
     'scheduled_id'       => $session->get('userID'),
     'approver_id'        => $session->get('userID'),
     'approval_date'      => date('YmdHis'),
@@ -80,8 +80,7 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
   );
 
   $crmMailingId = array(
-    // TODO (robin): Implement this - upon saving a simple mail for the first time, create a civi mail and save its ID on simple mail record. This would make sure we make changes to existing civi mail if updating simple mail
-    //        'mailing_id'  => $mailing->crm_mailing_id
+    'mailing_id' => $mailing->crm_mailing_id ? : NULL
   );
 
   $crmMailing = CRM_Mailing_BAO_Mailing::create($crmMailingParams, $crmMailingId);

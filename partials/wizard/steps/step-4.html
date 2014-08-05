@@ -6,7 +6,8 @@
   <form class="crm-form-block">
     <div class="field-group inline clearfix">
       <label for="send-immediately">Send immediately</label>
-      <input id="send-immediately" name="send-immediately" type="checkbox"/>
+      <input id="send-immediately" name="send-immediately" type="checkbox" ng-model="mailing.send_immediately"
+             ng-true-value="1" ng-false-value="0"/>
     </div>
 
     <div class="field-group inline clearfix">
@@ -15,7 +16,10 @@
 
     <div class="field-group inline clearfix">
       <label for="send-immediately">Schedule Mass Email</label>
-      <input type="text" id="datepicker" class="dateplugin dpDate"/>
+
+      <!-- TODO (robin): Add a date and time picker -->
+<!--      <input type="text" id="datepicker" class="dateplugin dpDate" ng-model="mailing.send_on"/>-->
+      <input type="text" id="datepicker" ng-model="mailing.send_on"/>
 
       <p>Set a data and time when you want CiviMail to start sending this mailing</p>
     </div>
