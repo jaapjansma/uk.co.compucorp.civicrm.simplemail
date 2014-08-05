@@ -439,32 +439,24 @@
 
         /**
          * Go back to the previous step of the mailing wizard
-         *
-         * @param mailing
          */
-        prevStep: function (mailing) {
-          var self = this;
-
-          this.saveProgress()
-            .then(function () {
-              self.redirectToStep(--self.config.step);
-            })
-            .catch(function (response) {
-              console.log('Failed to save progress', response);
-            });
+        prevStep: function () {
+          this.proceedToStep(--this.config.step);
         },
 
         /**
          * Proceed to the next step of the mailing wizard
-         *
-         * @param mailing
          */
         nextStep: function () {
+          this.proceedToStep(++this.config.step);
+        },
+
+        proceedToStep: function (step) {
           var self = this;
 
           this.saveProgress()
             .then(function () {
-              self.redirectToStep(++self.config.step);
+              self.redirectToStep(step);
             })
             .catch(function (response) {
               console.log('Failed to save progress', response);
@@ -525,7 +517,7 @@
           scope.prevStep = function () {
             self.setMailing(scope.mailing);
             self.prevStep();
-          }
+          };
 
           scope.submitMassEmail = function() {
             self.setMailing(scope.mailing);
