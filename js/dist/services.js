@@ -522,7 +522,20 @@
           scope.submitMassEmail = function() {
             self.setMailing(scope.mailing);
             self.submitMassEmail();
-          }
+          };
+
+          scope.saveAndContinue = function () {
+            self.setMailing(scope.mailing);
+            self.saveProgress()
+              .then(function () {
+                notification.success('Mailing saved');
+                redirectToListing();
+              })
+              .catch(function (response) {
+                notification.error('Failed to save mailing');
+                console.log('Failed to save progress', response);
+              });
+          };
 
           scope.cancel = function () {
             self.cancel();
