@@ -35,7 +35,7 @@
 
         // First delete the corresponding CiviCRM mailing, if one exists
         if ('crm_mailing_id' in mailing) {
-          civiApi.post('SimpleMail', {id: mailing.id}, 'deletemassemail')
+          civiApi.post('SimpleMail', {crmMailingId: mailing.crm_mailing_id}, 'deletemassemail')
             .then(function (response) {
               if (response.data.is_error) return $q.reject(response);
 

@@ -441,14 +441,14 @@
          * Go back to the previous step of the mailing wizard
          */
         prevStep: function () {
-          this.proceedToStep(--this.config.step);
+          this.proceedToStep(this.config.step - 1);
         },
 
         /**
          * Proceed to the next step of the mailing wizard
          */
         nextStep: function () {
-          this.proceedToStep(++this.config.step);
+          this.proceedToStep(this.config.step + 1);
         },
 
         proceedToStep: function (step) {
