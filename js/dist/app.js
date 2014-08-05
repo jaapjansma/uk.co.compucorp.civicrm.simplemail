@@ -12,6 +12,7 @@
     'ui.select2',
     'simpleMail.app.controllers',
     'simpleMail.services',
+    'simpleMail.directives',
     'simpleMail.constants',
     'simpleMail.filters'
   ]);
