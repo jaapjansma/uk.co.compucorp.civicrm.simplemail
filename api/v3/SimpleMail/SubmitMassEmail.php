@@ -39,8 +39,6 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
 
   // TODO (robin): Push stuff to the core queue instead of doing it here synchronously
 
-  $template = '<h1>Hello World</h1><p>This is a dummy email template</p>';
-
   $api = new civicrm_api3();
 
   /////////////////////////////////
@@ -82,6 +80,7 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
     $crmMailingParamGroups['include'][] = $group->entity_id;
   }
 
+  $template = '<h1>' . $mailing->title . '</h1>';
   $template .= $mailing->body;
 
   $session = CRM_Core_Session::singleton();
