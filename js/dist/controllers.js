@@ -130,8 +130,8 @@
    * Step 2 of the wizard
    */
   controllers.controller('ComposeMailingController', [
-    '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'paths', 'mailingServices', 'selectedMessageTextFilter',
-    function ($scope, $http, $routeParams, $location, civiApi, log, notification, paths, mailing, selectedMessageText) {
+    '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'paths', 'mailingServices', 'selectedMessageTextFilter', 'itemFromCollectionFilter',
+    function ($scope, $http, $routeParams, $location, civiApi, log, notification, paths, mailing, selectedMessageText, itemFromCollection) {
       $scope.model = {
         selectedMessage: {}
       };
@@ -149,7 +149,11 @@
       $scope.$watch('mailing.message_id', function (newVal, oldVal) {
         if (oldVal !== newVal) {
           $scope.mailing.message_id = newVal;
-          $scope.model.selectedMessage.text = selectedMessageText($scope.messages, $scope.mailing.message_id);
+
+          var selectedMessage = itemFromCollection($scope.messages, 'id', $scope.mailing.message_id);
+          if (selectedMessage && 'text' in selectedMessage) {
+            $scope.model.selectedMessage.text = selectedMessage.text;
+          }
         }
       });
 
