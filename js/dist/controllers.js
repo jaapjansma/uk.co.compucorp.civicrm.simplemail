@@ -157,7 +157,27 @@
         }
       });
 
-      // Get the current mailing
+      // Get the option group
+      civiApi.get('OptionGroup', {name: 'from_email_address'})
+        .success(function (response) {
+          log.createLog('From-email address option response', response);
+          $scope.fromEmailOptionGroup = response.values[0];
+
+          // Get the option values
+          civiApi.get('OptionValue', {option_group_id: $scope.fromEmailOptionGroup.id})
+            .success(function (response) {
+              log.createLog('From-email address group options response', response);
+              $scope.fromEmailOptionValues = response.values;
+            })
+            .error(function (response) {
+              // TODO
+            });
+        })
+        .error(function (response) {
+
+        });
+
+       // Get the current mailing
       mailing.getMailing()
         .then(function (response) {
           $scope.mailing = response;
@@ -180,26 +200,7 @@
             });
         });
 
-      // Get the option group
-      civiApi.get('OptionGroup', {name: 'from_email_address'})
-        .success(function (response) {
-          log.createLog('From-email address option response', response);
-          $scope.fromEmailOptionGroup = response.values[0];
-
-          // Get the option values
-          civiApi.get('OptionValue', {option_group_id: $scope.fromEmailOptionGroup.id})
-            .success(function (response) {
-              log.createLog('From-email address group options response', response);
-              $scope.fromEmailOptionValues = response.values;
-            })
-            .error(function (response) {
-              // TODO
-            });
-        })
-        .error(function (response) {
-
-        });
-   }
+  }
   ]);
 
   /**
