@@ -130,8 +130,8 @@
    * Step 2 of the wizard
    */
   controllers.controller('ComposeMailingController', [
-    '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'paths', 'mailingServices', 'selectedMessageTextFilter', 'itemFromCollectionFilter',
-    function ($scope, $http, $routeParams, $location, civiApi, log, notification, paths, mailing, selectedMessageText, itemFromCollection) {
+    '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'paths', 'mailingServices', 'itemFromCollectionFilter',
+    function ($scope, $http, $routeParams, $location, civiApi, log, notification, paths, mailing, itemFromCollection) {
       $scope.model = {
         selectedMessage: {}
       };
@@ -169,7 +169,11 @@
             success(function (response) {
               log.createLog('Messages retrieved', response);
               $scope.messages = response.values;
-              $scope.model.selectedMessage.text = selectedMessageText($scope.messages, $scope.mailing.message_id);
+
+              var selectedMessage = itemFromCollection($scope.messages, 'id', $scope.mailing.message_id);
+              if (selectedMessage && 'text' in selectedMessage) {
+                $scope.model.selectedMessage.text = selectedMessage.text;
+              }
             })
             .error(function (response) {
               // TODO
