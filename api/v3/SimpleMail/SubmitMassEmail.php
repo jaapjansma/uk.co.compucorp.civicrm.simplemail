@@ -86,9 +86,18 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
 
   $session = CRM_Core_Session::singleton();
 
+  $fromName = NULL;
+  $fromEmail = NULL;
+
+  if (preg_match('/"(.*)" <(.*)>/', $mailing->from_address, $match)) {
+    $fromName = $match[1];
+    $fromEmail = $match[2];
+  }
+
   $crmMailingParams = array(
     'name'               => $mailing->name,
-    'from_email'         => $mailing->from_email,
+    'from_name'          => $fromName,
+    'from_email'         => $fromEmail,
     'subject'            => $mailing->subject,
     'body_html'          => $template,
     'groups'             => $crmMailingParamGroups,
@@ -105,6 +114,7 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
 
   $crmMailing = CRM_Mailing_BAO_Mailing::create($crmMailingParams, $crmMailingId);
 
+  // TODO (robin): Make this dynamic
   $dedupeEmail = FALSE;
 
   // also compute the recipients and store them in the mailing recipients table

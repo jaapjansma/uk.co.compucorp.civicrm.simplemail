@@ -15,9 +15,9 @@
 
     <div class="field-group clearfix">
       <label for="">From address</label>
-      <select ui-select2 ng-model="selectedFilter" data-placeholder="Select from address" name="" id="">
+      <select ui-select2 ng-model="mailing.from_address" data-placeholder="Select from address" name="" id="">
         <option value=""></option>
-        <option ng-repeat="email in fromEmailOptionValues" value="{{email.id}}">{{email.label}}</option>
+        <option ng-repeat="email in fromEmailOptionValues" value="{{email.label}}">{{email.label}}</option>
       </select>
     </div>
 

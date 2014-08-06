@@ -29,6 +29,7 @@
     'angularFileUpload'
   ]);
 
+  // TODO (robin): Remove this and use path constants
   function partialUrl(url) {
     return '/civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/partials/admin/' + url;
   }

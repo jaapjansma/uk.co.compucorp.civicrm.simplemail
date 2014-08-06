@@ -113,17 +113,11 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
    */
   public $resume_step;
   /**
-   * Name for the from email address
+   * Name and email address for the from field
    *
    * @var string
    */
-  public $from_name;
-  /**
-   * Email for the from email address
-   *
-   * @var string
-   */
-  public $from_email;
+  public $from_address;
   /**
    * The ID of a mailing header
    *
@@ -232,21 +226,11 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
           'title' => ts('Resume Step') ,
           'default' => '1',
         ) ,
-        'from_name' => array(
-          'name' => 'from_name',
+        'from_address' => array(
+          'name' => 'from_address',
           'type' => CRM_Utils_Type::T_STRING,
-          'title' => ts('From Name') ,
-          'maxlength' => 128,
-          'size' => CRM_Utils_Type::HUGE,
-          'html' => array(
-            'type' => 'Text',
-          ) ,
-        ) ,
-        'from_email' => array(
-          'name' => 'from_email',
-          'type' => CRM_Utils_Type::T_STRING,
-          'title' => ts('From Email') ,
-          'maxlength' => 128,
+          'title' => ts('From Address') ,
+          'maxlength' => 256,
           'size' => CRM_Utils_Type::HUGE,
           'html' => array(
             'type' => 'Text',
@@ -315,8 +299,7 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
         'crm_mailing_id' => 'crm_mailing_id',
         'name' => 'name',
         'resume_step' => 'resume_step',
-        'from_name' => 'from_name',
-        'from_email' => 'from_email',
+        'from_address' => 'from_address',
         'header_id' => 'header_id',
         'subject' => 'subject',
         'title' => 'title',

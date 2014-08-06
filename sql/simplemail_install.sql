@@ -69,13 +69,13 @@ CREATE TABLE `civicrm_simplemailmessage` (
 -- *******************************************************/
 CREATE TABLE `civicrm_simplemail` (
 
+
   `id`               INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique SimpleMail ID',
   `crm_mailing_id` INT UNSIGNED COMMENT 'The ID of CiviCRM mailing, once it has been generated from Simple Mail',
   `name`             VARCHAR(64) COMMENT 'Name of the mailing',
   `resume_step`      INT UNSIGNED DEFAULT 1
   COMMENT 'The step to resume from on the wizard',
-  `from_name`        VARCHAR(128) COMMENT 'Name for the from email address',
-  `from_email`       VARCHAR(128) COMMENT 'Email for the from email address',
+  `from_address`   VARCHAR(256) COMMENT 'Name and email address for the from field',
   `header_id`        INT UNSIGNED COMMENT 'The ID of a mailing header',
   `subject`          VARCHAR(64) COMMENT 'Subject of the email',
   `title`            VARCHAR(64) COMMENT 'Title/strapline for the email (in the title region)',
