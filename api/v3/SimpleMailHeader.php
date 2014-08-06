@@ -44,3 +44,111 @@ function civicrm_api3_simple_mail_header_delete($params) {
 function civicrm_api3_simple_mail_header_get($params) {
   return _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params);
 }
+
+/**
+ * SimpleMailHeader.UploadImage API
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @see civicrm_api3_create_success
+ * @see civicrm_api3_create_error
+ * @throws API_Exception
+ */
+function civicrm_api3_simple_mail_header_uploadimage($params) {
+  $extDirName = 'simple-mail';
+
+  $field = $params['field'];
+  $filePrefix = $extDirName;
+
+  switch ($field) {
+    case 'image':
+      $filePrefix .= DIRECTORY_SEPARATOR . 'image';
+      break;
+
+    case 'logo_image':
+      $filePrefix .= DIRECTORY_SEPARATOR . 'logo_image';
+      break;
+
+    default:
+      $filePrefix .= DIRECTORY_SEPARATOR . 'default';
+      break;
+  }
+
+  $tempFile = $_FILES['file']['tmp_name'];
+
+  $fileName = CRM_Utils_File::makeFileName($_FILES['file']['name']);
+
+  $dirName = civicrm_api3('setting', 'getvalue', array('name' => 'imageUploadDir')) . $filePrefix;
+  CRM_Utils_File::createDir($dirName); // Create the upload directory if it doesn't already exist
+
+  $file = $dirName . DIRECTORY_SEPARATOR . $fileName;
+
+  // Move the uploaded file to the upload directory
+  if (move_uploaded_file($tempFile, $file)) {
+    $imageDirUrl = civicrm_api3('setting', 'getvalue', array('name' => 'imageUploadURL')) . $filePrefix;
+    $imageUrl = $imageDirUrl . '/' . $fileName;
+
+    return array(
+      'imageUrl' => $imageUrl,
+      'imageFileName' => $fileName
+    );
+  } else {
+    throw new API_Exception('Failed to move the uploaded file', 500);
+  }
+}
+
+/**
+ * SimpleMailHeader.DeleteImage API
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @see civicrm_api3_create_success
+ * @see civicrm_api3_create_error
+ * @throws API_Exception
+ */
+function civicrm_api3_simple_mail_header_deleteimage($params) {
+  $extDirName = 'simple-mail';
+
+  $filePrefix = $extDirName;
+
+  switch ($params['field']) {
+    case 'image':
+      $filePrefix .= DIRECTORY_SEPARATOR . 'image';
+      break;
+
+    case 'logo_image':
+      $filePrefix .= DIRECTORY_SEPARATOR . 'logo_image';
+      break;
+
+    default:
+      $filePrefix .= DIRECTORY_SEPARATOR . 'default';
+      break;
+  }
+
+  $fileName = $params['fileName'];
+
+  $dirName = civicrm_api3('setting', 'getvalue', array('name' => 'imageUploadDir')) . $filePrefix;
+
+  $file = $dirName . DIRECTORY_SEPARATOR . $fileName;
+
+  if (unlink($file)) {
+    return array(
+      'is_error' => 0,
+      'status' => 200,
+      'message' => 'File deleted successfully',
+      'fileName' => $fileName
+    );
+  } else {
+    $error = 'Unknown error';
+
+    if (!file_exists($file)) {
+      $error = 'File ' . $fileName . ' be deleted does not exist. This would generally happen when a new file was uploaded, thereby deleting the existing file, but the page was not subsequently saved to record the change to the file name. This error can be ignored safely for most cases.';
+    } else if (!is_file($file)) {
+      $error = 'File ' . $fileName . ' for deletion is not a regular file';
+    } else if (!is_writable($file)) {
+      $error = 'File ' . $fileName . ' to be deleted is not writable';
+    }
+
+    throw new API_Exception($error, 500);
+  }
+}

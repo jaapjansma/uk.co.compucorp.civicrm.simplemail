@@ -9,9 +9,9 @@
  * @return void
  * @see http://wiki.civicrm.org/confluence/display/CRM/API+Architecture+Standards
  */
-function _civicrm_api3_simple_mail_submitmassemail_spec(&$spec) {
+/*function _civicrm_api3_simple_mail_submitmassemail_spec(&$spec) {
   $spec['magicword']['api.required'] = 1;
-}
+}*/
 
 /**
  * SimpleMail.SubmitMassEmail API
@@ -25,7 +25,7 @@ function _civicrm_api3_simple_mail_submitmassemail_spec(&$spec) {
  * @see civicrm_api3_create_error
  * @throws API_Exception
  */
-function civicrm_api3_simple_mail_submitmassemail($params) {
+/*function civicrm_api3_simple_mail_submitmassemail($params) {
   require_once 'sites/all/modules/civicrm/api/class.api.php';
 
   if (!isset($params['id'])) {
@@ -36,8 +36,6 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
   $smMailingId = (int) $params['id'];
 
   // /civicrm/ajax/rest?entity=SimpleMail&action=submitmassemail&id=1
-
-  // TODO (robin): Push stuff to the core queue instead of doing it here synchronously
 
   $api = new civicrm_api3();
 
@@ -113,7 +111,6 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
 
   $crmMailing = CRM_Mailing_BAO_Mailing::create($crmMailingParams, $crmMailingId);
 
-  // TODO (robin): Make this dynamic
   $dedupeEmail = FALSE;
 
   // also compute the recipients and store them in the mailing recipients table
@@ -127,4 +124,4 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
   );
 
   return array('crmMailingId' => $crmMailing->id);
-}
+}*/

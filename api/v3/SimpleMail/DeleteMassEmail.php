@@ -8,9 +8,9 @@
  * @return void
  * @see http://wiki.civicrm.org/confluence/display/CRM/API+Architecture+Standards
  */
-function _civicrm_api3_simple_mail_deletemassemail_spec(&$spec) {
+/*function _civicrm_api3_simple_mail_deletemassemail_spec(&$spec) {
 //  $spec['magicword']['api.required'] = 1;
-}
+}*/
 
 /**
  * SimpleMail.DeleteMassEmail API
@@ -21,7 +21,7 @@ function _civicrm_api3_simple_mail_deletemassemail_spec(&$spec) {
  * @see civicrm_api3_create_error
  * @throws API_Exception
  */
-function civicrm_api3_simple_mail_deletemassemail($params) {
+/*function civicrm_api3_simple_mail_deletemassemail($params) {
   if (!isset($params['crmMailingId'])) {
     throw new API_Exception(
       'Failed to delete mass email as CiviCRM mailing ID not provided', 405);
@@ -32,4 +32,4 @@ function civicrm_api3_simple_mail_deletemassemail($params) {
   CRM_Mailing_BAO_Mailing::del($crmMailingId);
 
   return true;
-}
+}*/
