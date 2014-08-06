@@ -22,9 +22,8 @@ CREATE TABLE `civicrm_simplemailheader` (
   COMMENT 'Label for the header image',
   `image`      VARCHAR(255) NOT NULL
   COMMENT 'Header image',
-  `show_logo`  TINYINT      NOT NULL  DEFAULT 1,
-  `logo_image` VARCHAR(255) NULL
-  COMMENT 'Logo image'
+  `show_logo`  TINYINT,
+  `logo_image` VARCHAR(255) COMMENT 'Logo image'
   ,
   PRIMARY KEY (`id`)
 

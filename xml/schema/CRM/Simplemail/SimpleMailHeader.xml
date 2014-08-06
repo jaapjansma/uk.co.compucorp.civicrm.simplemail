@@ -42,8 +42,7 @@
   <field>
     <name>show_logo</name>
     <type>boolean</type>
-    <default>1</default>
-    <required>true</required>
+    <!--<required>true</required>-->
   </field>
 
   <field>
@@ -51,6 +50,6 @@
     <type>varchar</type>
     <length>255</length>
     <comment>Logo image</comment>
-    <required>false</required>
+    <!--<required>false</required>-->
   </field>
 </table>
