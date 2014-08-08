@@ -234,6 +234,20 @@
           log.createLog('Groups retrieved', response);
           $scope.groups = response.values;
         });
+
+      $scope.model = {};
+      $scope.model.emailHtml = '';
+
+      civiApi.post('SimpleMail', {id: mailing.getMailingId()}, 'getemailhtml')
+        .then(function(response) {
+          $scope.model.emailHtml = response.data.result;
+          $scope.$broadcast('EmailPreviewReady');
+
+//          var doc = document.getElementById('iframe').contentWindow.document;
+//              doc.open();
+//              doc.write($scope.emailPreview);
+//              doc.close();
+        });
     }
   ]);
 

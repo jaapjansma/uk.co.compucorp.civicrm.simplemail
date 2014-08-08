@@ -49,6 +49,7 @@ function civicrm_api3_simple_mail_get($params) {
  * SimpleMail.SubmitMassEmail API
  *
  * TODO (robin): Refactor this towards the end
+ * TODO (robin): Should this better be pushed to the queue instead?
  *
  * @param array $params
  *
@@ -58,6 +59,14 @@ function civicrm_api3_simple_mail_get($params) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_submitmassemail($params) {
+  /*
+   * Overview:
+   *
+   * 1. Get the SM mailing using the API
+   * 2. Generate a Civi mailing from the SM mailing
+   * 3. Return the Civi mailing ID
+   */
+
   require_once 'sites/all/modules/civicrm/api/class.api.php';
 
   if (!isset($params['id'])) {
@@ -65,57 +74,126 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
       'Failed to submit for mass email as Simple Mail mailing ID was not provided', 405);
   }
 
-  $smMailingId = (int) $params['id'];
+  $crmMailing = _create_or_update_civicrm_mass_mailing((int) $params['id']);
 
-  // /civicrm/ajax/rest?entity=SimpleMail&action=submitmassemail&id=1
+  return array('crmMailingId' => $crmMailing->id);
+}
 
-  // TODO (robin): Push stuff to the core queue instead of doing it here synchronously
-
-  $api = new civicrm_api3();
-
-  /////////////////////////////////
-  // Get the Simple Mail mailing //
-  /////////////////////////////////
-  $entity = 'SimpleMail';
-  $apiParams = array(
-    'id' => $smMailingId
-  );
-
-  $api->$entity->Get($apiParams);
-
-  $mailing = reset($api->values());
-
-  if ($api->is_error()) {
-    throw new API_Exception('An error occured when trying to retrieve mailing: ' . $api->errorMsg(), 500);
+/**
+ * SimpleMail.DeleteMassEmail API
+ *
+ * @param array $params
+ *
+ * @return array API result descriptor
+ * @see civicrm_api3_create_success
+ * @see civicrm_api3_create_error
+ * @throws API_Exception
+ */
+function civicrm_api3_simple_mail_deletemassemail($params) {
+  if (!isset($params['crmMailingId'])) {
+    throw new API_Exception(
+      'Failed to delete mass email as CiviCRM mailing ID not provided', 405);
   }
 
-  //////////////////////////////////////////////////////////
-  // Get the recipient groups for the Simple Mail mailing //
-  //////////////////////////////////////////////////////////
-  $entity = 'SimpleMailRecipientGroup';
-  $apiParams = array(
-    'mailing_id' => $smMailingId
-  );
-  $api->$entity->Get($apiParams);
+  $crmMailingId = $params['crmMailingId'];
 
-  $groups = $api->values();
+  CRM_Mailing_BAO_Mailing::del($crmMailingId);
 
-  if ($api->is_error()) {
-    throw new API_Exception('An error occured when trying to retrieve recipient groups: ' . $api->errorMsg(), 500);
+  return TRUE;
+}
+
+/**
+ * @param $params
+ *
+ * @throws API_Exception
+ */
+function civicrm_api3_simple_mail_sendtestemail($params) {
+  require_once 'sites/all/modules/civicrm/api/class.api.php';
+
+  /*
+   * Overview:
+   *
+   * 1. Get the SM mailing using the API
+   * 2. Generate a Civi mailing from the SM mailing
+   * 3. Return the Civi mailing ID
+   */
+
+  /*
+   * Buttons on the last page of the wizard:
+   * 1. Draft - Submit
+   *    Show this for mailings without a schedule date AND Civi mailing ID
+   *
+   * 2. Scheduled - Update
+   *    Show this for mailings with a schedule data AND Civi mailing ID
+  */
+
+  /*
+   * Buttons next to mailings in the SM mailing listing:
+   * 1. Draft - Edit, Delete:
+   *    Show these for mailings without a Civi mailing ID
+   *
+   * 2. Scheduled - Edit, Delete (, Cancel):
+   *    Show these for mailings with scheduled date in the future and with Civi mailing ID
+   *
+   * 3. Complete - Delete (, Archive, Re-use):
+   *    Show these for mailings with scheduled date in the past and with Civi mailing ID
+   */
+
+  if (!isset($params['id'])) {
+    throw new API_Exception(
+      'Failed to submit for mass email as Simple Mail mailing ID was not provided', 405);
   }
 
-  $crmMailingParamGroups = array(
-    'include' => array()
-  );
+  $crmMailing = _create_or_update_civicrm_mass_mailing((int) $params['id']);
 
-  foreach ($groups as $group) {
-    $crmMailingParamGroups['include'][] = $group->entity_id;
+  return TRUE;
+}
+
+/**
+ * SimpleMail.GetEmailHtml API
+ *
+ * @param array $params
+ *
+ * @return array API result descriptor
+ * @see civicrm_api3_create_success
+ * @see civicrm_api3_create_error
+ * @throws API_Exception
+ */
+function civicrm_api3_simple_mail_getemailhtml($params) {
+  require_once 'sites/all/modules/civicrm/api/class.api.php';
+
+  if (!isset($params['id'])) {
+    throw new API_Exception(
+      'Failed to submit for mass email as Simple Mail mailing ID was not provided', 405);
   }
 
-  $template = '<h1>' . $mailing->title . '</h1>';
-  $template .= $mailing->body;
+  $mailing = _get_simple_mail_mailing((int) $params['id']);
+  $campaignMsg = _get_simple_mail_campaign_message((int) $mailing->message_id);
 
-  $session = CRM_Core_Session::singleton();
+  $template = _generate_email_template($mailing, $campaignMsg);
+
+  return $template;
+}
+
+
+//////////////////////
+// Helper Functions //
+//////////////////////
+
+/**
+ * @param int $smMailingId The ID of the Simple Mail mailing
+ *
+ * @return CRM_Mailing_DAO_Mailing
+ * @throws API_Exception
+ */
+function _create_or_update_civicrm_mass_mailing($smMailingId) {
+  $mailing = _get_simple_mail_mailing($smMailingId);
+  $crmMailingParamGroups = _get_formatted_recipient_groups($smMailingId);
+
+  $template = _generate_email_template($mailing);
+
+
+  $userId = CRM_Core_Session::singleton()->get('userID');
 
   $fromName = NULL;
   $fromEmail = NULL;
@@ -133,8 +211,8 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
     'body_html'          => $template,
     'groups'             => $crmMailingParamGroups,
     'scheduled_date'     => str_replace(array('-', ':', ' '), '', $mailing->send_on),
-    'scheduled_id'       => $session->get('userID'),
-    'approver_id'        => $session->get('userID'),
+    'scheduled_id' => $userId,
+    'approver_id'  => $userId,
     'approval_date'      => date('YmdHis'),
     'approval_status_id' => 1
   );
@@ -148,7 +226,7 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
   // TODO (robin): Make this dynamic
   $dedupeEmail = FALSE;
 
-  // also compute the recipients and store them in the mailing recipients table
+  // Compute the recipients and store them in the mailing recipients table
   CRM_Mailing_BAO_Mailing::getRecipients(
     $crmMailing->id,
     $crmMailing->id,
@@ -158,27 +236,143 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
     $dedupeEmail
   );
 
-  return array('crmMailingId' => $crmMailing->id);
+  return $crmMailing;
 }
 
 /**
- * SimpleMail.DeleteMassEmail API
+ * @param int $smMailingId
  *
- * @param array $params
- * @return array API result descriptor
- * @see civicrm_api3_create_success
- * @see civicrm_api3_create_error
+ * @return mixed
  * @throws API_Exception
  */
-function civicrm_api3_simple_mail_deletemassemail($params) {
-  if (!isset($params['crmMailingId'])) {
-    throw new API_Exception(
-      'Failed to delete mass email as CiviCRM mailing ID not provided', 405);
+function _get_simple_mail_mailing($smMailingId) {
+  $api = new civicrm_api3();
+
+  $entity = 'SimpleMail';
+
+  $apiParams = array(
+    'id' => $smMailingId
+  );
+
+  $api->$entity->Get($apiParams);
+
+  $mailing = reset($api->values());
+
+  if ($api->is_error()) {
+    throw new API_Exception('An error occurred when trying to retrieve mailing: ' . $api->errorMsg(), 500);
   }
 
-  $crmMailingId = $params['crmMailingId'];
+  return $mailing;
+}
 
-  CRM_Mailing_BAO_Mailing::del($crmMailingId);
+/**
+ * @param $campaignMsgId
+ *
+ * @throws API_Exception
+ * @internal param $smMailingId
+ *
+ * @return mixed
+ */
+function _get_simple_mail_campaign_message($campaignMsgId) {
+  $message = '';
 
-  return true;
+  if ($campaignMsgId) {
+    // TODO (robin): The below steps are duplicate - refactor this
+    $api = new civicrm_api3();
+
+    $entity = 'SimpleMailMessage';
+
+    $apiParams = array(
+      'id' => $campaignMsgId
+    );
+
+    $api->$entity->Get($apiParams);
+
+    $message = reset($api->values());
+
+    if ($api->is_error()) {
+      throw new API_Exception('An error occurred when trying to retrieve campaign message: ' . $api->errorMsg(), 500);
+    }
+  }
+
+  return $message;
+}
+
+/**
+ * Get the recipient groups for the given Simple Mail mailing ID as a formatted array
+ *
+ * @param int $smMailingId The ID of the Simple Mail mailing
+ *
+ * @return array The returned array consists of two elements with keys 'include' and 'exclude' (todo) respectively. Each
+ *               element has an array of corresponding group IDs as its value.
+ */
+function _get_formatted_recipient_groups($smMailingId) {
+  $groups = _get_recipient_groups($smMailingId);
+
+  $formattedGroups = array(
+    'include' => array()
+  );
+
+  foreach ($groups as $group) {
+    $formattedGroups['include'][] = $group->entity_id;
+  }
+
+  return $formattedGroups;
+}
+
+/**
+ * Generate and return the HTML template for a mailing
+ *
+ * @param $mailing
+ *
+ * @param $campaignMsg
+ *
+ * @return string
+ */
+function _generate_email_template($mailing, $campaignMsg) {
+  // Setup paths
+  $templateDir = 'civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/email-templates/';
+  $templateFileName = 'wave.html';
+  $templateFile = $templateDir . $templateFileName;
+
+  // Setup template variables
+  $title = $mailing->title;
+  $body = $mailing->body;
+  $contactDetails = $mailing->contact_details;
+
+  if (is_object($campaignMsg)) {
+    $campaignMessage = $campaignMsg->text;
+  }
+
+  ob_start();
+
+  require $templateFile;
+
+  return ob_get_clean();
+}
+
+/**
+ * Get the recipient groups for the given Simple Mail mailing
+ *
+ * @param int $smMailingId The ID of the Simple Mail mailing
+ *
+ * @return array
+ * @throws API_Exception
+ */
+function _get_recipient_groups($smMailingId) {
+  $api = new civicrm_api3();
+
+  $entity = 'SimpleMailRecipientGroup';
+
+  $params = array(
+    'mailing_id' => $smMailingId
+  );
+
+  $api->$entity->Get($params);
+
+  if ($api->is_error()) {
+    throw new api_exception('an error occurred when trying to retrieve recipient groups: ' . $api->errormsg(), 500);
+  }
+
+  return $api->values();
 }

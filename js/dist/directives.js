@@ -1,6 +1,6 @@
 (function () {
   "use strict";
-  
+
   var directives = angular.module('simpleMail.directives', []);
 
   directives.directive('smImageUploader', ['paths',
@@ -21,11 +21,12 @@
 
   directives.directive('smCkEditor', [
     function () {
-      console.log('hello');
       return {
         require: '?ngModel',
-        link: function (scope, elm, attr, ngModel) {
-          var ck = CKEDITOR.replace(elm[0]);
+        link: function (scope, element, attr, ngModel) {
+          var ck = CKEDITOR.replace(element[0], {
+            enterMode: CKEDITOR.ENTER_BR
+          });
 
           if (!ngModel) return;
 
@@ -43,4 +44,32 @@
     }
   ]);
 
+  directives.directive('smEmailPreviewer', [
+    function () {
+      function link(scope, element, attrs) {
+        scope.$watch(attrs.emailContent, function (oldVal, newVal) {
+          var content = oldVal ? oldVal : newVal;
+          if (content) {
+            var iframe = element[0];
+            var doc = null;
+
+            if (iframe.contentDocument) {
+              doc = iframe.contentDocument;
+            } else if (iframe.contentWindow) {
+              doc = iframe.contentWindow.document;
+            }
+
+            // Write email contents into the iframe
+            doc.open();
+            doc.writeln(content);
+            doc.close();
+          }
+        });
+      }
+
+      return {
+        link: link
+      };
+    }
+  ]);
 })();
