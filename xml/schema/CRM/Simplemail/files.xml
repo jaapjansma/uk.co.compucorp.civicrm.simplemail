@@ -5,4 +5,5 @@
   <xi:include href="SimpleMailMessage.xml" parse="xml" />
   <xi:include href="SimpleMail.xml" parse="xml" />
   <xi:include href="SimpleMailRecipientGroup.xml" parse="xml" />
+  <xi:include href="SimpleMailHeaderFilter.xml" parse="xml" />
 </tables>

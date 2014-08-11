@@ -4,6 +4,7 @@ DROP TABLE IF EXISTS `civicrm_simplemailheader`;
 DROP TABLE IF EXISTS `civicrm_simplemailmessage`;
 DROP TABLE IF EXISTS `civicrm_simplemail`;
 DROP TABLE IF EXISTS `civicrm_simplemailrecipientgroup`;
+DROP TABLE IF EXISTS `civicrm_simplemailheaderfilter`;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -117,6 +118,29 @@ CREATE TABLE `civicrm_simplemailrecipientgroup` (
 
 
   , CONSTRAINT FK_civicrm_simplemailrecipientgroup_mailing_id FOREIGN KEY (`mailing_id`) REFERENCES `civicrm_simplemail` (`id`)
+  ON DELETE CASCADE
+)
+  ENGINE =InnoDB
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_unicode_ci;
+
+-- /*******************************************************
+-- *
+-- * civicrm_simplemailheaderfilter
+-- *
+-- * FIXME
+-- *
+-- *******************************************************/
+CREATE TABLE `civicrm_simplemailheaderfilter` (
+
+
+  `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique SimpleMailHeaderFilter ID',
+  `contact_id` INT UNSIGNED COMMENT 'FK to Contact'
+  ,
+  PRIMARY KEY (`id`)
+
+
+  , CONSTRAINT FK_civicrm_simplemailheaderfilter_contact_id FOREIGN KEY (`contact_id`) REFERENCES `civicrm_contact` (`id`)
   ON DELETE CASCADE
 )
   ENGINE =InnoDB
