@@ -104,33 +104,6 @@ p {padding: 0!important; margin-top: 10px!important; margin-right: 0!important; 
 <!-- Wrapper 1  -->
 </head><body>
 
-<!-- Wrapper 13 -->
-<table width="100%" border="0" cellpadding="0" cellspacing="0" align="center" class="full">
-	<tbody><tr>
-		<td width="100%">
-		
-		
-			<!-- Wrapper -->
-			<table width="600" border="0" cellpadding="0" cellspacing="0" align="center" class="mobile">
-				<tbody><tr>
-					<td width="100%">
-									
-						<!-- Space -->
-						<table width="100%" bgcolor="" border="0" cellpadding="0" cellspacing="0" align="left" style="border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;" class="full">
-							<tbody><tr>
-								<td width="100%" height="60"></td>
-							</tr>
-						</tbody></table><!-- End Space -->
-						
-					</td>
-				</tr>
-			</tbody></table><!-- End Wrapper -->
-			
-		
-		</td>
-	</tr>
-</tbody></table><!-- End Wrapper 13 -->
-
 <!-- Wrapper 1  -->
 <table width="100%" border="0" cellpadding="0" cellspacing="0" align="center" class="full">
 	<tbody><tr>
@@ -145,22 +118,16 @@ p {padding: 0!important; margin-top: 10px!important; margin-right: 0!important; 
 						<!-- Start Header Text -->
 						<table width="100%" border="0" cellpadding="0" cellspacing="0" align="center" class="full">
 							<tbody><tr>
-								<td width="100%" height="20"></td>
-							</tr>
-							<tr>
 								<td width="100%" valign="middle">
 									
 									<!-- Header Text --> 
 									<table width="600" border="0" cellpadding="0" cellspacing="0" align="center" style="text-align: center; border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;" class="fullCenter">
 										<tbody><tr>
 											<td valign="middle" width="100%" style="text-align: left; font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: rgb(139, 135, 135); line-height: 32px; font-weight: 100; text-transform: uppercase;">
-												<!--[if !mso]><!--><span style="font-family: 'proxima_novalight'; font-weight: normal;"><!--<![endif]-->Mailing header image<!--[if !mso]><!--></span><!--<![endif]-->
+												<!--[if !mso]><!--><span style="font-family: 'proxima_novalight'; font-weight: normal;"><!--<![endif]--><img width="600" src="<?= $template->headerImage ?>" /><!--[if !mso]><!--></span><!--<![endif]-->
 											</td>
 										</tr>
-										<tr>
-											<td width="100%" height="20"></td>
-										</tr>
-									</tbody></table>
+								</tbody></table>
 																	
 								</td>
 							</tr>
@@ -214,7 +181,7 @@ p {padding: 0!important; margin-top: 10px!important; margin-right: 0!important; 
 									<table width="405" border="0" cellpadding="0" cellspacing="0" align="left" style="border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;" class="full">
 										<tbody><tr>
 											<td valign="middle" width="100%" style="text-align: left; font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: rgb(139, 135, 135); line-height: 32px; font-weight: 100; text-transform: uppercase;">
-												<!--[if !mso]><!--><span style="font-family: 'proxima_novalight', Helvetica; font-weight: normal;"><!--<![endif]--><?= $title ?><!--[if !mso]><!--></span><!--<![endif]-->
+												<!--[if !mso]><!--><span style="font-family: 'proxima_novalight', Helvetica; font-weight: normal;"><!--<![endif]--><?= $template->title ?><!--[if !mso]><!--></span><!--<![endif]-->
 											</td>
 										</tr>
 										<tr>
@@ -222,7 +189,7 @@ p {padding: 0!important; margin-top: 10px!important; margin-right: 0!important; 
 										</tr>
 										<tr>
 											<td valign="middle" width="100%" style="text-align: left; font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: rgb(179, 177, 177); line-height: 22px;">
-												<!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgregular', Helvetica; font-weight: normal;"><!--<![endif]--><?= $body ?><!--[if !mso]><!--></span><!--<![endif]-->
+												<!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgregular', Helvetica; font-weight: normal;"><!--<![endif]--><?= $template->body ?><!--[if !mso]><!--></span><!--<![endif]-->
 											</td>
 										</tr>
 										
@@ -245,19 +212,19 @@ p {padding: 0!important; margin-top: 10px!important; margin-right: 0!important; 
 										
 										<tr>
 											<td valign="middle" width="100%" style="text-align: left; font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: rgb(179, 177, 177); line-height: 22px;">
-												<!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgregular', Helvetica; font-weight: normal;"><!--<![endif]--><?= $contactDetails ?><!--[if !mso]><!--></span><!--<![endif]-->
+												<!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgregular', Helvetica; font-weight: normal;"><!--<![endif]--><?= $template->contactDetails ?><!--[if !mso]><!--></span><!--<![endif]-->
 											</td>
 										</tr><tr>
 											<td width="100%" height="27"></td>
 										</tr><tr>
 											<td valign="middle" width="100%" style="text-align: left; font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: rgb(139, 135, 135); line-height: 32px; font-weight: 100; text-transform: uppercase;">
-												<!--[if !mso]><!--><span style="font-family: 'proxima_novalight', Helvetica; font-weight: normal;"><!--<![endif]-->Logo<!--[if !mso]><!--></span><!--<![endif]-->
+												<!--[if !mso]><!--><span style="font-family: 'proxima_novalight', Helvetica; font-weight: normal;"><!--<![endif]--><img src="<?= $template->logo ?>" /><!--[if !mso]><!--></span><!--<![endif]-->
 											</td>
  										</tr><tr>
 											<td width="100%" height="27"></td>
 										</tr><tr>
 											<td valign="middle" width="100%" style="text-align: left; font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: rgb(179, 177, 177); line-height: 22px;">
-												<!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgregular', Helvetica; font-weight: normal;"><!--<![endif]--><?= $campaignMessage ?><!--[if !mso]><!--></span><!--<![endif]-->
+												<!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgregular', Helvetica; font-weight: normal;"><!--<![endif]--><?= $template->campaignMessage ?><!--[if !mso]><!--></span><!--<![endif]-->
 											</td>
 										</tr>
 

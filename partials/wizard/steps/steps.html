@@ -2,14 +2,14 @@
   <div ng-include="partial"></div>
 
   <div class="buttons">
-    <div class="pagination">
-      <a href ng-click="prevStep()" ng-if="showPrevStepLink" class="button">Prev Step</a>
-      <a href ng-click="nextStep()" ng-if="showNextStepLink" class="button">Next Step</a>
+    <div class="pagination left">
+      <a href ng-click="prevStep()" ng-if="showPrevStepLink" class="button">&laquo; Prev Step</a>
+      <a href ng-click="nextStep()" ng-if="showNextStepLink" class="button">Next Step &raquo;</a>
     </div>
 
-    <div class="action">
+    <div class="action right">
       <a href ng-click="saveAndContinue()" class="button" ng-if="!showSubmitMassEmailLink">Save &amp; Continue Later</a>
-      <a href ng-click="submitMassEmail()" class="button" ng-show="showSubmitMassEmailLink">Submit Mass Email</a>
+      <a href ng-click="submitMassEmail()" class="button" ng-if="showSubmitMassEmailLink">{{ canUpdate ? 'Update' : 'Submit' }} Mass Email</a>
       <a href ng-click="cancel()" class="button">Cancel</a>
     </div>
   </div>

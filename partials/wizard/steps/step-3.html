@@ -4,13 +4,13 @@
   <form class="crm-form-block">
     <div class="field-group clearfix">
       <label for="">Send a test mailing</label>
-      <select ui-select2 ng-model="selectedGroup" data-placeholder="Select group" name="" id="">
+      <select ui-select2 ng-model="mailing.testRecipientGroupId" data-placeholder="Select group" name="" id="">
         <option value=""></option>
         <option ng-repeat="group in groups" value="{{group.id}}">{{group.title}}</option>
       </select>
     </div>
 
-    <div class="buttons clearfix"><a href class="button">Send</a></div>
+    <div class="buttons clearfix"><a href ng-click="submitTestEmail()" class="button">Send</a></div>
 
     <div class="field-group clearfix">
       <label for="preview">Preview</label>

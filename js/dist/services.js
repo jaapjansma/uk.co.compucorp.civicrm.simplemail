@@ -248,6 +248,7 @@
             }
 
             // Save the mailing
+            // TODO (robin): Could this use saveProgress() instead of duplicating the logic here?
             civiApi.create(constants.ENTITY, mailing)
               .then(function () {
                 // Send the API request to submit mass email
@@ -273,6 +274,23 @@
                   });
               });
           });
+        },
+
+        /**
+         *
+         */
+        submitTestEmail: function () {
+          var self = this;
+
+          this.getMailing().then(function (response) {
+              var mailing = response;
+
+              civiApi.post('SimpleMail', {id: self.getMailingId(), groupId: mailing.testRecipientGroupId}, 'sendtestemail')
+                .then(function (response) {
+                  console.log(response);
+                });
+            }
+          );
         },
 
         /**
@@ -505,7 +523,13 @@
           scope.showPrevStepLink = this.showPrevStepLink();
           scope.showNextStepLink = this.showNextStepLink();
 
-          if (this.getStep() === Steps.LAST) scope.showSubmitMassEmailLink = true;
+          if (this.getStep() === Steps.LAST) {
+            scope.showSubmitMassEmailLink = true;
+
+            this.getMailing().then(function (response) {
+              if (response.crm_mailing_id && response.send_on) scope.canUpdate = true;
+            })
+          }
 
           // Proceed to next step
           scope.nextStep = function () {
@@ -522,6 +546,10 @@
           scope.submitMassEmail = function() {
             self.setMailing(scope.mailing);
             self.submitMassEmail();
+          };
+
+          scope.submitTestEmail = function () {
+            self.submitTestEmail();
           };
 
           scope.saveAndContinue = function () {

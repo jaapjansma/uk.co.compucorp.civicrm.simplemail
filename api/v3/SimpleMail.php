@@ -70,8 +70,7 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
   require_once 'sites/all/modules/civicrm/api/class.api.php';
 
   if (!isset($params['id'])) {
-    throw new API_Exception(
-      'Failed to submit for mass email as Simple Mail mailing ID was not provided', 405);
+    throw new API_Exception('Failed to submit mass emailing job as Simple Mail mailing ID was not provided', 405);
   }
 
   $crmMailing = _create_or_update_civicrm_mass_mailing((int) $params['id']);
@@ -103,8 +102,13 @@ function civicrm_api3_simple_mail_deletemassemail($params) {
 }
 
 /**
- * @param $params
+ * SimpleMail.SendTestEmail API
  *
+ * @param array $params
+ *
+ * @return array API result descriptor
+ * @see civicrm_api3_create_success
+ * @see civicrm_api3_create_error
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_sendtestemail($params) {
@@ -112,7 +116,6 @@ function civicrm_api3_simple_mail_sendtestemail($params) {
 
   /*
    * Overview:
-   *
    * 1. Get the SM mailing using the API
    * 2. Generate a Civi mailing from the SM mailing
    * 3. Return the Civi mailing ID
@@ -120,11 +123,11 @@ function civicrm_api3_simple_mail_sendtestemail($params) {
 
   /*
    * Buttons on the last page of the wizard:
-   * 1. Draft - Submit
-   *    Show this for mailings without a schedule date AND Civi mailing ID
+   * 1. Draft - Prev, Submit, Cancel
+   *    Show this for mailings without either schedule date or Civi mailing ID, or none
    *
-   * 2. Scheduled - Update
-   *    Show this for mailings with a schedule data AND Civi mailing ID
+   * 2. Scheduled - Prev, Update, Cancel
+   *    Otherwise, show this for mailings i.e. with both schedule data and Civi mailing ID
   */
 
   /*
@@ -143,10 +146,36 @@ function civicrm_api3_simple_mail_sendtestemail($params) {
     throw new API_Exception(
       'Failed to submit for mass email as Simple Mail mailing ID was not provided', 405);
   }
+  if (!isset($params['groupId'])) {
+    throw new API_Exception('Failed to submit mass emailing job as no group was provided', 405);
+  }
 
+  // Create or update CiviCRM mass emailing
   $crmMailing = _create_or_update_civicrm_mass_mailing((int) $params['id']);
 
-  return TRUE;
+  // Create a mass test emailing job and run it
+  if ($crmMailing->id) {
+
+    $job = new CRM_Mailing_BAO_MailingJob();
+    $job->mailing_id = $crmMailing->id;
+    $job->is_test = TRUE;
+    $job->save();
+
+    $testParams = array(
+      'test_group' => (int) $params['groupId'],
+      'job_id'     => $job->id
+    );
+
+    $isComplete = FALSE;
+    while (!$isComplete) {
+      $isComplete = CRM_Mailing_BAO_MailingJob::runJobs($testParams);
+    }
+
+    return array('crmMailingId' => $crmMailing->id);
+  }
+  else {
+    throw new API_Exception('Failed to create or update CiviCRM mass mailing', 500);
+  }
 }
 
 /**
@@ -169,8 +198,9 @@ function civicrm_api3_simple_mail_getemailhtml($params) {
 
   $mailing = _get_simple_mail_mailing((int) $params['id']);
   $campaignMsg = _get_simple_mail_campaign_message((int) $mailing->message_id);
+  $header = _get_simple_mail_header((int) $mailing->header_id);
 
-  $template = _generate_email_template($mailing, $campaignMsg);
+  $template = _generate_email_template($mailing, $campaignMsg, $header);
 
   return $template;
 }
@@ -181,17 +211,23 @@ function civicrm_api3_simple_mail_getemailhtml($params) {
 //////////////////////
 
 /**
+ * Create a new or update an existing CiviCRM mailing from a Simple Mail mailing, along with other related tasks, such
+ * as creating a job in the queue, etc., necessary for scheduling mass emailing.
+ *
  * @param int $smMailingId The ID of the Simple Mail mailing
  *
- * @return CRM_Mailing_DAO_Mailing
+ * @return int CRM_Mailing_DAO_Mailing The ID of the CiviCRM mailing
  * @throws API_Exception
  */
 function _create_or_update_civicrm_mass_mailing($smMailingId) {
   $mailing = _get_simple_mail_mailing($smMailingId);
+
+  $campaignMsg = _get_simple_mail_campaign_message((int) $mailing->header_id);
+  $header = _get_simple_mail_header((int) $mailing->message_id);
+
   $crmMailingParamGroups = _get_formatted_recipient_groups($smMailingId);
 
-  $template = _generate_email_template($mailing);
-
+  $template = _generate_email_template($mailing, $campaignMsg, $header);
 
   $userId = CRM_Core_Session::singleton()->get('userID');
 
@@ -221,6 +257,7 @@ function _create_or_update_civicrm_mass_mailing($smMailingId) {
     'mailing_id' => $mailing->crm_mailing_id ? : NULL
   );
 
+  // Create or update CiviCRM mailing
   $crmMailing = CRM_Mailing_BAO_Mailing::create($crmMailingParams, $crmMailingId);
 
   // TODO (robin): Make this dynamic
@@ -240,29 +277,53 @@ function _create_or_update_civicrm_mass_mailing($smMailingId) {
 }
 
 /**
+ * @param $entity
+ * @param $id
+ *
+ * @return mixed
+ * @throws api_exception
+ */
+function _get_entity_values($entity, $id) {
+  $api = _get_api_instance();
+
+  $params = array(
+    'id' => $id
+  );
+
+  $api->$entity->Get($params);
+
+  $values = reset($api->values());
+
+  if ($api->is_error()) {
+    throw new api_exception('an error occurred when trying to retrieve ' . $entity . ': ' . $api->errormsg(), 500);
+  }
+
+  return $values;
+}
+
+if (!function_exists('_get_api_instance')) {
+  /**
+   * @return civicrm_api3
+   */
+  function _get_api_instance() {
+    static $api;
+
+    if (!$api) {
+      $api = new civicrm_api3();
+    }
+
+    return $api;
+  }
+}
+
+/**
  * @param int $smMailingId
  *
  * @return mixed
  * @throws API_Exception
  */
 function _get_simple_mail_mailing($smMailingId) {
-  $api = new civicrm_api3();
-
-  $entity = 'SimpleMail';
-
-  $apiParams = array(
-    'id' => $smMailingId
-  );
-
-  $api->$entity->Get($apiParams);
-
-  $mailing = reset($api->values());
-
-  if ($api->is_error()) {
-    throw new API_Exception('An error occurred when trying to retrieve mailing: ' . $api->errorMsg(), 500);
-  }
-
-  return $mailing;
+  return _get_entity_values('SimpleMail', $smMailingId);
 }
 
 /**
@@ -274,28 +335,11 @@ function _get_simple_mail_mailing($smMailingId) {
  * @return mixed
  */
 function _get_simple_mail_campaign_message($campaignMsgId) {
-  $message = '';
+  return _get_entity_values('SimpleMailMessage', $campaignMsgId) ? : NULL;
+}
 
-  if ($campaignMsgId) {
-    // TODO (robin): The below steps are duplicate - refactor this
-    $api = new civicrm_api3();
-
-    $entity = 'SimpleMailMessage';
-
-    $apiParams = array(
-      'id' => $campaignMsgId
-    );
-
-    $api->$entity->Get($apiParams);
-
-    $message = reset($api->values());
-
-    if ($api->is_error()) {
-      throw new API_Exception('An error occurred when trying to retrieve campaign message: ' . $api->errorMsg(), 500);
-    }
-  }
-
-  return $message;
+function _get_simple_mail_header($headerId) {
+  return _get_entity_values('SimpleMailHeader', $headerId) ? : NULL;
 }
 
 /**
@@ -324,26 +368,47 @@ function _get_formatted_recipient_groups($smMailingId) {
  * Generate and return the HTML template for a mailing
  *
  * @param $mailing
- *
  * @param $campaignMsg
+ * @param $header
  *
  * @return string
  */
-function _generate_email_template($mailing, $campaignMsg) {
+function _generate_email_template($mailing, $campaignMsg, $header) {
   // Setup paths
   $templateDir = 'civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/email-templates/';
   $templateFileName = 'wave.html';
   $templateFile = $templateDir . $templateFileName;
 
   // Setup template variables
-  $title = $mailing->title;
-  $body = $mailing->body;
-  $contactDetails = $mailing->contact_details;
+  $template = new stdClass();
+  $template->title = $mailing->title ? : NULL;
+  $template->body = $mailing->body ? : NULL;
+  $template->contactDetails = $mailing->contact_details ? : NULL;
 
   if (is_object($campaignMsg)) {
-    $campaignMessage = $campaignMsg->text;
+    $template->campaignMessage = $campaignMsg->text;
+  }
+  if (is_object($header)) {
+    $api = _get_api_instance();
+
+    if ($header->image) {
+      $api->SimpleMailHeader->GetImageUrl(array('field' => 'image', 'fileName' => $header->image));
+      $template->headerImage = $api->result();
+    }
+    else {
+      $template->headerImage = NULL;
+    }
+
+    if ($header->show_logo && $header->logo_image) {
+      $api->SimpleMailHeader->GetImageUrl(array('field' => 'logo_image', 'fileName' => $header->logo_image));
+      $template->logo = $api->result();
+    }
+    else {
+      $template->logo = NULL;
+    }
   }
 
+  // Output parsed template
   ob_start();
 
   require $templateFile;

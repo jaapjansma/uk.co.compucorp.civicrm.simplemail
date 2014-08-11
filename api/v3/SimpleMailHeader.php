@@ -152,3 +152,58 @@ function civicrm_api3_simple_mail_header_deleteimage($params) {
     throw new API_Exception($error, 500);
   }
 }
+
+const SM_EXT_DIR_NAME = 'simple-mail';
+
+/**
+ * SimpleMailHeader.GetImageUrl API
+ *
+ * @param array $params Array consisting of field name (corresponding to DB name) and file name
+ *
+ * @return array API result descriptor
+ * @see civicrm_api3_create_success
+ * @see civicrm_api3_create_error
+ * @throws API_Exception
+ */
+function civicrm_api3_simple_mail_header_getimageurl($params) {
+  if (!isset($params['field'])) {
+    throw new API_Exception('Image field param not provided');
+  }
+  if (!isset($params['fileName'])) {
+    throw new API_Exception('Image file name not provided');
+  }
+
+  $api = _get_api_instance();
+
+  $imageUrl = $api->cfg->imageUploadURL . SM_EXT_DIR_NAME;
+
+  switch ($params['field']) {
+    case 'image':
+      $imageUrl = $imageUrl . '/image/';
+      break;
+
+    case 'logo_image':
+      $imageUrl = $imageUrl . '/logo_image/';
+      break;
+
+    default:
+      throw new API_Exception('Incorrect image field param provided');
+  }
+
+  return $imageUrl . $params['fileName'];
+}
+
+if (!function_exists('_get_api_instance')) {
+  /**
+   * @return civicrm_api3
+   */
+  function _get_api_instance() {
+    static $api;
+
+    if (!$api) {
+      $api = new civicrm_api3();
+    }
+
+    return $api;
+  }
+}

@@ -1,5 +1,5 @@
 <div id="sm-headers-admin" class="sm-container">
-  <p><a ng-href="#/mailings/new">Create a new mailing</a></p>
+  <p><a class="button" ng-href="#/mailings/new"><i class="icon email-icon"></i>Create a New Mailing</a></p>
 
   <table id="sm-headers-admin-table">
     <thead>
@@ -10,7 +10,7 @@
       <th class="action-buttons">Action</th>
     </tr>
     </thead>
-    <tr ng-repeat="mailing in mailings">
+    <tr ng-repeat="mailing in mailings" ng-class-even="'even-row'" ng-class-odd="'odd-row'">
       <td class="id">{{mailing.id}}</td>
       <td class="name">{{mailing.name}}</td>
       <td class="subject">{{mailing.subject}}</td>

@@ -1,5 +1,5 @@
 <div id="sm-headers-admin" class="sm-container">
-  <p><a ng-href="#/headers/new" ng-click="enableAddingHeader()">Add a new mailing header</a></p>
+  <p><a class="button" ng-href="#/headers/new" ng-click="enableAddingHeader()"><i class="icon add-icon"></i>Add a new mailing header</a></p>
 
   <table id="sm-headers-admin-table">
     <thead>
@@ -11,7 +11,7 @@
       <th class="action-buttons">Action</th>
     </tr>
     </thead>
-    <tr ng-repeat="header in headers.values">
+    <tr ng-repeat="header in headers.values" ng-class-even="'even-row'" ng-class-odd="'odd-row'">
       <td class="id">{{header.id}}</td>
       <td class="label">{{header.label}}</td>
       <td class="thumb">{{header.image}}</td>
