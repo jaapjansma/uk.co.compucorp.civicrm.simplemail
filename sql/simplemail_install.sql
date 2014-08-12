@@ -128,19 +128,22 @@ CREATE TABLE `civicrm_simplemailrecipientgroup` (
 -- *
 -- * civicrm_simplemailheaderfilter
 -- *
--- * FIXME
+-- * Filters for the headers in Simple Mail
 -- *
 -- *******************************************************/
 CREATE TABLE `civicrm_simplemailheaderfilter` (
 
 
-  `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique SimpleMailHeaderFilter ID',
-  `contact_id` INT UNSIGNED COMMENT 'FK to Contact'
+  `id`           INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique SimpleMailHeaderFilter ID',
+  `header_id`    INT UNSIGNED NOT NULL
+  COMMENT 'The ID of a header',
+  `entity_table` VARCHAR(64) COMMENT 'Name of the table where item being referenced is stored',
+  `entity_id`    INT UNSIGNED COMMENT 'Foreign key to the referenced item'
   ,
   PRIMARY KEY (`id`)
 
 
-  , CONSTRAINT FK_civicrm_simplemailheaderfilter_contact_id FOREIGN KEY (`contact_id`) REFERENCES `civicrm_contact` (`id`)
+  , CONSTRAINT FK_civicrm_simplemailheaderfilter_header_id FOREIGN KEY (`header_id`) REFERENCES `civicrm_simplemailheader` (`id`)
   ON DELETE CASCADE
 )
   ENGINE =InnoDB

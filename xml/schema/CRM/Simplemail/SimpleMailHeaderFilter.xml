@@ -4,7 +4,7 @@
   <base>CRM/Simplemail</base>
   <class>SimpleMailHeaderFilter</class>
   <name>civicrm_simplemailheaderfilter</name>
-  <comment>FIXME</comment>
+  <comment>Filters for the headers in Simple Mail</comment>
   <add>4.4</add>
   <log>true</log>
 
@@ -21,17 +21,37 @@
   </primaryKey>
 
   <field>
-    <name>contact_id</name>
+    <name>header_id</name>
     <type>int unsigned</type>
-    <comment>FK to Contact</comment>
+    <required>true</required>
+    <comment>The ID of a header</comment>
     <add>4.4</add>
   </field>
   <foreignKey>
-    <name>contact_id</name>
-    <table>civicrm_contact</table>
+    <name>header_id</name>
+    <table>civicrm_simplemailheader</table>
     <key>id</key>
     <add>4.4</add>
     <onDelete>CASCADE</onDelete>
   </foreignKey>
+
+  <field>
+    <name>entity_table</name>
+    <type>varchar</type>
+    <length>64</length>
+    <comment>Name of the table where item being referenced is stored</comment>
+  </field>
+
+  <field>
+    <name>entity_id</name>
+    <type>int unsigned</type>
+    <!--<required>true</required>-->
+    <comment>Foreign key to the referenced item</comment>
+    <add>4.4</add>
+  </field>
+  <dynamicForeignKey>
+    <idColumn>entity_id</idColumn>
+    <typeColumn>entity_table</typeColumn>
+  </dynamicForeignKey>
 
 </table>

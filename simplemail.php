@@ -132,4 +132,9 @@ function simplemail_civicrm_entityTypes(&$entityTypes) {
     'class' => 'CRM_Simplemail_DAO_SimpleMailRecipientGroup',
     'table' => 'civicrm_simplemailrecipientgroup'
   );
+  $entityTypes[] = array(
+    'name' => 'SimpleMailHeaderFilter',
+    'class' => 'CRM_Simplemail_DAO_SimpleMailHeaderFilter',
+    'table' => 'civicrm_simplemailheaderfilter'
+  );
 }
