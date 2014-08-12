@@ -23,6 +23,13 @@
     </div>
 
     <div class="field-group inline clearfix">
+      <label for="">Filter</label>
+      <select ui-select2 multiple ng-model="header.filterIds" data-placeholder="Select filter(s)" name="" id="">
+        <option ng-repeat="filter in filters" value="{{filter.id}}">{{filter.label}}</option>
+      </select>
+    </div>
+
+    <div class="field-group inline clearfix">
       <label for="show-logo">Show logo on mailings with this header:</label>
       <input id="show-logo" type="checkbox" ng-model="header.show_logo"
              ng-true-value="1" ng-false-value="0"/>

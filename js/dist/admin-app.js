@@ -22,6 +22,7 @@
   var app = angular.module('simpleMail.adminApp', [
     'ngRoute',
     'ngAnimate',
+    'ui.select2',
     'simpleMail.adminApp.controllers',
     'simpleMail.services',
     'simpleMail.directives',

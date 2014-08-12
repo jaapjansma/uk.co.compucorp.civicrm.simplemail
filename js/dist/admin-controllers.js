@@ -35,7 +35,6 @@
           log.createLog('Failed to retrieve headers', response);
         });
 
-
       /**
        * Retrieve the array of all headers out of the headers object
        *
@@ -76,8 +75,8 @@
    * Detail page of a header
    */
   controllers.controller('HeaderAdminController', [
-    '$scope', '$http', '$fileUploader', 'civiApiServices', 'loggingServices', 'notificationServices', '$routeParams', '$location',
-    function ($scope, $http, $fileUploader, civiApi, log, notification, $routeParams, $location) {
+    '$scope', '$http', '$q', '$fileUploader', 'civiApiServices', 'loggingServices', 'notificationServices', '$routeParams', '$location', 'utilityServices',
+    function ($scope, $http, $q, $fileUploader, civiApi, log, notification, $routeParams, $location, utils) {
       $scope.header = {};
 
       $scope.constants = {
@@ -206,36 +205,85 @@
       // Populate the fields when editing an existing header
       if ($routeParams.headerId) {
         civiApi.get($scope.constants.ENTITY_NAME, {id: $routeParams.headerId})
-          .success(function (response) {
+          .then(function (response) {
             log.createLog('Header retrieved', response);
 
-            if (header.is_error) {
-              notification.error('Failed to retrieve the header', response.error_message);
-              $scope.redirectToListing();
-            } else {
+            if (response.data.is_error) return $q.reject(response);
 
-              $scope.header = response.values[0];
+            $scope.header = response.data.values[0];
+            return true;
+          })
+          .then(function (response) {
+            var promises = [];
 
-              civiApi.getValue('Setting', {name: 'imageUploadURL'})
-                .success(function (response) {
-                  log.createLog('Setting retrieved', response);
+            // Get filters
+            var filterPromise = civiApi.get('SimpleMailHeaderFilter', {header_id: $scope.header.id})
+              .then(function (response) {
+                console.log('Filters retrieved', response);
+                if (response.data.is_error) return $q.reject(response);
 
-                  if (response.is_error) {
-                    notification.error('Failed to retrieve image upload URL setting', response.error_message);
-                  } else {
-                    var baseUrl = response.result + 'simple-mail';
+                $scope.header.filterIds = [];
 
-                    if ($scope.header.image) {
-                      $scope.header.image_url = baseUrl + '/image/' + $scope.header.image;
-                    }
-                    if ($scope.header.logo_image) {
-                      $scope.header.logo_image_url = baseUrl + '/logo_image/' + $scope.header.logo_image;
-                    }
-                  }
+                angular.forEach(response.data.values, function (value, key) {
+                  $scope.header.filterIds.push(value.entity_id);
                 });
-            }
+              });
+
+            // Calculate image URLs for previewing images
+            // TODO (robin): Use the newer GetImageUrl API action on SimpleMailHeader entity instead
+            var imagePromise = civiApi.getValue('Setting', {name: 'imageUploadURL'})
+              .then(function (response) {
+                log.createLog('Setting retrieved', response);
+
+                if (response.data.is_error) return $q.reject(response);
+
+                var baseUrl = response.data.result + 'simple-mail';
+
+                if ($scope.header.image) {
+                  $scope.header.image_url = baseUrl + '/image/' + $scope.header.image;
+                }
+                if ($scope.header.logo_image) {
+                  $scope.header.logo_image_url = baseUrl + '/logo_image/' + $scope.header.logo_image;
+                }
+              });
+
+            promises.push(filterPromise);
+            promises.push(imagePromise);
+
+            // Promises here are handled this way, instead of chaining them, in order to allow sending API calls in a
+            // non-blocking way, so as to improve performance, and also supported by the fact that retrieving filters
+            // and image URLs are not sequential operations.
+            return $q.all(promises);
+          })
+          // Error
+          .catch(function (response) {
+            notification.error('Failed to retrieve the header', response.data.error_message);
+            $scope.redirectToListing();
           });
       }
+
+      // Get the list of mailing recipient groups
+      civiApi.getValue('OptionGroup', {name: 'sm_header_filter_options', return: 'id'})
+        .then(function (response) {
+          log.createLog('Option Group ID retrieved for filters', response);
+          if (response.data.is_error) return $q.reject(response);
+
+          return +response.data.result;
+        })
+        .then(function (response) {
+          console.log('Option Group ID', response);
+
+          return civiApi.get('OptionValue', {option_group_id: response})
+        })
+        .then(function (response) {
+          console.log('Option values retrieved', response);
+
+          $scope.filters = response.data.values;
+        })
+        .catch(function (response) {
+          console.log('Failed to retrieve filters', response);
+        });
+
 
       /**
        * Redirect to the listing of headers
@@ -267,15 +315,109 @@
 
         if ($scope.header.id) {
           civiApi.update($scope.constants.ENTITY_NAME, $scope.header)
-            .success(function (response) {
+            // Save or update header
+            .then(function (response) {
               log.createLog('Update header response', response);
 
-              if (response.error_message) {
-                notification.error('Failed to update header', response.error_message);
-              } else {
-                notification.success('Header updated');
-                $scope.redirectToListing();
-              }
+              if (response.data.is_error) $q.reject(response);
+
+              notification.success('Header updated');
+
+            })
+            // Save or update filters
+            .then(function (response) {
+              return civiApi.get('SimpleMailHeaderFilter', {header_id: +$scope.header.id})
+                .then(function (response) {
+                  console.log('Filters retrieved', response);
+
+                  if (response.data.is_error) return $q.reject(response);
+
+                  var oldFilterIds = [];
+                  var newFilterIds = $scope.header.filterIds;
+
+                  angular.forEach(response.data.values, function (value, key) {
+                    oldFilterIds.push(value.entity_id);
+                  });
+
+                  console.log('Old filters', oldFilterIds);
+                  console.log('New filters', newFilterIds);
+
+                  var removed = utils.arrayDiff(oldFilterIds, newFilterIds);
+                  var added = utils.arrayDiff(newFilterIds, oldFilterIds);
+
+                  console.log('Removed filters', removed);
+                  console.log('Added filters', added);
+
+                  return {added: added, removed: removed, filters: response};
+                })
+                // Add new filters
+                .then(function (filters) {
+                  var promises = [];
+
+                  for (var i = 0, endAdded = filters.added.length; i < endAdded; i++) {
+                    var data = {
+                      header_id: $scope.header.id,
+                      entity_table: 'civicrm_option_value',
+                      entity_id: +filters.added[i]
+                    };
+
+                    var promise = civiApi.create('SimpleMailHeaderFilter', data)
+                      .then(function (response) {
+                        if (response.data.is_error) return $q.reject(response);
+
+                        console.log('Filter added', response);
+                        return true;
+                      })
+                      .catch(function (response) {
+                        return $q.reject(response);
+                      });
+
+                    promises.push(promise);
+                  }
+
+                  return $q.all(promises)
+                    .then(function (response) {
+                      return filters;
+                    })
+                    .catch(function (response) {
+                      return $q.reject(response);
+                    });
+
+                })
+                // Delete removed filters
+                .then(function (filters) {
+                  var promises = [];
+
+                  for (var i = 0, endRemoved = filters.removed.length; i < endRemoved; i++) {
+                    var removeId = null;
+
+                    angular.forEach(filters.filters.data.values, function (value, key) {
+                      if (value.entity_id === filters.removed[i]) removeId = +value.id;
+                    });
+
+                    var promise = civiApi.remove('SimpleMailHeaderFilter', {id: removeId})
+                      .then(function (response) {
+                        if (response.data.is_error) return $q.reject(response);
+
+                        console.log('Filter deleted', response);
+                        return true;
+                      })
+                      .catch(function (response) {
+                        return $q.reject(response);
+                      });
+
+                    promises.push(promise);
+                  }
+
+                  return $q.all(promises);
+                })
+                .catch(function (response) {
+                  return $q.reject(response);
+                });
+            })
+            .then($scope.redirectToListing)
+            .catch(function (response) {
+              notification.error('Failed to update header', response.data.error_message);
             });
         } else {
           civiApi.create($scope.constants.ENTITY_NAME, $scope.header)
