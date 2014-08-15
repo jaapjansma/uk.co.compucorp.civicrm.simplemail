@@ -59,8 +59,6 @@
           return unique(headers, 'id');
         }
 
-        console.log('Selected Filter ID', filterId);
-
         if (!filterId) return headers;
 
         var filteredHeaders = [];
@@ -71,8 +69,6 @@
             filteredHeaders.push(value);
           }
         });
-
-        console.log('Filtered headers', filteredHeaders);
 
         return filteredHeaders;
       }

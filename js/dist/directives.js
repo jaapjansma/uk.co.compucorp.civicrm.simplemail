@@ -19,8 +19,8 @@
     }
   ]);
 
-  directives.directive('smSimpleImageCarousel', ['paths', '$timeout', '$rootScope', 'itemFromCollectionFilter',
-    function (paths, $timeout, $rootScope, itemFromCollection) {
+  directives.directive('smSimpleImageCarousel', ['paths', '$timeout', '$rootScope', 'itemFromCollectionFilter', 'headersForSelectedFilterFilter',
+    function (paths, $timeout, $rootScope, itemFromCollection, headersForSelectedFilter) {
       return {
         scope: {
           items: '=',
@@ -32,32 +32,36 @@
         link: function (scope, element, attr) {
           scope.selectedIndex = null;
           scope.selectedItem = null;
+          scope.filteredItems = [];
 
           scope.selectImage = function (index) {
             console.log('Image selected with index', index);
             scope.selectedIndex = index;
           };
 
+          // Setup the index of saved selected image once all headers have been retrieved
           scope.$watchCollection(function () {
               return scope.items;
             },
             function (newVal, oldVal) {
               console.log(newVal);
 
-              if (newVal.length && scope.selectedItemId) {                
-                var item = itemFromCollection(newVal, 'id', scope.selectedItemId, true);
+              if (newVal.length && scope.selectedItemId) {
+                scope.filteredItems = headersForSelectedFilter(newVal, scope.selectedFilterId);
+                var item = itemFromCollection(scope.filteredItems, 'id', scope.selectedItemId, true);
                 scope.selectedItem = item.item;
                 scope.selectedIndex = item.index;
                 console.log('Selected item', scope.selectedItem);
               }
-           })
+            });
 
+          // Update selected header ID according to the image selected (clicked)
           scope.$watch(function () {
               return scope.selectedIndex;
             },
             function (newVal, oldVal) {
               if (newVal !== null) {
-                scope.selectedItemId = scope.items[scope.selectedIndex].id;
+                scope.selectedItemId = scope.filteredItems[scope.selectedIndex].id;
                 console.log('Item ID', scope.selectedItemId);
               }
             });
@@ -73,11 +77,21 @@
               }
             });
 
+          // Update the selected item's (in order to select the correct header image) index upon changing filter and
+          // update the width of the carousel
           scope.$watch(function () {
               return scope.selectedFilterId;
             },
             function (newVal, oldVal) {
               console.log('--- Filter changed ---');
+
+              scope.filteredItems = headersForSelectedFilter(scope.items, scope.selectedFilterId);
+              var item = itemFromCollection(scope.filteredItems, 'id', scope.selectedItemId, true);
+              if (item) {
+                scope.selectedIndex = item.index;
+              } else {
+                scope.selectedIndex = null;
+              }
 
               if (oldVal !== newVal) {
                 $timeout(function () {
