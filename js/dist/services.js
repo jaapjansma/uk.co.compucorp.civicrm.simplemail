@@ -282,12 +282,11 @@
         submitTestEmail: function () {
           var self = this;
 
-          this.getMailing().then(function (response) {
-              var mailing = response;
-
+          this.getMailing().then(function (mailing) {
               civiApi.post('SimpleMail', {id: self.getMailingId(), groupId: mailing.testRecipientGroupId}, 'sendtestemail')
                 .then(function (response) {
                   console.log(response);
+                  notification.success('Test email send');
                 });
             }
           );
