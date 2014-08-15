@@ -193,6 +193,40 @@ function civicrm_api3_simple_mail_header_getimageurl($params) {
   return $imageUrl . $params['fileName'];
 }
 
+/**
+ * SimpleMailHeader.GetHeadersWithFilters API
+ *
+ * @param array $params
+ *
+ * @return array API result descriptor
+ * @see civicrm_api3_create_success
+ * @see civicrm_api3_create_error
+ * @throws API_Exception
+ */
+function civicrm_api3_simple_mail_header_getheaderswithfilters($params) {
+  $query
+    = 'SELECT h.id, h.label, h.image, h.show_logo, h.logo_image, f.id AS filter_id, f.entity_table, f.entity_table, f.entity_id
+            FROM civicrm_simplemailheader h
+            RIGHT JOIN civicrm_simplemailheaderfilter f
+            on h.id = f.header_id
+            ORDER BY h.id';
+
+  try {
+    /** @var CRM_Core_DAO $dao */
+    $dao = CRM_Core_DAO::executeQuery($query);
+
+    $headersWithFilters = array();
+
+    while ($dao->fetch()) {
+      $headersWithFilters[] = $dao->toArray();
+    }
+  } catch (Exception $e) {
+    throw new API_Exception('Failed to retrieve headers with filters: ' . $e->getMessage(), 500);
+  }
+
+  return array('is_error' => 0, 'values' => $headersWithFilters);
+}
+
 if (!function_exists('_get_api_instance')) {
   /**
    * @return civicrm_api3
