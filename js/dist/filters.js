@@ -52,11 +52,11 @@
     }
   ]);
 
-  filters.filter('headersForSelectedFilter', [
-    function () {
+  filters.filter('headersForSelectedFilter', ['uniqueFilter',
+    function (unique) {
       return function (headers, filterId) {
-        if (isNaN(filterId) && filterId === 'all') {
-          return headers;
+        if (filterId === 'all') {
+          return unique(headers, 'id');
         }
 
         console.log('Selected Filter ID', filterId);
@@ -78,4 +78,23 @@
       }
     }
   ]);
+
+  filters.filter('unique', [
+    function () {
+      return function (items, uniqueKey) {
+        var keys = [];
+        var uniqueItems = [];
+        
+        angular.forEach(items, function(value, key) {
+          if (keys.indexOf(value[uniqueKey]) === -1) {
+            keys.push(value[uniqueKey]);
+            uniqueItems.push(value);
+          }
+        });
+
+        return uniqueItems;
+      }
+    }
+  ]);
 })();
+

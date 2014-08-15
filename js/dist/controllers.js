@@ -24,7 +24,7 @@
         ENTITY_NAME: 'SimpleMail'
       };
 
-      $scope.mailingFilters = ['draft'];
+      $scope.mailingFilters = ['draft', 'scheduled'];
 
       civiApi.get($scope.constants.ENTITY_NAME)
         .then(function (response) {
