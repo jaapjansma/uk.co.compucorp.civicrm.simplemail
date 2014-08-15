@@ -222,8 +222,8 @@ function civicrm_api3_simple_mail_getemailhtml($params) {
 function _create_or_update_civicrm_mass_mailing($smMailingId) {
   $mailing = _get_simple_mail_mailing($smMailingId);
 
-  $campaignMsg = _get_simple_mail_campaign_message((int) $mailing->header_id);
-  $header = _get_simple_mail_header((int) $mailing->message_id);
+  $campaignMsg = _get_simple_mail_campaign_message((int) $mailing->message_id);
+  $header = _get_simple_mail_header((int) $mailing->header_id);
 
   $crmMailingParamGroups = _get_formatted_recipient_groups($smMailingId);
 

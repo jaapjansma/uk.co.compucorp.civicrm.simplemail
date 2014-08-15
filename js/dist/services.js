@@ -283,6 +283,8 @@
           var self = this;
 
           this.getMailing().then(function (mailing) {
+              notification.info('Sending test email');
+
               civiApi.post('SimpleMail', {id: self.getMailingId(), groupId: mailing.testRecipientGroupId}, 'sendtestemail')
                 .then(function (response) {
                   console.log(response);
