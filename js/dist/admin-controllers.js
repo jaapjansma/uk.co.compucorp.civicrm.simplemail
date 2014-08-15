@@ -419,7 +419,9 @@
             .catch(function (response) {
               notification.error('Failed to update header', response.data.error_message);
             });
-        } else {
+        }
+        // TODO (robin): Save filters for new headers as well - may be refactor the logic from above into a controller method
+        else {
           civiApi.create($scope.constants.ENTITY_NAME, $scope.header)
             .success(function (response) {
               log.createLog('Save header response', response);

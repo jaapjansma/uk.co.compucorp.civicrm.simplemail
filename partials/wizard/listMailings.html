@@ -1,21 +1,55 @@
-<div id="sm-headers-admin" class="sm-container">
-  <p><a class="button" ng-href="#/mailings/new"><i class="icon email-icon"></i>Create a New Mailing</a></p>
+<div id="sm-mailings" class="sm-container">
 
-  <table id="sm-headers-admin-table">
+  <div class="buttons clearfix">
+    <p class="left">
+      <a class="button" ng-href="#/mailings/new"><i class="icon email-icon"></i>Create a New Mailing</a>
+    </p>
+
+    <p class="right">
+      <a ng-click="showFilters = !showFilters" class="button"><i class="icon settings-icon"></i>Filter</a>
+    </p>
+  </div>
+
+  <div ng-show="showFilters" class="filters crm-form-block">
+    <div class="filter inline">
+      <p class="filter-title">Mailing status:</p>
+
+      <input ng-click="toggleFilter('draft')" ng-checked="mailingFilters.indexOf('draft') !== -1"
+             id="filter-draft-mailings" type="checkbox"/>
+      <label for="filter-draft-mailings">Draft</label>
+
+      <input ng-click="toggleFilter('scheduled')" ng-checked="mailingFilters.indexOf('scheduled') !== -1"
+             id="filter-scheduled-mailings" type="checkbox"/>
+      <label for="filter-scheduled-mailings">Scheduled</label>
+
+      <input ng-click="toggleFilter('past')" ng-checked="mailingFilters.indexOf('past') !== -1"
+             id="filter-past-mailings"
+             type="checkbox"/>
+      <label for="filter-past-mailings">Past</label>
+    </div>
+  </div>
+
+  <table id="sm-mailings-table">
     <thead>
     <tr>
       <th class="id">ID</th>
       <th class="name">Name</th>
       <th class="subject">Subject</th>
+      <th class="current-status">Status</th>
       <th class="action-buttons">Action</th>
     </tr>
     </thead>
-    <tr ng-repeat="mailing in mailings" ng-class-even="'even-row'" ng-class-odd="'odd-row'">
+    <tr ng-repeat="mailing in (mailings | mailingsByStatus:mailingFilters)" ng-class-even="'even-row'"
+        ng-class-odd="'odd-row'">
       <td class="id">{{mailing.id}}</td>
       <td class="name">{{mailing.name}}</td>
       <td class="subject">{{mailing.subject}}</td>
+      <td class="current-status">{{mailing.status}}</td>
       <td class="action-buttons">
-        <a ng-href="#/mailings/{{mailing.id}}" class="button">Edit</a>
+        <a ng-if="mailing.status === 'draft' || mailing.status === 'scheduled'"
+           ng-href="#/mailings/{{mailing.id}}" class="button">
+          {{mailing.status === 'draft' ? 'Edit' : 'Update'}}
+        </a>
         <a href ng-click="deleteMailing($index)" class="button">Delete</a>
       </td>
     </tr>

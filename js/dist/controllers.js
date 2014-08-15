@@ -24,11 +24,52 @@
         ENTITY_NAME: 'SimpleMail'
       };
 
+      $scope.mailingFilters = ['draft'];
+
       civiApi.get($scope.constants.ENTITY_NAME)
-        .success(function (response) {
+        .then(function (response) {
           log.createLog('Mailings retrieved', response);
-          $scope.mailings = response.values;
+          $scope.mailings = response.data.values;
+        })
+        .then(function () {
+          var now = Date.now();
+          var scheduledDate = null;
+          var mailing = null;
+
+          for (var i = 0, iEnd = $scope.mailings.length; i < iEnd; i++) {
+            var status = 'draft';
+            mailing = $scope.mailings[i];
+
+            if (mailing.hasOwnProperty('send_on')) {
+              scheduledDate = Date.parse(mailing.send_on);
+
+              if (mailing.crm_mailing_id) {
+                if (scheduledDate < now) {
+                  status = 'past';
+                }
+                else {
+                  status = 'scheduled';
+                }
+              }
+            }
+
+            mailing.status = status;
+          }
+        })
+        .catch(function (response) {
+          console.log('Failed to retrieve mailing', response);
         });
+
+
+      $scope.toggleFilter = function (filter) {
+        var indexOfFilter = $scope.mailingFilters.indexOf(filter);
+        
+        if (indexOfFilter === -1) {
+          $scope.mailingFilters.push(filter);
+        } else {
+          $scope.mailingFilters.splice(indexOfFilter, 1);
+        }
+      };
 
       $scope.deleteMailing = function (index) {
         var mailing = $scope.mailings[index];
@@ -130,13 +171,17 @@
    * Step 2 of the wizard
    */
   controllers.controller('ComposeMailingController', [
-    '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'paths', 'mailingServices', 'itemFromCollectionFilter',
-    function ($scope, $http, $routeParams, $location, civiApi, log, notification, paths, mailing, itemFromCollection) {
-      $scope.model = {
-        selectedMessage: {}
+    '$scope', '$timeout', '$http', '$routeParams', '$location', '$q', 'civiApiServices', 'loggingServices', 'notificationServices', 'paths', 'mailingServices', 'itemFromCollectionFilter',
+    function ($scope, $timeout, $http, $routeParams, $location, $q, civiApi, log, notification, paths, mailing, itemFromCollection) {
+      $scope.models = {
+        selectedMessage: {},
+        selectedFilterId: 'all',
+        headersLoaded: false
       };
 
-      // Initialise the step
+      $scope.headers = [];
+
+     // Initialise the step
       mailing.initStep({step: 2, scope: $scope});
 
       $scope.constants = {
@@ -152,12 +197,13 @@
 
           var selectedMessage = itemFromCollection($scope.messages, 'id', $scope.mailing.message_id);
           if (selectedMessage && 'text' in selectedMessage) {
-            $scope.model.selectedMessage.text = selectedMessage.text;
+            $scope.models.selectedMessage.text = selectedMessage.text;
           }
         }
       });
 
-      // Get the option group
+      // Get from emails
+      // TODO (robin): This could better use getValue() - more semantically better use of Civi API
       civiApi.get('OptionGroup', {name: 'from_email_address'})
         .success(function (response) {
           log.createLog('From-email address option response', response);
@@ -177,7 +223,72 @@
 
         });
 
-       // Get the current mailing
+
+      // Get the headers
+      civiApi.post('SimpleMailHeader', {}, 'getheaderswithfilters')
+        .then(function (response) {
+          /*
+           * Get the list of filters from option value table
+           * Selecting a filter from the drop down would retrieve headers that have this filter applied
+           * Show images in each header for the selected filter
+           * Selecting an image would set the header's ID on $scope.mailing.header_id
+           */
+          var headers = response.data.values;
+
+          console.log('Headers retrieved', response);
+
+          if (response.data.is_error) return $q.reject(response);
+
+          // Retrieve base URL for images
+          return civiApi.getValue('Setting', {name: 'imageUploadURL'})
+            .then(function (response) {
+              console.log('Setting retrieved', response);
+
+              if (response.data.is_error) return $q.reject(response);
+
+              return response.data.result + 'simple-mail/image/';
+            })
+            .then(function (imageBaseUrl) {
+              for (var i = 0, iEnd = headers.length; i < iEnd; i++) {
+                headers[i].imageUrl = imageBaseUrl + headers[i].image;
+              }
+
+              $scope.headers = headers;
+
+              console.log('Processed headers', $scope.headers);
+            });
+        })
+        .then(function () {
+          $scope.models.headersLoaded = true;
+        })
+        .catch(function (response) {
+          console.log('Failed to retrieve headers', response);
+        });
+
+      // Get the filter options
+      civiApi.getValue('OptionGroup', {name: 'sm_header_filter_options', return: 'id'})
+        .then(function (response) {
+          if (response.data.is_error) return $q.reject(response);
+
+          console.log('Option group for filters retrieved', response);
+          return +response.data.result;
+        })
+        .then(function (groupId) {
+          civiApi.get('OptionValue', {option_group_id: groupId, is_active: '1'})
+            .then(function (response) {
+              if (response.data.is_error) return $q.reject(response);
+
+              console.log('Filter values retrieved', response);
+              $scope.filters = response.data.values;
+
+              return true;
+            });
+        })
+        .catch(function (response) {
+          console.log('Failed to retrieve filter values', response);
+        })
+
+      // Get the current mailing
       mailing.getMailing()
         .then(function (response) {
           $scope.mailing = response;
@@ -192,14 +303,13 @@
 
               var selectedMessage = itemFromCollection($scope.messages, 'id', $scope.mailing.message_id);
               if (selectedMessage && 'text' in selectedMessage) {
-                $scope.model.selectedMessage.text = selectedMessage.text;
+                $scope.models.selectedMessage.text = selectedMessage.text;
               }
             })
             .error(function (response) {
               // TODO
             });
         });
-
   }
   ]);
 
@@ -235,6 +345,7 @@
           $scope.groups = response.values;
         });
 
+      // TODO (robin): Rename to models and check for similar objects in other controllers
       $scope.model = {};
       $scope.model.emailHtml = '';
 
@@ -242,11 +353,6 @@
         .then(function(response) {
           $scope.model.emailHtml = response.data.result;
           $scope.$broadcast('EmailPreviewReady');
-
-//          var doc = document.getElementById('iframe').contentWindow.document;
-//              doc.open();
-//              doc.write($scope.emailPreview);
-//              doc.close();
         });
     }
   ]);
