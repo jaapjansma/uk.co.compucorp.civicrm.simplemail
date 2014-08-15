@@ -19,6 +19,103 @@
     }
   ]);
 
+  directives.directive('smSimpleImageCarousel', ['paths', '$timeout', '$rootScope', 'itemFromCollectionFilter',
+    function (paths, $timeout, $rootScope, itemFromCollection) {
+      return {
+        scope: {
+          items: '=',
+          selectedFilterId: '=',
+          selectedItemId: '=',
+          itemsLoaded: '='
+        },
+        templateUrl: paths.TEMPLATES_DIR() + '/simple-image-carousel.html',
+        link: function (scope, element, attr) {
+          scope.selectedIndex = null;
+          scope.selectedItem = null;
+
+          scope.selectImage = function (index) {
+            console.log('Image selected with index', index);
+            scope.selectedIndex = index;
+          };
+
+          scope.$watchCollection(function () {
+              return scope.items;
+            },
+            function (newVal, oldVal) {
+              console.log(newVal);
+
+              if (newVal.length && scope.selectedItemId) {                
+                var item = itemFromCollection(newVal, 'id', scope.selectedItemId, true);
+                scope.selectedItem = item.item;
+                scope.selectedIndex = item.index;
+                console.log('Selected item', scope.selectedItem);
+              }
+           })
+
+          scope.$watch(function () {
+              return scope.selectedIndex;
+            },
+            function (newVal, oldVal) {
+              if (newVal !== null) {
+                scope.selectedItemId = scope.items[scope.selectedIndex].id;
+                console.log('Item ID', scope.selectedItemId);
+              }
+            });
+
+          scope.$watch(function () {
+              return element.find('ul').find('img').length;
+            },
+            function (newVal, oldVal) {
+              if (scope.selectedFilterId === 'all') {
+                $timeout(function () {
+                  scope.setWidth();
+                }, 500);
+              }
+            });
+
+          scope.$watch(function () {
+              return scope.selectedFilterId;
+            },
+            function (newVal, oldVal) {
+              console.log('--- Filter changed ---');
+
+              if (oldVal !== newVal) {
+                $timeout(function () {
+                  scope.setWidth();
+                }, 500);
+              }
+            }, true);
+
+          scope.resetWidth = function () {
+            element.find('ul').width('100%');
+          };
+
+          scope.setWidth = function () {
+            var listElements = element.find('ul').find('img');
+            var totalLength = 0;
+            var currentLength = 0;
+
+            if (listElements.length) {
+              for (var i = 0; i < listElements.length; i++) {
+                currentLength = $(listElements[i]).outerWidth(true);
+                totalLength += currentLength;
+                console.log(currentLength);
+              }
+
+              totalLength += totalLength * 0.005;
+            } else {
+              totalLength = '100%';
+            }
+
+            console.log('Total length', totalLength);
+
+            element.find('ul').width(totalLength);
+          }
+        }
+      }
+    }
+  ]);
+
   directives.directive('smCkEditor', [
     function () {
       return {
