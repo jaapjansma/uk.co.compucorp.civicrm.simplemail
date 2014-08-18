@@ -45,6 +45,13 @@
   </field>
 
   <field>
+    <name>remove_duplicates</name>
+    <type>boolean</type>
+    <default>0</default>
+    <!--<required>true</required>-->
+  </field>
+
+  <field>
     <name>resume_step</name>
     <type>int unsigned</type>
     <title>Resume Step</title>

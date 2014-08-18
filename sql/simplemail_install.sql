@@ -70,20 +70,21 @@ CREATE TABLE `civicrm_simplemailmessage` (
 CREATE TABLE `civicrm_simplemail` (
 
 
-  `id`               INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique SimpleMail ID',
-  `crm_mailing_id` INT UNSIGNED COMMENT 'The ID of CiviCRM mailing, once it has been generated from Simple Mail',
-  `name`             VARCHAR(64) COMMENT 'Name of the mailing',
-  `resume_step`      INT UNSIGNED DEFAULT 1
+  `id`                INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique SimpleMail ID',
+  `crm_mailing_id`    INT UNSIGNED COMMENT 'The ID of CiviCRM mailing, once it has been generated from Simple Mail',
+  `name`              VARCHAR(64) COMMENT 'Name of the mailing',
+  `remove_duplicates` TINYINT DEFAULT 0,
+  `resume_step`       INT UNSIGNED DEFAULT 1
   COMMENT 'The step to resume from on the wizard',
-  `from_address`   VARCHAR(256) COMMENT 'Name and email address for the from field',
-  `header_id`        INT UNSIGNED COMMENT 'The ID of a mailing header',
-  `subject`          VARCHAR(64) COMMENT 'Subject of the email',
-  `title`            VARCHAR(64) COMMENT 'Title/strapline for the email (in the title region)',
-  `body`             TEXT COMMENT 'Body of the email',
-  `contact_details`  TEXT COMMENT 'Contact details',
-  `message_id`       INT UNSIGNED COMMENT 'The ID of the campaign message',
-  `send_immediately` TINYINT DEFAULT 0,
-  `send_on`          DATETIME COMMENT 'Date scheduled for sending emails'
+  `from_address`      VARCHAR(256) COMMENT 'Name and email address for the from field',
+  `header_id`         INT UNSIGNED COMMENT 'The ID of a mailing header',
+  `subject`           VARCHAR(64) COMMENT 'Subject of the email',
+  `title`             VARCHAR(64) COMMENT 'Title/strapline for the email (in the title region)',
+  `body`              TEXT COMMENT 'Body of the email',
+  `contact_details`   TEXT COMMENT 'Contact details',
+  `message_id`        INT UNSIGNED COMMENT 'The ID of the campaign message',
+  `send_immediately`  TINYINT DEFAULT 0,
+  `send_on`           DATETIME COMMENT 'Date scheduled for sending emails'
   ,
   PRIMARY KEY (`id`)
 
@@ -96,7 +97,6 @@ CREATE TABLE `civicrm_simplemail` (
   ENGINE =InnoDB
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_unicode_ci;
-
 
 -- /*******************************************************
 -- *

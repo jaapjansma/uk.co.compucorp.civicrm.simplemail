@@ -107,6 +107,11 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
    */
   public $name;
   /**
+   *
+   * @var boolean
+   */
+  public $remove_duplicates;
+  /**
    * The step to resume from on the wizard
    *
    * @var int unsigned
@@ -220,6 +225,11 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
           'maxlength' => 64,
           'size' => CRM_Utils_Type::BIG,
         ) ,
+        'remove_duplicates' => array(
+          'name' => 'remove_duplicates',
+          'type' => CRM_Utils_Type::T_BOOLEAN,
+          'title' => ts('Remove Duplicates') ,
+        ) ,
         'resume_step' => array(
           'name' => 'resume_step',
           'type' => CRM_Utils_Type::T_INT,
@@ -298,6 +308,7 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
         'id' => 'id',
         'crm_mailing_id' => 'crm_mailing_id',
         'name' => 'name',
+        'remove_duplicates' => 'remove_duplicates',
         'resume_step' => 'resume_step',
         'from_address' => 'from_address',
         'header_id' => 'header_id',
