@@ -195,27 +195,11 @@ function civicrm_api3_simple_mail_header_uploadimage($params) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_header_deleteimage($params) {
-  $filePrefix = SM_EXT_DIR_NAME;
-
-  switch ($params['field']) {
-    case 'image':
-      $filePrefix .= DIRECTORY_SEPARATOR . 'image';
-      break;
-
-    case 'logo_image':
-      $filePrefix .= DIRECTORY_SEPARATOR . 'logo_image';
-      break;
-
-    default:
-      $filePrefix .= DIRECTORY_SEPARATOR . 'default';
-      break;
-  }
-
   $fileName = $params['fileName'];
 
-  $dirName = civicrm_api3('setting', 'getvalue', array('name' => 'imageUploadDir')) . $filePrefix;
+  $dirName = _get_image_dir_path($params['field']);
 
-  $file = $dirName . DIRECTORY_SEPARATOR . $fileName;
+  $file = $dirName . $fileName;
 
   if (unlink($file)) {
     return array(
