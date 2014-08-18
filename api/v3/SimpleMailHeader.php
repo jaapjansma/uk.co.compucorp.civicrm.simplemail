@@ -241,9 +241,8 @@ function civicrm_api3_simple_mail_header_deleteimage($params) {
 
 /**
  * SimpleMailHeader.GetImageUrl API
- * TODO (robin): Refactor this to use the image utility functions
  *
- * @param array $params Array consisting of field name (corresponding to DB name) and file name
+ * @param array $params Array consisting offield name (corresponding to DB name) and file name
  *
  * @return array API result descriptor
  * @see civicrm_api3_create_success
@@ -258,24 +257,9 @@ function civicrm_api3_simple_mail_header_getimageurl($params) {
     throw new API_Exception('Image file name not provided');
   }
 
-  $api = _get_api_instance();
+  $imageDirUrl = _get_image_dir_url($params['field']);
 
-  $imageUrl = $api->cfg->imageUploadURL . SM_EXT_DIR_NAME;
-
-  switch ($params['field']) {
-    case 'image':
-      $imageUrl = $imageUrl . '/image/';
-      break;
-
-    case 'logo_image':
-      $imageUrl = $imageUrl . '/logo_image/';
-      break;
-
-    default:
-      throw new API_Exception('Incorrect image field param provided');
-  }
-
-  return $imageUrl . $params['fileName'];
+  return $imageDirUrl . $params['fileName'];
 }
 
 /**
