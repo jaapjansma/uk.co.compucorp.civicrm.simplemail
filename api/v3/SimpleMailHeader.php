@@ -129,6 +129,24 @@ function _get_image_dir_url($field) {
   return $path . DIRECTORY_SEPARATOR;
 }
 
+function _get_image_dir_path($field) {
+  $api = _get_api_instance();
+  $entity = 'Setting';
+  $apiParams = array('name' => 'imageUploadDir');
+
+  if (!$api->$entity->GetValue($apiParams)) {
+    throw new API_Exception('Failed to retrieve image upload dir setting');
+  }
+
+  $path = $api->result();
+
+  $dirRelativePath = _get_image_dir_relative_path($field);
+
+  $path .= $dirRelativePath;
+
+  return $path . DIRECTORY_SEPARATOR;
+}
+
 /**
  * SimpleMailHeader.UploadImage API
  * TODO (robin): Refactor this to use the utility functions for images
@@ -141,38 +159,20 @@ function _get_image_dir_url($field) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_header_uploadimage($params) {
-  $extDirName = 'simple-mail';
-
-  $field = $params['field'];
-  $filePrefix = $extDirName;
-
-  switch ($field) {
-    case 'image':
-      $filePrefix .= DIRECTORY_SEPARATOR . 'image';
-      break;
-
-    case 'logo_image':
-      $filePrefix .= DIRECTORY_SEPARATOR . 'logo_image';
-      break;
-
-    default:
-      $filePrefix .= DIRECTORY_SEPARATOR . 'default';
-      break;
-  }
-
   $tempFile = $_FILES['file']['tmp_name'];
 
   $fileName = CRM_Utils_File::makeFileName($_FILES['file']['name']);
+  $dirName = _get_image_dir_path($params['field']);
 
-  $dirName = civicrm_api3('setting', 'getvalue', array('name' => 'imageUploadDir')) . $filePrefix;
-  CRM_Utils_File::createDir($dirName); // Create the upload directory if it doesn't already exist
+  // Create the upload directory, if it doesn't already exist
+  CRM_Utils_File::createDir($dirName);
 
-  $file = $dirName . DIRECTORY_SEPARATOR . $fileName;
+  $file = $dirName . $fileName;
 
   // Move the uploaded file to the upload directory
   if (move_uploaded_file($tempFile, $file)) {
-    $imageDirUrl = civicrm_api3('setting', 'getvalue', array('name' => 'imageUploadURL')) . $filePrefix;
-    $imageUrl = $imageDirUrl . '/' . $fileName;
+    $imageDirUrl = _get_image_dir_url($params['field']);
+    $imageUrl = $imageDirUrl . $fileName;
 
     return array(
       'imageUrl' => $imageUrl,
