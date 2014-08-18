@@ -28,7 +28,6 @@
       // Get all headers
       civiApi.get($scope.constants.ENTITY_NAME)
         .then(function (response) {
-          // TODO (robin): may be just save the actual headers array in headers, so that getHeaders won't be needed and make the behaviour more predictable
           if (response.data.is_error) return $q.reject(response);
 
           $scope.headers = response.data.values;
@@ -180,9 +179,21 @@
         console.info('Total progress: ' + progress);
       });
 
-      // TODO (robin): this would be used instead of just linking to the listing URL in the view, in order to provide a hook for cleanup, etc. such as removal of any uploaded images (as otherwise such unused, unreferenced images would be a waste)
       $scope.cancel = function () {
+        // Delete any images uploaded in case a new header was being added but cancelled without saving
+        if (!$scope.header.id) {        
+          // Delete header image if one was uploaded
+          if ($scope.header.image) {
+            $scope.remove('image');
+          }
 
+          // Delete logo image if one was uploaded
+          if ($scope.header.logo_image) {
+            $scope.remove('logo_image');
+          }
+        }
+
+        $scope.redirectToListing();
       };
 
       $scope.remove = function (field) {
