@@ -260,8 +260,7 @@ function _create_or_update_civicrm_mass_mailing($smMailingId) {
   // Create or update CiviCRM mailing
   $crmMailing = CRM_Mailing_BAO_Mailing::create($crmMailingParams, $crmMailingId);
 
-  // TODO (robin): Make this dynamic
-  $dedupeEmail = FALSE;
+  $removeDuplicateEmails = $mailing->remove_duplicates ? TRUE : FALSE;
 
   // Compute the recipients and store them in the mailing recipients table
   CRM_Mailing_BAO_Mailing::getRecipients(
@@ -270,7 +269,7 @@ function _create_or_update_civicrm_mass_mailing($smMailingId) {
     NULL,
     NULL,
     TRUE,
-    $dedupeEmail
+    $removeDuplicateEmails
   );
 
   return $crmMailing;
