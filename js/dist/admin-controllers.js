@@ -35,7 +35,7 @@
 
           return true;
         })
-       .catch(function (response) {
+        .catch(function (response) {
           log.createLog('Failed to retrieve headers', response);
         });
 
@@ -181,7 +181,7 @@
 
       $scope.cancel = function () {
         // Delete any images uploaded in case a new header was being added but cancelled without saving
-        if (!$scope.header.id) {        
+        if (!$scope.header.id) {
           // Delete header image if one was uploaded
           if ($scope.header.image) {
             $scope.remove('image');
@@ -453,8 +453,8 @@
    * Admin list and inline editing of messages
    */
   controllers.controller('MessagesAdminController', [
-    '$scope', '$http', 'civiApiServices', 'loggingServices', 'notificationServices',
-    function ($scope, $http, civiApi, log, notification) {
+    '$scope', '$http', '$q', 'civiApiServices', 'loggingServices', 'notificationServices',
+    function ($scope, $http, $q, civiApi, log, notification) {
 
       $scope.$on('$viewContentLoaded', function () {
         cj('#crm-container textarea.huge:not(.textarea-processed), #crm-container textarea.form-textarea:not(.textarea-processed)').each(function () {
@@ -468,78 +468,61 @@
         ENTITY_NAME: 'SimpleMailMessage'
       };
 
-      $scope.messages = {};
+      $scope.messages = [];
       $scope.newMessage = {'is_active': '1'};
 
       civiApi.get($scope.constants.ENTITY_NAME)
-        .success(function (messages) {
-          $scope.messages = messages;
-          log.createLog('Messages retrieved', messages);
-        }).error(function (response) {
-          log.createLog('Failed to retrive messages', response);
+        .then(function (response) {
+          if (response.data.is_error) return $q.reject(response);
+
+          $scope.messages = response.data.values;
+          log.createLog('Messages retrieved', $scope.messages);
+
+          return true;
+        })
+        .catch(function (response) {
+          log.createLog('Failed to retrieve messages', response);
         });
 
       /**
-       * Retrieve the array of all messages out of the messages object
-       *
-       * @returns {ui.slider.options.values|*|s.values|values|.options.values|b.values}
+       * Clear new message form
        */
-      $scope.getMessages = function () {
-        return $scope.messages.values;
-      };
-
-      /**
-       * Retrieve a message using its index in the message array
-       *
-       * @param index
-       * @returns {*}
-       */
-      $scope.getMessage = function (index) {
-        return $scope.getMessages()[index];
-      };
-
-      $scope.getMessageCopy = function (index) {
-        return angular.copy($scope.getMessage(index));
-      };
-
-      $scope.sanitiseMessage = function (message) {
-        if ("editing" in message) {
-          delete message.editing;
-        }
-
-        if (!("is_active" in message)) {
-          message.is_active = 0;
-        }
-
-        return message;
-      };
-
-      // TODO (robin): simplify this - too many similarly named functions are confusing - remove all but the essential ones
-      $scope.getSanitisedMessage = function (index) {
-        return $scope.sanitiseMessage($scope.getMessageCopy(index));
-      };
-
-      $scope.enableAddingMessage = function () {
-        $scope.newMessage.editing = true;
-      };
-
       $scope.clearNewMessageForm = function () {
         $scope.newMessage = {};
       };
 
+      /**
+       * Enable showing form for new message
+       */
+      $scope.enableAddingMessage = function () {
+        $scope.newMessage.editing = true;
+      };
+
+      /**
+       * Disable showing form for new message
+       */
       $scope.disableAddingMessage = function () {
         $scope.newMessage.editing = false;
         $scope.clearNewMessageForm();
       };
 
+      /**
+       * Enable inline editing of a message
+       *
+       * @param index
+       */
       $scope.enableEditingMessage = function (index) {
-        $scope.getMessage(index).editing = true;
+        $scope.messages[index].editing = true;
       };
 
+      /**
+       * Disable inline editing of a message
+       *
+       * @param index
+       */
       $scope.disableEditingMessage = function (index) {
-        $scope.getMessage(index).editing = false;
+        $scope.messages[index].editing = false;
       };
-
 
       /**
        * Create a new message
@@ -560,7 +543,7 @@
           })
           // Add the newly saved message to the listing
           .then(function (message) {
-            $scope.messages.values.push(message);
+            $scope.messages.push(message);
             $scope.disableAddingMessage();
           })
           .catch(function (response) {
@@ -575,20 +558,25 @@
        * @param index
        */
       $scope.updateMessage = function (index) {
-        var message = $scope.getSanitisedMessage(index);
+//        var message = $scope.getSanitisedMessage(index);
+        var message = $scope.messages[index];
 
         civiApi.update($scope.constants.ENTITY_NAME, message)
-          .success(function (response) {
+          .then(function (response) {
             log.createLog('Update message response', response);
 
-            $scope.disableEditingMessage(index);
+            if (response.is_error) return $q.reject(response);
 
-            if (response.error_message) {
-              notification.error('Failed to update message', response.error_message);
-              $scope.errorMessage = response.error_message;
-            } else {
-              notification.success('Message updated');
-            }
+            notification.success('Message updated');
+
+            return true;
+          })
+          .then(function () {
+            $scope.disableEditingMessage(index);
+          })
+          .catch(function (response) {
+            notification.error('Failed to update message', response.data.error_message);
+            $scope.errorMessage = response.data.error_message;
           });
       };
 
@@ -598,20 +586,26 @@
        * @param index
        */
       $scope.deleteMessage = function (index) {
-        var message = $scope.getSanitisedMessage(index);
+        var message = $scope.messages[index];
 
+        // Send API call to remove the message in DB
         civiApi.remove($scope.constants.ENTITY_NAME, message)
-          .success(function (response) {
+          .then(function (response) {
             console.log(response);
 
-            // TODO (robin): this could be refactored out into the civiApiServices, so that we only need to send the callback functions for success and failure to it from here
-            if (response.error_message) {
-              console.log('Failed to update the record:', response.error_message);
-              $scope.errorMessage = response.error_message;
-            } else {
-              notification.success('Message deleted');
-              $scope.getMessages().splice(index, 1);
-            }
+            if (response.is_error) return $q.reject(response);
+
+            notification.success('Message deleted');
+
+            return true;
+          })
+          // Remove the message from the listing
+          .then(function () {
+            $scope.messages.splice(index, 1);
+          })
+          .catch(function (response) {
+            console.log('Failed to update the record:', response.error_message);
+            $scope.errorMessage = response.error_message;
           });
       };
     }

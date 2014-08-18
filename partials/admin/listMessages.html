@@ -39,7 +39,7 @@
       <th class="action-buttons">Action</th>
     </tr>
     </thead>
-    <tr ng-repeat="message in messages.values" ng-class-even="'even-row'" ng-class-odd="'odd-row'">
+    <tr ng-repeat="message in messages" ng-class-even="'even-row'" ng-class-odd="'odd-row'">
       <form ng-show="message.editing">
         <td id="id">{{message.id}}</td>
         <!-- Label -->
