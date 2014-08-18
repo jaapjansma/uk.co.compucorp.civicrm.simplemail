@@ -73,6 +73,7 @@ function civicrm_api3_simple_mail_header_get($params) {
 
   $imageUploadUrl = _get_image_dir_url('image');
 
+  // Add image URL as array key of the result
   $valuesWithImageUrls = array_map(
     function ($value) use ($imageUploadUrl) {
       $value['imageUrl'] = $imageUploadUrl . $value['image'];
@@ -87,69 +88,7 @@ function civicrm_api3_simple_mail_header_get($params) {
 }
 
 /**
- * Get the relative path for an image field
- *
- * @param string $field Name of the image field in the DB
- *
- * @return string
- * @throws API_Exception
- */
-function _get_image_dir_relative_path($field) {
-  if (!in_array($field, array('image', 'logo_image'))) {
-    throw new API_Exception('Failed to resolve relative path for image directory as invalid field name provided', 400);
-  }
-
-  return SM_EXT_DIR_NAME . DIRECTORY_SEPARATOR . $field . DIRECTORY_SEPARATOR;
-}
-
-/**
- * Get the URL for the directory of an image field
- *
- * @param string $field Name of the image field in the DB
- *
- * @throws API_Exception
- *
- * @return string
- */
-function _get_image_dir_url($field) {
-  $api = _get_api_instance();
-  $entity = 'Setting';
-  $apiParams = array('name' => 'imageUploadURL');
-
-  if (!$api->$entity->GetValue($apiParams)) {
-    throw new API_Exception('Failed to retrieve image upload URL setting');
-  }
-
-  $path = $api->result();
-
-  $dirRelativePath = _get_image_dir_relative_path($field);
-
-  $path .= $dirRelativePath;
-
-  return $path . DIRECTORY_SEPARATOR;
-}
-
-function _get_image_dir_path($field) {
-  $api = _get_api_instance();
-  $entity = 'Setting';
-  $apiParams = array('name' => 'imageUploadDir');
-
-  if (!$api->$entity->GetValue($apiParams)) {
-    throw new API_Exception('Failed to retrieve image upload dir setting');
-  }
-
-  $path = $api->result();
-
-  $dirRelativePath = _get_image_dir_relative_path($field);
-
-  $path .= $dirRelativePath;
-
-  return $path . DIRECTORY_SEPARATOR;
-}
-
-/**
  * SimpleMailHeader.UploadImage API
- * TODO (robin): Refactor this to use the utility functions for images
  *
  * @param array $params
  *
@@ -185,7 +124,6 @@ function civicrm_api3_simple_mail_header_uploadimage($params) {
 
 /**
  * SimpleMailHeader.DeleteImage API
- * TODO (robin): Refactor this to use the image utility functions
  *
  * @param array $params
  *
@@ -295,4 +233,65 @@ if (!function_exists('_get_api_instance')) {
 
     return $api;
   }
+}
+
+/**
+ * Get the relative path for an image field
+ *
+ * @param string $field Name of the image field in the DB
+ *
+ * @return string
+ * @throws API_Exception
+ */
+function _get_image_dir_relative_path($field) {
+  if (!in_array($field, array('image', 'logo_image'))) {
+    throw new API_Exception('Failed to resolve relative path for image directory as invalid field name provided', 400);
+  }
+
+  return SM_EXT_DIR_NAME . DIRECTORY_SEPARATOR . $field . DIRECTORY_SEPARATOR;
+}
+
+/**
+ * Get the URL for the directory of an image field
+ *
+ * @param string $field Name of the image field in the DB
+ *
+ * @throws API_Exception
+ *
+ * @return string
+ */
+function _get_image_dir_url($field) {
+  $api = _get_api_instance();
+  $entity = 'Setting';
+  $apiParams = array('name' => 'imageUploadURL');
+
+  if (!$api->$entity->GetValue($apiParams)) {
+    throw new API_Exception('Failed to retrieve image upload URL setting');
+  }
+
+  $path = $api->result();
+
+  $dirRelativePath = _get_image_dir_relative_path($field);
+
+  $path .= $dirRelativePath;
+
+  return $path . DIRECTORY_SEPARATOR;
+}
+
+function _get_image_dir_path($field) {
+  $api = _get_api_instance();
+  $entity = 'Setting';
+  $apiParams = array('name' => 'imageUploadDir');
+
+  if (!$api->$entity->GetValue($apiParams)) {
+    throw new API_Exception('Failed to retrieve image upload dir setting');
+  }
+
+  $path = $api->result();
+
+  $dirRelativePath = _get_image_dir_relative_path($field);
+
+  $path .= $dirRelativePath;
+
+  return $path . DIRECTORY_SEPARATOR;
 }
