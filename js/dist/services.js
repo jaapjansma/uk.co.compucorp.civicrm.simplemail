@@ -672,12 +672,6 @@
   services.factory("civiApiServices", ['$http',
     function ($http) {
       return {
-        // TODO (robin): this might not be needed/used - remove later
-        status: {
-          SUCCESS: 'success',
-          FAILURE: 'failure'
-        },
-
         /**
          * Return a list of records for the given entity
          *
