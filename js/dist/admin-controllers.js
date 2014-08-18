@@ -469,9 +469,7 @@
       };
 
       $scope.messages = {};
-      $scope.newMessage = {
-        //      editing: true
-      };
+      $scope.newMessage = {'is_active': '1'};
 
       civiApi.get($scope.constants.ENTITY_NAME)
         .success(function (messages) {
@@ -547,21 +545,28 @@
        * Create a new message
        */
       $scope.createMessage = function () {
-        var message = $scope.sanitiseMessage(angular.copy($scope.newMessage));
+        var message = $scope.newMessage;
 
+        // Save the new message
         civiApi.create($scope.constants.ENTITY_NAME, message)
-          .success(function (response) {
+          .then(function (response) {
             log.createLog('Create message response', response);
 
-            if (response.error_message) {
-              log.createLog('Failed to add message', response.error_message);
-              $scope.errorMessage = response.error_message;
-            } else {
-              notification.success('Message added');
-              $scope.messages.values = $scope.messages.values.concat(response.values);
-              $scope.disableAddingMessage();
-            }
+            if (response.data.is_error) return $q.reject(response);
+
+            notification.success('Message added');
+
+            return response.data.values[0];
           })
+          // Add the newly saved message to the listing
+          .then(function (message) {
+            $scope.messages.values.push(message);
+            $scope.disableAddingMessage();
+          })
+          .catch(function (response) {
+            log.createLog('Failed to add message', response.data.error_message);
+            $scope.errorMessage = response.data.error_message;
+          });
       };
 
       /**
