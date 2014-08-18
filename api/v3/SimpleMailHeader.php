@@ -1,5 +1,12 @@
 <?php
 
+if (!defined('SM_EXT_DIR_NAME')) {
+  /**
+   * Directory name for the Simple Mail extension
+   */
+  define('SM_EXT_DIR_NAME', 'simple-mail');
+}
+
 /**
  * SimpleMailHeader.create API specification (optional)
  * This is used for documentation and validation.
@@ -26,11 +33,30 @@ function civicrm_api3_simple_mail_header_create($params) {
 /**
  * SimpleMailHeader.delete API
  *
+ * This will delete the header, along with the images for header and logo. The filters in the linking table would get
+ * delete automatically due to DB constraints (cascade).
+ *
  * @param array $params
+ *
  * @return array API result descriptor
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_header_delete($params) {
+  // Delete the header image
+  if ($params['image']) {
+    civicrm_api3_simple_mail_header_deleteimage(
+      array('field' => 'image', 'fileName' => $params['image'])
+    );
+  }
+
+  // Delete the logo image
+  if ($params['logo_image']) {
+    civicrm_api3_simple_mail_header_deleteimage(
+      array('field' => 'logo_image', 'fileName' => $params['logo_image'])
+    );
+  }
+
+  // Delete the header
   return _civicrm_api3_basic_delete(_civicrm_api3_get_BAO(__FUNCTION__), $params);
 }
 
@@ -42,13 +68,73 @@ function civicrm_api3_simple_mail_header_delete($params) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_header_get($params) {
-  return _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params);
+  $headers = _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params);
+  $values = $headers['values'];
+
+  $imageUploadUrl = _get_image_dir_url('image');
+
+  $valuesWithImageUrls = array_map(
+    function ($value) use ($imageUploadUrl) {
+      $value['imageUrl'] = $imageUploadUrl . $value['image'];
+
+      return $value;
+    }, $values
+  );
+
+  $headers['values'] = $valuesWithImageUrls;
+
+  return $headers;
+}
+
+/**
+ * Get the relative path for an image field
+ *
+ * @param string $field Name of the image field in the DB
+ *
+ * @return string
+ * @throws API_Exception
+ */
+function _get_image_dir_relative_path($field) {
+  if (!in_array($field, array('image', 'logo_image'))) {
+    throw new API_Exception('Failed to resolve relative path for image directory as invalid field name provided', 400);
+  }
+
+  return SM_EXT_DIR_NAME . DIRECTORY_SEPARATOR . $field . DIRECTORY_SEPARATOR;
+}
+
+/**
+ * Get the URL for the directory of an image field
+ *
+ * @param string $field Name of the image field in the DB
+ *
+ * @throws API_Exception
+ *
+ * @return string
+ */
+function _get_image_dir_url($field) {
+  $api = _get_api_instance();
+  $entity = 'Setting';
+  $apiParams = array('name' => 'imageUploadURL');
+
+  if (!$api->$entity->GetValue($apiParams)) {
+    throw new API_Exception('Failed to retrieve image upload URL setting');
+  }
+
+  $path = $api->result();
+
+  $dirRelativePath = _get_image_dir_relative_path($field);
+
+  $path .= $dirRelativePath;
+
+  return $path . DIRECTORY_SEPARATOR;
 }
 
 /**
  * SimpleMailHeader.UploadImage API
+ * TODO (robin): Refactor this to use the utility functions for images
  *
  * @param array $params
+ *
  * @return array API result descriptor
  * @see civicrm_api3_create_success
  * @see civicrm_api3_create_error
@@ -99,17 +185,17 @@ function civicrm_api3_simple_mail_header_uploadimage($params) {
 
 /**
  * SimpleMailHeader.DeleteImage API
+ * TODO (robin): Refactor this to use the image utility functions
  *
  * @param array $params
+ *
  * @return array API result descriptor
  * @see civicrm_api3_create_success
  * @see civicrm_api3_create_error
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_header_deleteimage($params) {
-  $extDirName = 'simple-mail';
-
-  $filePrefix = $extDirName;
+  $filePrefix = SM_EXT_DIR_NAME;
 
   switch ($params['field']) {
     case 'image':
@@ -153,10 +239,9 @@ function civicrm_api3_simple_mail_header_deleteimage($params) {
   }
 }
 
-const SM_EXT_DIR_NAME = 'simple-mail';
-
 /**
  * SimpleMailHeader.GetImageUrl API
+ * TODO (robin): Refactor this to use the image utility functions
  *
  * @param array $params Array consisting of field name (corresponding to DB name) and file name
  *
@@ -228,6 +313,8 @@ function civicrm_api3_simple_mail_header_getheaderswithfilters($params) {
 }
 
 if (!function_exists('_get_api_instance')) {
+  require_once 'sites/all/modules/civicrm/api/class.api.php';
+
   /**
    * @return civicrm_api3
    */

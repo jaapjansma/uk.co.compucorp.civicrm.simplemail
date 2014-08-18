@@ -29,7 +29,12 @@ $border-radius: 3px;
   table {
     tr {
       td.current-status {
-        text-transform: capitalize;      
+        text-transform: capitalize;        
+      }
+      td.thumb {
+        img {
+          max-height: 50px;
+        }
       }
     }
   }

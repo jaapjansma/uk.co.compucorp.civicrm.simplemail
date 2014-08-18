@@ -418,6 +418,7 @@ function _generate_email_template($mailing, $campaignMsg, $header) {
 
 /**
  * Get the recipient groups for the given Simple Mail mailing
+ * TODO (robin): Could use the _get_instance() and other helper functions
  *
  * @param int $smMailingId The ID of the Simple Mail mailing
  *

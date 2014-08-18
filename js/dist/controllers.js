@@ -223,7 +223,6 @@
 
         });
 
-
       // Get the headers
       civiApi.post('SimpleMailHeader', {}, 'getheaderswithfilters')
         .then(function (response) {

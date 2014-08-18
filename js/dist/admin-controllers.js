@@ -17,55 +17,55 @@
    * Admin listing of headers
    */
   controllers.controller('HeadersAdminController', [
-    '$scope', '$http', 'civiApiServices', 'loggingServices', 'notificationServices',
-    function ($scope, $http, civiApi, log, notification) {
+    '$scope', '$http', '$q', 'civiApiServices', 'loggingServices', 'notificationServices',
+    function ($scope, $http, $q, civiApi, log, notification) {
       $scope.constants = {
         ENTITY_NAME: 'SimpleMailHeader'
       };
 
       $scope.headers = {};
 
-      // TODO (robin): rename the argument in all success/error to response to stay consistent and predictable
+      // Get all headers
       civiApi.get($scope.constants.ENTITY_NAME)
-        .success(function (headers) {
+        .then(function (response) {
           // TODO (robin): may be just save the actual headers array in headers, so that getHeaders won't be needed and make the behaviour more predictable
-          $scope.headers = headers;
-          log.createLog('Headers received', headers);
-        }).error(function (response) {
+          if (response.data.is_error) return $q.reject(response);
+
+          $scope.headers = response.data.values;
+          log.createLog('Headers received', $scope.headers);
+
+          return true;
+        })
+       .catch(function (response) {
           log.createLog('Failed to retrieve headers', response);
         });
 
       /**
-       * Retrieve the array of all headers out of the headers object
+       * Delete a header
        *
-       * @returns {ui.slider.options.values|*|s.values|values|.options.values|b.values}
+       * Note: The API action for delete would also delete the corresponding images and filters
+       *
+       * @param index
        */
-      $scope.getHeaders = function () {
-        return $scope.headers.values;
-      };
-
-      $scope.getHeader = function (index) {
-        return $scope.getHeaders()[index];
-      };
-
-      $scope.sanitiseHeader = function (header) {
-        return header;
-      };
-
       $scope.deleteHeader = function (index) {
-        var header = $scope.sanitiseHeader(angular.copy($scope.getHeader(index)));
+        var header = $scope.headers[index];
 
         civiApi.remove($scope.constants.ENTITY_NAME, header)
-          .success(function (response) {
+          .then(function (response) {
             log.createLog('Delete message response', response);
 
-            if (response.error_message) {
-              notification.error('Failed to delete header', response.error_message);
-              $scope.errorMessage = response.error_message;
-            } else {
-              notification.success('Header deleted');
-              $scope.getHeaders().splice(index, 1);
-            }
+            if (response.data.is_error) return $q.reject(response);
+
+            return true;
+          })
+          .then(function () {
+            // Remove the header from the listing upon successful deletion
+            $scope.headers.splice(index, 1);
+            notification.success('Header deleted');
+          })
+          .catch(function (response) {
+            notification.error('Failed to delete header', response.data.error_message);
+            $scope.errorMessage = response.data.error_message;
           });
       };
     }
