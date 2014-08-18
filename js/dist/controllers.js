@@ -203,24 +203,24 @@
       });
 
       // Get from emails
-      // TODO (robin): This could better use getValue() - more semantically better use of Civi API
-      civiApi.get('OptionGroup', {name: 'from_email_address'})
-        .success(function (response) {
+      civiApi.getValue('OptionGroup', {name: 'from_email_address', return: 'id'})
+        .then(function (response) {
           log.createLog('From-email address option response', response);
-          $scope.fromEmailOptionGroup = response.values[0];
 
-          // Get the option values
-          civiApi.get('OptionValue', {option_group_id: $scope.fromEmailOptionGroup.id})
-            .success(function (response) {
-              log.createLog('From-email address group options response', response);
-              $scope.fromEmailOptionValues = response.values;
-            })
-            .error(function (response) {
-              // TODO
-            });
+          if (response.data.is_error) return $q.reject(response);
+
+          return response.data.result;
         })
-        .error(function (response) {
-
+        // Get the option values
+        .then(function (groupId) {
+          return civiApi.get('OptionValue', {option_group_id: groupId})
+            .then(function (response) {
+              log.createLog('From-email address group options response', response);
+              $scope.fromEmailOptionValues = response.data.values;
+            })
+        })
+        .catch(function () {
+          notification.error('Failed to retrieve from-email addresses');
         });
 
       // Get the headers
