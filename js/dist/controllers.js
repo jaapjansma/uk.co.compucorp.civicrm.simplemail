@@ -132,10 +132,6 @@
   controllers.controller('CreateMailingController', [
     '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'paths', 'mailingServices',
     function ($scope, $http, $routeParams, $location, civiApi, log, notification, paths, mailing) {
-      $scope.model = {
-        selectedGroupIds: {}
-      };
-
       // Initialise the step
       mailing.initStep({step: 1, scope: $scope});
 
@@ -332,6 +328,10 @@
         ENTITY_NAME: 'Group'
       };
 
+      $scope.models = {
+        emailHtml: ''
+      };
+
       // Get the current mailing
       mailing.getMailing()
         .then(function (response) {
@@ -344,13 +344,9 @@
           $scope.groups = response.values;
         });
 
-      // TODO (robin): Rename to models and check for similar objects in other controllers
-      $scope.model = {};
-      $scope.model.emailHtml = '';
-
       civiApi.post('SimpleMail', {id: mailing.getMailingId()}, 'getemailhtml')
         .then(function(response) {
-          $scope.model.emailHtml = response.data.result;
+          $scope.models.emailHtml = response.data.result;
           $scope.$broadcast('EmailPreviewReady');
         });
     }
