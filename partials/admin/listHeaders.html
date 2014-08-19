@@ -14,7 +14,7 @@
     <tr ng-repeat="header in headers" ng-class-even="'even-row'" ng-class-odd="'odd-row'">
       <td class="id">{{header.id}}</td>
       <td class="label">{{header.label}}</td>
-      <td class="thumb"><img ng-src="{{header.imageUrl}}" alt=""/></td>
+      <td class="thumb"><img ng-src="{{header.image_url}}" alt=""/></td>
       <td class="boolean">{{header.show_logo === '1' ? 'Yes' : 'No'}}</td>
       <td class="action-buttons">
         <a ng-href="#/headers/{{header.id}}/edit" ng-click="editHeader($index)" class="button">Edit</a>

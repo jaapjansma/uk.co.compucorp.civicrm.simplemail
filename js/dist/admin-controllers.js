@@ -128,8 +128,7 @@
 
       uploader.bind('beforeupload', function
         (event, item) {
-        console.info('Before upload', item)
-        ;
+        console.info('Before upload', item);
 
         switch (item.field) {
           case 'image':
@@ -153,7 +152,8 @@
       uploader.bind('success', function (event, xhr, item, response) {
         console.info('Success', xhr, item, response);
 
-        // This will make that the existing file gets deleted from the server's file system, if someone uploads another file using the 'file' input element, instead of using the drop zone, so as to not leave orphan files behind
+        // This is to manually delete the existing file from the server's file system, if someone uploads another file
+        // using the 'file' input element instead of the drop zone, so as to not leave orphan files behind
         $scope.remove(item.field);
 
         $scope.header[item.field] = response.imageFileName;
@@ -225,10 +225,7 @@
             return true;
           })
           .then(function (response) {
-            var promises = [];
-
-            // Get filters
-            var filterPromise = civiApi.get('SimpleMailHeaderFilter', {header_id: $scope.header.id})
+            return civiApi.get('SimpleMailHeaderFilter', {header_id: $scope.header.id})
               .then(function (response) {
                 console.log('Filters retrieved', response);
                 if (response.data.is_error) return $q.reject(response);
@@ -238,33 +235,9 @@
                 angular.forEach(response.data.values, function (value, key) {
                   $scope.header.filterIds.push(value.entity_id);
                 });
+
+                return true;
               });
-
-            // Calculate image URLs for previewing images
-            // TODO (robin): Use the newer GetImageUrl API action on SimpleMailHeader entity instead
-            var imagePromise = civiApi.getValue('Setting', {name: 'imageUploadURL'})
-              .then(function (response) {
-                log.createLog('Setting retrieved', response);
-
-                if (response.data.is_error) return $q.reject(response);
-
-                var baseUrl = response.data.result + 'simple-mail';
-
-                if ($scope.header.image) {
-                  $scope.header.image_url = baseUrl + '/image/' + $scope.header.image;
-                }
-                if ($scope.header.logo_image) {
-                  $scope.header.logo_image_url = baseUrl + '/logo_image/' + $scope.header.logo_image;
-                }
-              });
-
-            promises.push(filterPromise);
-            promises.push(imagePromise);
-
-            // Promises here are handled this way, instead of chaining them, in order to allow sending API calls in a
-            // non-blocking way, so as to improve performance, and also supported by the fact that retrieving filters
-            // and image URLs are not sequential operations.
-            return $q.all(promises);
           })
           // Error
           .catch(function (response) {

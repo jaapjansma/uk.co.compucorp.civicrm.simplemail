@@ -72,11 +72,13 @@ function civicrm_api3_simple_mail_header_get($params) {
   $values = $headers['values'];
 
   $imageUploadUrl = _get_image_dir_url('image');
+  $logoImageUploadUrl = _get_image_dir_url('logo_image');
 
   // Add image URL as array key of the result
   $valuesWithImageUrls = array_map(
-    function ($value) use ($imageUploadUrl) {
-      $value['imageUrl'] = $imageUploadUrl . $value['image'];
+    function ($value) use ($imageUploadUrl, $logoImageUploadUrl) {
+      $value['image_url'] = $imageUploadUrl . $value['image'];
+      $value['logo_image_url'] = $logoImageUploadUrl . $value['logo_image'];
 
       return $value;
     }, $values
