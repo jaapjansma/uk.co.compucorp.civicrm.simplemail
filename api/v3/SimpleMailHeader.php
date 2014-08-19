@@ -78,7 +78,10 @@ function civicrm_api3_simple_mail_header_get($params) {
   $valuesWithImageUrls = array_map(
     function ($value) use ($imageUploadUrl, $logoImageUploadUrl) {
       $value['image_url'] = $imageUploadUrl . $value['image'];
-      $value['logo_image_url'] = $logoImageUploadUrl . $value['logo_image'];
+
+      if ($value['logo_image']) {
+        $value['logo_image_url'] = $logoImageUploadUrl . $value['logo_image'];
+      }
 
       return $value;
     }, $values
