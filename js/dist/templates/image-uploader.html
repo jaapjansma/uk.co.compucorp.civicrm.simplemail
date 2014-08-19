@@ -17,7 +17,7 @@
        name="{{config.name + '_select'}}"
        type="file"
        ng-file-select="{field: '{{config.field}}'}"/>
-<input id="{{config.name + '_field'}}" name="{{config.name + '_field'}}" ng-required="config.required" ng-hide="true"
+<input id="{{config.name + '_field'}}" name="{{config.name + '_field'}}" ng-required="isRequired" ng-hide="true"
        type="text" ng-model="model[config.field]"/>
-<p ng-show="config.required && !model[config.field].length && model.submitted" class="error">This is a required
+<p ng-show="isRequired && !model[config.field].length && model.submitted" class="error">This is a required
   field</p>

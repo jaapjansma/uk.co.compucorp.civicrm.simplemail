@@ -19,7 +19,8 @@
            data-uploader="imageUploader"
            data-form="headerForm"
            data-on-remove="remove('image')"
-           data-config="{field: 'image', required: true, name: 'image'}"></div>
+           data-config="{field: 'image', name: 'image', required: header.show_logo}">
+      </div>
     </div>
 
     <div class="field-group inline clearfix">
@@ -39,12 +40,14 @@
     <div class="field-group inline clearfix" ng-show="header.show_logo">
       <label for="logo_image">Logo image</label>
 
-      <div sm-image-uploader
+      <div data-sm-image-uploader
            class="field"
-           model="header"
-           uploader="imageUploader"
-           on-remove="remove('logo_image')"
-           config="{field: 'logo_image', name: 'logo_image'}"></div>
+           data-model="header"
+           data-uploader="imageUploader"
+           data-on-remove="remove('logo_image')"
+           data-required="header.show_logo"
+           data-config="{field: 'logo_image', name: 'logo_image', required: header.show_logo}">
+      </div>
     </div>
 
     <div class="clearfix">

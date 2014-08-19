@@ -14,7 +14,22 @@
           config: '=',
           remove: '&onRemove'
         },
-        templateUrl: paths.TEMPLATES_DIR() + '/image-uploader.html'
+        templateUrl: paths.TEMPLATES_DIR() + '/image-uploader.html',
+        link: function (scope) {
+          scope.$watch(function () {
+              return scope.config.required;
+            }, function (newVal, oldVal) {
+              if (['0', '1'].indexOf(newVal) !== -1) {
+                scope.isRequired = +newVal ? true : false;
+              }
+              else if (['false', 'true'].indexOf(newVal) !== -1) {
+                scope.isRequired = newVal === 'true';
+              } else {
+                scope.isRequired = newVal;
+              }
+            }
+          );
+        }
       };
     }
   ]);
