@@ -10,6 +10,7 @@
     'ngRoute',
     'ngAnimate',
     'ui.select2',
+    'ngQuickDate',
     'simpleMail.app.controllers',
     'simpleMail.services',
     'simpleMail.directives',
@@ -21,8 +22,20 @@
     return '/civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/partials/wizard/steps/' + url;
   }
 
-  app.config(['$routeProvider', 'paths',
-    function ($routeProvider, paths) {
+  app.config(['$routeProvider', 'paths', 'ngQuickDateDefaultsProvider',
+    function ($routeProvider, paths, ngQuickDate) {
+      ngQuickDate.set({        
+//        closeButtonHtml: "<i class='fa fa-times'></i>",
+//        buttonIconHtml: "<i class='fa fa-clock-o'></i>",
+//        nextLinkHtml: "<i class='fa fa-chevron-right'></i>",
+//        prevLinkHtml: "<i class='fa fa-chevron-left'></i>",
+        // Take advantage of Sugar.js date parsing
+        parseDateFunction: function (str) {
+         var d = Date.create(str);
+          return d.isValid() ? d : null;
+        }
+      });
+
       $routeProvider
         // TODO (robin): add resolvers to listing controllers in order to not render view until API has returned data
         .when('/mailings', {

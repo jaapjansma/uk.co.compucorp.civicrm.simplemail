@@ -24,7 +24,58 @@ $full: 100%;
 $border-radius: 3px;
 
 .sm-container {
-  overflow: hidden;
+/*   overflow: hidden; */
+
+  .quickdate {
+    font-size: 0.8rem;
+    margin: 0.25rem 0;
+
+    .quickdate-button {
+      color: inherit;
+      font-size:inherit;
+      
+    }
+    .quickdate-button:hover {
+      text-decoration: underline;
+    }
+    .quickdate-popup {
+      font-size: inherit;
+
+      .quickdate-text-inputs {
+        label {
+          width: auto;
+          float: none;
+          text-align: inherit;
+          font-weight: bold;
+          font-size: inherit;
+          padding: 0;
+          margin: 2px 0;
+        }
+        input {
+          font-size: inherit;
+        }
+      }
+      .quickdate-calendar-header {
+        .quickdate-month {
+          font-size: inherit;
+        }
+      }
+      .quickdate-calendar {
+        border: solid 1px #ccc;
+        margin: 5px 0;
+
+        th, td {
+          border-width: 0 1px 1px 0;
+        }
+        th {
+          text-align: center;
+        }
+        td {
+          text-align: center;
+        }
+      }
+    }    
+  }
 
   table {
     tr {
