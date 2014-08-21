@@ -65,28 +65,7 @@
               console.log(newVal);
 
               if (newVal.length) {
-//                if (scope.selectedItemId) {
-//                  var item = itemFromCollection(scope.filteredItems, 'id', scope.selectedItemId, true);
-//                  scope.selectedItem = item.item;
-//                  scope.selectedIndex = item.index;
-//                }
-
-//                if (!scope.selectedFilterId) {
-//                  scope.selectedFilterId = 'all';
-//                }
-
-//                scope.filteredItems = headersForSelectedFilter(newVal, scope.selectedFilterId);
-
-                // This will manually update the width of the container - without this, changing selectedFilterId (as
-                // done above) would trigger width update before the view receives filtered header items (also done
-                // above), causing incorrect CSS width property to be set
-//                $timeout(function () {
-//                  scope.setWidth();
-//                }, 200);
-
                 scope.selectedFilterId = 'all';
-
-//                scope.filterItems();
 
                 console.log('Selected item', scope.selectedItem);
               }
@@ -127,12 +106,6 @@
             var item = itemFromCollection(scope.filteredItems, 'id', scope.selectedItemId);
 
             scope.selectedIndex = item.index;
-
-            //if (item.index !== null) {
-            //  scope.selectedIndex = item.index;
-            //} else {
-            //  scope.selectedIndex = null;
-            //}
           };
 
           /*
@@ -153,20 +126,6 @@
             },
             function (newVal, oldVal) {
               console.log('--- Filter changed ---');
-
-//              scope.filteredItems = headersForSelectedFilter(scope.items, scope.selectedFilterId);
-//              var item = itemFromCollection(scope.filteredItems, 'id', scope.selectedItemId, true);
-//              if (item) {
-//                scope.selectedIndex = item.index;
-//              } else {
-//                scope.selectedIndex = null;
-//              }
-
-//              if (oldVal !== newVal) {
-//                $timeout(function () {
-//                  scope.setWidth();
-//                }, 200);
-//              }
 
               scope.filterItems();
               scope.updateSelection();
