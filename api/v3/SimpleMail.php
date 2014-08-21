@@ -42,7 +42,7 @@ function civicrm_api3_simple_mail_delete($params) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_get($params) {
-  return _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params);
+  return CRM_Simplemail_BAO_SimpleMail::getMailing($params);
 }
 
 /**
@@ -67,7 +67,6 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
    * 3. Return the Civi mailing ID
    */
 
-  require_once 'sites/all/modules/civicrm/api/class.api.php';
 
   if (!isset($params['id'])) {
     throw new API_Exception('Failed to submit mass emailing job as Simple Mail mailing ID was not provided', 405);
@@ -301,6 +300,8 @@ function _get_entity_values($entity, $id) {
 }
 
 if (!function_exists('_get_api_instance')) {
+  require_once 'sites/all/modules/civicrm/api/class.api.php';
+
   /**
    * @return civicrm_api3
    */
