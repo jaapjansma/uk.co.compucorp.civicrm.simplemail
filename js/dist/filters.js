@@ -3,31 +3,38 @@
 
   var filters = angular.module('simpleMail.filters', []);
 
+  /**
+   * Search for an item by a key in a collection, and return it if found
+   *
+   * @ngdoc filter
+   * @name itemFromCollection
+   * @param collection An array of objects or arrays
+   * @param searchKey
+   * @param searchValue
+   * @returns object An object consisting of the item found (or null is not found) and its associated index (or
+   * null if not found) in the collection
+   */
   filters.filter('itemFromCollection', [
     function () {
-      return function (collection, searchKey, searchValue, withIndex) {
-        withIndex = withIndex || false;
+      return function (collection, searchKey, searchValue) {
+        var foundItem = {item: null, index: null};
 
-        if (angular.isUndefined(collection)) return null;
+        if (angular.isUndefined(collection) || angular.isUndefined(searchValue)) return foundItem;
 
         var currentItem = null;
 
         for (var i = 0, end = collection.length; i < end; i++) {
           currentItem = collection[i];
 
-          if (angular.isArray(currentItem)) {
-            if (searchKey in currentItem && currentItem[searchKey] === searchValue) {
-              return withIndex ? {item: currentItem, index: i} : currentItem;
-            }
-          } else if (angular.isObject(currentItem)) {
-            if (currentItem.hasOwnProperty(searchKey) && currentItem[searchKey] === searchValue) {
-              return withIndex ? {item: currentItem, index: i} : currentItem;
-            }
+          // For both arrays and objects (since arrays are basically objects)
+          if (angular.isObject(currentItem) && currentItem.hasOwnProperty(searchKey) && currentItem[searchKey] === searchValue) {
+            foundItem.item = currentItem;
+            foundItem.index = i;
           }
         }
 
-        return null;
-      };
+        return foundItem;
+      }
     }
   ]);
 

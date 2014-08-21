@@ -5,8 +5,7 @@
     <h2>Select header image:</h2>
 
     <div class="field-group clearfix">
-      <select ui-select2 ng-change="filterChanged()" ng-model="models.selectedFilterId" data-placeholder="Filter" name="" id="">
-        <option value=""></option>
+      <select ui-select2 ng-model="models.selectedFilterId" data-placeholder="Filter" name="" id="">
         <option value="all">All</option>
         <option ng-repeat="filter in filters" value="{{filter.id}}">{{filter.label}}</option>
       </select>

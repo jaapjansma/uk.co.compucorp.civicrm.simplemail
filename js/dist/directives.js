@@ -34,6 +34,9 @@
     }
   ]);
 
+  /**
+   * @ngdoc directive
+   */
   directives.directive('smSimpleImageCarousel', ['paths', '$timeout', '$rootScope', 'itemFromCollectionFilter', 'headersForSelectedFilterFilter',
     function (paths, $timeout, $rootScope, itemFromCollection, headersForSelectedFilter) {
       return {
@@ -61,11 +64,30 @@
             function (newVal, oldVal) {
               console.log(newVal);
 
-              if (newVal.length && scope.selectedItemId) {
-                scope.filteredItems = headersForSelectedFilter(newVal, scope.selectedFilterId);
-                var item = itemFromCollection(scope.filteredItems, 'id', scope.selectedItemId, true);
-                scope.selectedItem = item.item;
-                scope.selectedIndex = item.index;
+              if (newVal.length) {
+//                if (scope.selectedItemId) {
+//                  var item = itemFromCollection(scope.filteredItems, 'id', scope.selectedItemId, true);
+//                  scope.selectedItem = item.item;
+//                  scope.selectedIndex = item.index;
+//                }
+
+//                if (!scope.selectedFilterId) {
+//                  scope.selectedFilterId = 'all';
+//                }
+
+//                scope.filteredItems = headersForSelectedFilter(newVal, scope.selectedFilterId);
+
+                // This will manually update the width of the container - without this, changing selectedFilterId (as
+                // done above) would trigger width update before the view receives filtered header items (also done
+                // above), causing incorrect CSS width property to be set
+//                $timeout(function () {
+//                  scope.setWidth();
+//                }, 200);
+
+                scope.selectedFilterId = 'all';
+
+//                scope.filterItems();
+
                 console.log('Selected item', scope.selectedItem);
               }
             });
@@ -81,16 +103,48 @@
               }
             });
 
-          scope.$watch(function () {
-              return element.find('ul').find('img').length;
-            },
-            function (newVal, oldVal) {
-              if (scope.selectedFilterId === 'all') {
-                $timeout(function () {
-                  scope.setWidth();
-                }, 500);
-              }
-            });
+          // TODO (robin): This might not be needed anymore - delete in the future if things keep working as expected
+//          scope.$watch(function () {
+//              return element.find('ul').find('img').length;
+//            },
+//            function (newVal, oldVal) {
+//              if (scope.selectedFilterId === 'all') {
+//                $timeout(function () {
+//                  scope.setWidth();
+//                }, 500);
+//              }
+//            });
+
+          scope.filterItems = function () {
+            scope.filteredItems = headersForSelectedFilter(scope.items, scope.selectedFilterId);
+
+            $timeout(function () {
+              scope.setWidth();
+            }, 200);
+          };
+
+          scope.updateSelection = function () {
+            var item = itemFromCollection(scope.filteredItems, 'id', scope.selectedItemId);
+
+            scope.selectedIndex = item.index;
+
+            //if (item.index !== null) {
+            //  scope.selectedIndex = item.index;
+            //} else {
+            //  scope.selectedIndex = null;
+            //}
+          };
+
+          /*
+           Upon change of filter:
+           1. change in filter will be detected, which will filter items using the new filter id (upon change of filter by the user)
+           3. after filtering, update width
+
+           Upon initial page load:
+           1. change filter id (set it to 'all')
+           2. change in filter will be detected, which will filter items using the new filter id
+           3. after filtering, update width
+           */
 
           // Update the selected item's (in order to select the correct header image) index upon changing filter and
           // update the width of the carousel
@@ -100,19 +154,22 @@
             function (newVal, oldVal) {
               console.log('--- Filter changed ---');
 
-              scope.filteredItems = headersForSelectedFilter(scope.items, scope.selectedFilterId);
-              var item = itemFromCollection(scope.filteredItems, 'id', scope.selectedItemId, true);
-              if (item) {
-                scope.selectedIndex = item.index;
-              } else {
-                scope.selectedIndex = null;
-              }
+//              scope.filteredItems = headersForSelectedFilter(scope.items, scope.selectedFilterId);
+//              var item = itemFromCollection(scope.filteredItems, 'id', scope.selectedItemId, true);
+//              if (item) {
+//                scope.selectedIndex = item.index;
+//              } else {
+//                scope.selectedIndex = null;
+//              }
 
-              if (oldVal !== newVal) {
-                $timeout(function () {
-                  scope.setWidth();
-                }, 500);
-              }
+//              if (oldVal !== newVal) {
+//                $timeout(function () {
+//                  scope.setWidth();
+//                }, 200);
+//              }
+
+              scope.filterItems();
+              scope.updateSelection();
             }, true);
 
           scope.resetWidth = function () {

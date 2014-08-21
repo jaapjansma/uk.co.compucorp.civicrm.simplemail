@@ -171,7 +171,6 @@
     function ($scope, $timeout, $http, $routeParams, $location, $q, civiApi, log, notification, paths, mailing, itemFromCollection) {
       $scope.models = {
         selectedMessage: {},
-        selectedFilterId: 'all',
         headersLoaded: false
       };
 
@@ -191,8 +190,10 @@
         if (oldVal !== newVal) {
           $scope.mailing.message_id = newVal;
 
-          var selectedMessage = itemFromCollection($scope.messages, 'id', $scope.mailing.message_id);
-          if (selectedMessage && 'text' in selectedMessage) {
+          var item = itemFromCollection($scope.messages, 'id', $scope.mailing.message_id);
+          var selectedMessage = item.item;
+
+          if (selectedMessage !== null && selectedMessage.hasOwnProperty('text')) {
             $scope.models.selectedMessage.text = selectedMessage.text;
           }
         }
@@ -281,7 +282,7 @@
         })
         .catch(function (response) {
           console.log('Failed to retrieve filter values', response);
-        })
+        });
 
       // Get the current mailing
       mailing.getMailing()
@@ -291,19 +292,21 @@
         .then(function (response) {
           // Get the messages - note: this is within 'then' as otherwise it is possible that messages are not retrieved
           // the mailing is, thereby making the selectedMessageText filter fail to populate the message text reliably
-          civiApi.get('SimpleMailMessage', {is_active: 1}).
+          return civiApi.get('SimpleMailMessage', {is_active: 1}).
             success(function (response) {
               log.createLog('Messages retrieved', response);
               $scope.messages = response.values;
 
-              var selectedMessage = itemFromCollection($scope.messages, 'id', $scope.mailing.message_id);
-              if (selectedMessage && 'text' in selectedMessage) {
+              var item = itemFromCollection($scope.messages, 'id', $scope.mailing.message_id);
+              var selectedMessage = item.item;
+
+              if (selectedMessage !== null && selectedMessage.hasOwnProperty('text')) {
                 $scope.models.selectedMessage.text = selectedMessage.text;
               }
             })
-            .error(function (response) {
-              // TODO
-            });
+        })
+        .catch(function (response) {
+          console.log('Failed to retrieve the mailing', response);
         });
   }
   ]);
