@@ -223,17 +223,7 @@
         // TODO (robin): Validation before submitting request
         submitMassEmail: function () {
           var self = this;
-
-          var date = new Date();
-
-          var year = date.getFullYear(),
-            month = String('00' + (1 + date.getMonth())).slice(-2),
-            day = String('00' + date.getDate()).slice(-2),
-            hours = String('00' + date.getHours()).slice(-2),
-            minutes = String('00' + date.getMinutes()).slice(-2),
-            seconds = String('00' + date.getSeconds()).slice(-2);
-
-          var now = year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
+          var now = Date.create().format('{yyyy}-{{MM}}-{{dd}} {{HH}}:{{mm}}:{{ss}}');
 
           this.getMailing().then(function (response) {
             var mailing = response;
