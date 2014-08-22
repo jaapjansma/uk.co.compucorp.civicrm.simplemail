@@ -228,7 +228,7 @@
           this.getMailing().then(function (response) {
             var mailing = response;
 
-            if (mailing.send_immediately === "1") {
+            if (mailing.send_immediately) {
               // If the mailing already has an associated CiviCRM mail, don't do anything
               if ('crm_mailing_id' in mailing) {
                 return false;
