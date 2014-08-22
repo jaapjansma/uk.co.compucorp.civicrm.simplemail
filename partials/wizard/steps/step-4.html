@@ -6,19 +6,18 @@
   <form class="crm-form-block">
     <div class="field-group inline clearfix">
       <label for="send-immediately">Send immediately</label>
-      <input id="send-immediately" name="send-immediately" type="checkbox" ng-model="mailing.send_immediately"
-             ng-true-value="1" ng-false-value="0"/>
+      <input id="send-immediately" name="send-immediately" type="checkbox" ng-model="mailing.send_immediately"/>
     </div>
 
-    <div ng-if="mailing.send_immediately === '0'" class="field-group inline clearfix">
+    <div ng-if="!mailing.send_immediately" class="field-group inline clearfix">
     <p class="label">OR</p>
     </div>
 
-    <div ng-if="mailing.send_immediately === '0'" class="field-group inline clearfix">
+    <div ng-if="!mailing.send_immediately" class="field-group inline clearfix">
       <label for="send-immediately">Schedule Mass Email</label>
 
       <!-- TODO (robin): Add a date and time picker -->
-      <quick-datepicker ng-model="mailing.send_on" data-date-format="d MMMM, yyyy"
+      <quick-datepicker ng-model="mailing.scheduled_date" data-date-format="d MMMM, yyyy"
                         data-label-format="EEEE, d MMMM, yyyy 'at' h:mm a"
                         icon-class="fa fa-calendar"></quick-datepicker>
       <p>Set a data and time when you want CiviMail to start sending this mailing</p>
