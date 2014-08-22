@@ -1,5 +1,6 @@
 <?php
 
+// TODO (robin): Delete this after migration when this won't be used any more
 if (!defined('SM_EXT_DIR_NAME')) {
   /**
    * Directory name for the Simple Mail extension
@@ -53,28 +54,15 @@ function civicrm_api3_simple_mail_header_delete($params) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_header_get($params) {
-  $headers = _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params);
-  $values = $headers['values'];
+  try {
+    $result = CRM_Simplemail_BAO_SimpleMailHeader::getHeaders($params);
 
-  $imageUploadUrl = _get_image_dir_url('image');
-  $logoImageUploadUrl = _get_image_dir_url('logo_image');
+    return civicrm_api3_create_success($result['values'], $params, NULL, 'get', $result['dao']);
+  } catch (CRM_Extension_Exception $e) {
+    $data = $e->getErrorData();
 
-  // Add image URL as array key of the result
-  $valuesWithImageUrls = array_map(
-    function ($value) use ($imageUploadUrl, $logoImageUploadUrl) {
-      $value['image_url'] = $imageUploadUrl . $value['image'];
-
-      if ($value['logo_image']) {
-        $value['logo_image_url'] = $logoImageUploadUrl . $value['logo_image'];
-      }
-
-      return $value;
-    }, $values
-  );
-
-  $headers['values'] = $valuesWithImageUrls;
-
-  return $headers;
+    return civicrm_api3_create_error($e->getMessage(), array(), $data['dao']);
+  }
 }
 
 /**
@@ -155,6 +143,7 @@ function civicrm_api3_simple_mail_header_deleteimage($params) {
 
 /**
  * SimpleMailHeader.GetHeadersWithFilters API
+ * TODO (robin): This is no longer needed as it can now be handled by an extra param to specify if filters are needed with headers
  *
  * @param array $params
  *
@@ -163,17 +152,17 @@ function civicrm_api3_simple_mail_header_deleteimage($params) {
  * @see civicrm_api3_create_error
  * @throws API_Exception
  */
-function civicrm_api3_simple_mail_header_getheaderswithfilters($params) {
-  try {
-    $result = CRM_Simplemail_BAO_SimpleMailHeader::getHeadersWithFilters();
-
-    return civicrm_api3_create_success($result['values'], $params, NULL, 'getheaderswithfilters', $result['dao']);
-  } catch (CRM_Extension_Exception $e) {
-    $errorData = $e->getErrorData();
-
-    return civicrm_api3_create_error($e->getMessage(), array(), $errorData['dao']);
-  }
-}
+//function civicrm_api3_simple_mail_header_getheaderswithfilters($params) {
+//  try {
+//    $result = CRM_Simplemail_BAO_SimpleMailHeader::get($params);
+//
+//    return civicrm_api3_create_success($result['values'], $params, NULL, 'getheaderswithfilters', $result['dao']);
+//  } catch (CRM_Extension_Exception $e) {
+//    $data = $e->getErrorData();
+//
+//    return civicrm_api3_create_error($e->getMessage(), array(), $data['dao']);
+//  }
+//}
 
 if (!function_exists('_get_api_instance')) {
   require_once 'sites/all/modules/civicrm/api/class.api.php';

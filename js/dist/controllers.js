@@ -221,7 +221,7 @@
         });
 
       // Get the headers
-      civiApi.post('SimpleMailHeader', {}, 'getheaderswithfilters')
+      civiApi.get('SimpleMailHeader', {withFilters: true}, 'get')
         .then(function (response) {
           /*
            * Get the list of filters from option value table
@@ -229,31 +229,12 @@
            * Show images in each header for the selected filter
            * Selecting an image would set the header's ID on $scope.mailing.header_id
            */
-          var headers = response.data.values;
-
           console.log('Headers retrieved', response);
 
           if (response.data.is_error) return $q.reject(response);
 
-          // Retrieve base URL for images
-          return civiApi.getValue('Setting', {name: 'imageUploadURL'})
-            .then(function (response) {
-              console.log('Setting retrieved', response);
-
-              if (response.data.is_error) return $q.reject(response);
-
-              return response.data.result + 'simple-mail/image/';
-            })
-            .then(function (imageBaseUrl) {
-              for (var i = 0, iEnd = headers.length; i < iEnd; i++) {
-                headers[i].imageUrl = imageBaseUrl + headers[i].image;
-              }
-
-              $scope.headers = headers;
-
-              console.log('Processed headers', $scope.headers);
-            });
-        })
+          $scope.headers = response.data.values;
+       })
         .then(function () {
           $scope.models.headersLoaded = true;
         })

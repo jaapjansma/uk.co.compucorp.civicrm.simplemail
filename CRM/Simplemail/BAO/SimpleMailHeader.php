@@ -1,6 +1,7 @@
 <?php
 
 class CRM_Simplemail_BAO_SimpleMailHeader extends CRM_Simplemail_DAO_SimpleMailHeader {
+  /** The name of the base directory inside which files and folders specific to the extension are stored */
   const EXT_STORAGE_DIR_NAME = 'simple-mail';
 
   /**
@@ -45,6 +46,13 @@ class CRM_Simplemail_BAO_SimpleMailHeader extends CRM_Simplemail_DAO_SimpleMailH
     parent::delete($params);
   }
 
+  /**
+   * Delete the image file as specified by the file name and field
+   *
+   * @param $params
+   *
+   * @throws CRM_Extension_Exception
+   */
   public static function deleteImage($params) {
     if (!isset($params['fileName']) || !isset($params['field'])) {
       throw new CRM_Extension_Exception('Failed to delete image as image file name or field not supplied', 400);
@@ -78,49 +86,36 @@ class CRM_Simplemail_BAO_SimpleMailHeader extends CRM_Simplemail_DAO_SimpleMailH
   }
 
   /**
-   * Get URL for an image corresponding to the provided image field and file name
-   * TODO (robin): This might not be needed anymore due to baking image URLs into the header array in Get API action
+   * @param $params
    *
-   * @param array $params Array consisting of field name (corresponding to DB name) and file name
-   *
-   * @throws CRM_Extension_Exception
    * @return array
+   * @throws CRM_Extension_Exception
    */
-//  public static function getImageUrl($params) {
-//    if (!isset($params['field'])) {
-//      throw new CRM_Extension_Exception('Image field param not provided');
-//    }
-//    if (!isset($params['fileName'])) {
-//      throw new CRM_Extension_Exception('Image file name not provided');
-//    }
-//
-//    $imageDirUrl = static::getImageDirUrl($params['field']);
-//
-//    return $imageDirUrl . $params['fileName'];
-//  }
+  public static function getHeaders($params) {
+    $whereClause = isset($params['id']) ? 'h.id = ' . (int) $params['id'] : 'true';
 
-  /**
-   * Get an array of headers joined together with their corresponding filters
-   *
-   * @return array
-   * @throws CRM_Extension_Exception
-   */
-  public static function getHeadersWithFilters() {
-    $query
-      = 'SELECT h.id, h.label, h.image, h.show_logo, h.logo_image, f.id AS filter_id, f.entity_table, f.entity_table, f.entity_id
-                FROM civicrm_simplemailheader h
-                RIGHT JOIN civicrm_simplemailheaderfilter f
-                on h.id = f.header_id
-                ORDER BY h.id';
+    $withFilters = isset($params['withFilters']) && $params['withFilters'];
+
+    $query = "SELECT h.id, h.label, h.image, h.show_logo, h.logo_image";
+    $query .= $withFilters ? ", f.id AS filter_id, f.entity_table, f.entity_table, f.entity_id" : "";
+    $query .= " FROM civicrm_simplemailheader h";
+    $query .= $withFilters ? " RIGHT JOIN civicrm_simplemailheaderfilter f ON h.id = f.header_id" : "";
+    $query .= " WHERE $whereClause";
+    $query .= " ORDER BY h.id";
 
     try {
-      /** @var CRM_Core_DAO $dao */
+      /** @var CRM_Simplemail_DAO_SimpleMailHeader|CRM_Simplemail_DAO_SimpleMailHeaderFilter|CRM_Core_DAO $dao */
       $dao = CRM_Core_DAO::executeQuery($query);
 
       $headersWithFilters = array();
 
       while ($dao->fetch()) {
-        $headersWithFilters[] = $dao->toArray();
+        $header = $dao->toArray();
+
+        $header['image_url'] = $dao->image ? static::getImageUrl($dao->image, 'image') : NULL;
+        $header['logo_image_url'] = $dao->logo_image ? static::getImageUrl($dao->logo_image, 'logo_image') : NULL;
+
+        $headersWithFilters[] = $header;
       }
     } catch (Exception $e) {
       $dao = isset($dao) ? $dao : NULL;
@@ -131,6 +126,20 @@ class CRM_Simplemail_BAO_SimpleMailHeader extends CRM_Simplemail_DAO_SimpleMailH
     }
 
     return array('values' => $headersWithFilters, 'dao' => $dao);
+  }
+
+  /**
+   * Get URL for an image corresponding to the provided image field and file name
+   *
+   * @param string $fileName The file name of the image
+   * @param string $field    The name of the image field in the DB
+   *
+   * @throws CRM_Extension_Exception
+   *
+   * @return string Absolute URL of the image file
+   */
+  public static function getImageUrl($fileName, $field) {
+    return static::getImageDirUrl($field) . $fileName;
   }
 
   /**
@@ -152,32 +161,29 @@ class CRM_Simplemail_BAO_SimpleMailHeader extends CRM_Simplemail_DAO_SimpleMailH
     return $imagePath;
   }
 
+  ///////////////////////
+  // Protected Methods //
+  ///////////////////////
+
   /**
    * Get the URL for the directory of an image field
-   * TODO (robin): This appears to be not being used any more
    *
    * @param string $field Name of the image field in the DB
    *
    * @throws CRM_Extension_Exception
    * @return string
    */
-//  protected static function getImageDirUrl($field) {
-//    $api = _get_api_instance();
-//    $entity = 'Setting';
-//    $apiParams = array('name' => 'imageUploadURL');
-//
-//    if (!$api->$entity->GetValue($apiParams)) {
-//      throw new CRM_Extension_Exception('Failed to retrieve image upload URL setting');
-//    }
-//
-//    $path = $api->result();
-//
-//    $dirRelativePath = _get_image_dir_relative_path($field);
-//
-//    $path .= $dirRelativePath;
-//
-//    return $path . DIRECTORY_SEPARATOR;
-//  }
+  protected static function getImageDirUrl($field) {
+    $config = CRM_Core_Config::singleton();
+
+    if (!$imageUploadUrl = $config->imageUploadURL) {
+      throw new CRM_Extension_Exception(
+        'Image upload URL not set. Please set it up in the administrative settings', 500
+      );
+    }
+
+    return $imageUploadUrl . static::EXT_STORAGE_DIR_NAME . '/' . $field . '/';
+  }
 
   /**
    * Get the physical path to the directory where images for a particular field are stored on the file system
@@ -189,6 +195,7 @@ class CRM_Simplemail_BAO_SimpleMailHeader extends CRM_Simplemail_DAO_SimpleMailH
    */
   protected static function getImageDirPath($field) {
     $config = CRM_Core_Config::singleton();
+
     if (!$imageUploadDir = $config->imageUploadDir) {
       throw new CRM_Extension_Exception(
         'Image upload directory not set. Please set it up in the administrative settings', 500
