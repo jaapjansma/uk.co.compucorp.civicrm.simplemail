@@ -42,22 +42,7 @@ function civicrm_api3_simple_mail_header_create($params) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_header_delete($params) {
-  // Delete the header image
-  if ($params['image']) {
-    civicrm_api3_simple_mail_header_deleteimage(
-      array('field' => 'image', 'fileName' => $params['image'])
-    );
-  }
-
-  // Delete the logo image
-  if ($params['logo_image']) {
-    civicrm_api3_simple_mail_header_deleteimage(
-      array('field' => 'logo_image', 'fileName' => $params['logo_image'])
-    );
-  }
-
-  // Delete the header
-  return _civicrm_api3_basic_delete(_civicrm_api3_get_BAO(__FUNCTION__), $params);
+ return _civicrm_api3_basic_delete(_civicrm_api3_get_BAO(__FUNCTION__), $params);
 }
 
 /**
@@ -138,36 +123,18 @@ function civicrm_api3_simple_mail_header_uploadimage($params) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_header_deleteimage($params) {
-  $fileName = $params['fileName'];
+  try {
+    CRM_Simplemail_BAO_SimpleMailHeader::deleteImage($params);
 
-  $dirName = _get_image_dir_path($params['field']);
-
-  $file = $dirName . $fileName;
-
-  if (unlink($file)) {
-    return array(
-      'is_error' => 0,
-      'status' => 200,
-      'message' => 'File deleted successfully',
-      'fileName' => $fileName
-    );
-  } else {
-    $error = 'Unknown error';
-
-    if (!file_exists($file)) {
-      $error = 'File ' . $fileName . ' be deleted does not exist. This would generally happen when a new file was uploaded, thereby deleting the existing file, but the page was not subsequently saved to record the change to the file name. This error can be ignored safely for most cases.';
-    } else if (!is_file($file)) {
-      $error = 'File ' . $fileName . ' for deletion is not a regular file';
-    } else if (!is_writable($file)) {
-      $error = 'File ' . $fileName . ' to be deleted is not writable';
-    }
-
-    throw new API_Exception($error, 500);
+    return civicrm_api3_create_success();
+  } catch (CRM_Extension_Exception $e) {
+    return civicrm_api3_create_error($e->getMessage());
   }
 }
 
 /**
  * SimpleMailHeader.GetImageUrl API
+ * TODO (robin): This might not be needed anymore due to baking image URLs into header array in Get action
  *
  * @param array $params Array consisting offield name (corresponding to DB name) and file name
  *
@@ -176,13 +143,15 @@ function civicrm_api3_simple_mail_header_deleteimage($params) {
  * @see civicrm_api3_create_error
  * @throws API_Exception
  */
-function civicrm_api3_simple_mail_header_getimageurl($params) {
-  try {
-    return CRM_Simplemail_BAO_SimpleMailHeader::getImageUrl($params);
-  } catch (CRM_Extension_Exception $e) {
-    throw new API_Exception($e->getMessage());
-  }
-}
+//function civicrm_api3_simple_mail_header_getimageurl($params) {
+//  try {
+//    $result = CRM_Simplemail_BAO_SimpleMailHeader::getImageUrl($params);
+//
+//    return civicrm_api3_create_success($result, $params, NULL, 'getimageurl');
+//  } catch (CRM_Extension_Exception $e) {
+//    return civicrm_api3_create_error($e->getMessage());
+//  }
+//}
 
 /**
  * SimpleMailHeader.GetHeadersWithFilters API
@@ -196,9 +165,13 @@ function civicrm_api3_simple_mail_header_getimageurl($params) {
  */
 function civicrm_api3_simple_mail_header_getheaderswithfilters($params) {
   try {
-    return CRM_Simplemail_BAO_SimpleMailHeader::getHeadersWithFilters();
+    $result = CRM_Simplemail_BAO_SimpleMailHeader::getHeadersWithFilters();
+
+    return civicrm_api3_create_success($result['values'], $params, NULL, 'getheaderswithfilters', $result['dao']);
   } catch (CRM_Extension_Exception $e) {
-    throw new API_Exception($e->getMessage(), $e->getErrorCode());
+    $errorData = $e->getErrorData();
+
+    return civicrm_api3_create_error($e->getMessage(), array(), $errorData['dao']);
   }
 }
 
@@ -263,20 +236,20 @@ function _get_image_dir_url($field) {
   return $path . DIRECTORY_SEPARATOR;
 }
 
-function _get_image_dir_path($field) {
-  $api = _get_api_instance();
-  $entity = 'Setting';
-  $apiParams = array('name' => 'imageUploadDir');
-
-  if (!$api->$entity->GetValue($apiParams)) {
-    throw new API_Exception('Failed to retrieve image upload dir setting');
-  }
-
-  $path = $api->result();
-
-  $dirRelativePath = _get_image_dir_relative_path($field);
-
-  $path .= $dirRelativePath;
-
-  return $path . DIRECTORY_SEPARATOR;
-}
+//function _get_image_dir_path($field) {
+//  $api = _get_api_instance();
+//  $entity = 'Setting';
+//  $apiParams = array('name' => 'imageUploadDir');
+//
+//  if (!$api->$entity->GetValue($apiParams)) {
+//    throw new API_Exception('Failed to retrieve image upload dir setting');
+//  }
+//
+//  $path = $api->result();
+//
+//  $dirRelativePath = _get_image_dir_relative_path($field);
+//
+//  $path .= $dirRelativePath;
+//
+//  return $path . DIRECTORY_SEPARATOR;
+//}
