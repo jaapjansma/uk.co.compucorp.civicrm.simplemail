@@ -101,23 +101,6 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
    */
   public $crm_mailing_id;
   /**
-   * Name of the mailing
-   *
-   * @var string
-   */
-  public $name;
-  /**
-   *
-   * @var boolean
-   */
-  public $remove_duplicates;
-  /**
-   * The step to resume from on the wizard
-   *
-   * @var int unsigned
-   */
-  public $resume_step;
-  /**
    * Name and email address for the from field
    *
    * @var string
@@ -129,12 +112,6 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
    * @var int unsigned
    */
   public $header_id;
-  /**
-   * Subject of the email
-   *
-   * @var string
-   */
-  public $subject;
   /**
    * Title/strapline for the email (in the title region)
    *
@@ -159,17 +136,6 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
    * @var int unsigned
    */
   public $message_id;
-  /**
-   *
-   * @var boolean
-   */
-  public $send_immediately;
-  /**
-   * Date scheduled for sending emails
-   *
-   * @var datetime
-   */
-  public $send_on;
   /**
    * class constructor
    *
@@ -218,24 +184,6 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
           'type' => CRM_Utils_Type::T_INT,
           'FKClassName' => 'CRM_Mailing_DAO_Mailing',
         ) ,
-        'name' => array(
-          'name' => 'name',
-          'type' => CRM_Utils_Type::T_STRING,
-          'title' => ts('Name') ,
-          'maxlength' => 64,
-          'size' => CRM_Utils_Type::BIG,
-        ) ,
-        'remove_duplicates' => array(
-          'name' => 'remove_duplicates',
-          'type' => CRM_Utils_Type::T_BOOLEAN,
-          'title' => ts('Remove Duplicates') ,
-        ) ,
-        'resume_step' => array(
-          'name' => 'resume_step',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Resume Step') ,
-          'default' => '1',
-        ) ,
         'from_address' => array(
           'name' => 'from_address',
           'type' => CRM_Utils_Type::T_STRING,
@@ -250,13 +198,6 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
           'name' => 'header_id',
           'type' => CRM_Utils_Type::T_INT,
           'FKClassName' => 'CRM_Simplemail_DAO_SimpleMailHeader',
-        ) ,
-        'subject' => array(
-          'name' => 'subject',
-          'type' => CRM_Utils_Type::T_STRING,
-          'title' => ts('Subject') ,
-          'maxlength' => 64,
-          'size' => CRM_Utils_Type::BIG,
         ) ,
         'title' => array(
           'name' => 'title',
@@ -280,16 +221,6 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
           'type' => CRM_Utils_Type::T_INT,
           'FKClassName' => 'CRM_Simplemail_DAO_SimpleMailMessage',
         ) ,
-        'send_immediately' => array(
-          'name' => 'send_immediately',
-          'type' => CRM_Utils_Type::T_BOOLEAN,
-          'title' => ts('Send Immediately') ,
-        ) ,
-        'send_on' => array(
-          'name' => 'send_on',
-          'type' => CRM_Utils_Type::T_DATE + CRM_Utils_Type::T_TIME,
-          'title' => ts('Send On') ,
-        ) ,
       );
     }
     return self::$_fields;
@@ -307,18 +238,12 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
       self::$_fieldKeys = array(
         'id' => 'id',
         'crm_mailing_id' => 'crm_mailing_id',
-        'name' => 'name',
-        'remove_duplicates' => 'remove_duplicates',
-        'resume_step' => 'resume_step',
         'from_address' => 'from_address',
         'header_id' => 'header_id',
-        'subject' => 'subject',
         'title' => 'title',
         'body' => 'body',
         'contact_details' => 'contact_details',
         'message_id' => 'message_id',
-        'send_immediately' => 'send_immediately',
-        'send_on' => 'send_on',
       );
     }
     return self::$_fieldKeys;
