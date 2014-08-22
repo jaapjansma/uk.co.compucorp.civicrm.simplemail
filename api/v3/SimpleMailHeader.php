@@ -177,16 +177,11 @@ function civicrm_api3_simple_mail_header_deleteimage($params) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_header_getimageurl($params) {
-  if (!isset($params['field'])) {
-    throw new API_Exception('Image field param not provided');
+  try {
+    return CRM_Simplemail_BAO_SimpleMailHeader::getImageUrl($params);
+  } catch (CRM_Extension_Exception $e) {
+    throw new API_Exception($e->getMessage());
   }
-  if (!isset($params['fileName'])) {
-    throw new API_Exception('Image file name not provided');
-  }
-
-  $imageDirUrl = _get_image_dir_url($params['field']);
-
-  return $imageDirUrl . $params['fileName'];
 }
 
 /**
@@ -200,27 +195,11 @@ function civicrm_api3_simple_mail_header_getimageurl($params) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_header_getheaderswithfilters($params) {
-  $query
-    = 'SELECT h.id, h.label, h.image, h.show_logo, h.logo_image, f.id AS filter_id, f.entity_table, f.entity_table, f.entity_id
-            FROM civicrm_simplemailheader h
-            RIGHT JOIN civicrm_simplemailheaderfilter f
-            on h.id = f.header_id
-            ORDER BY h.id';
-
   try {
-    /** @var CRM_Core_DAO $dao */
-    $dao = CRM_Core_DAO::executeQuery($query);
-
-    $headersWithFilters = array();
-
-    while ($dao->fetch()) {
-      $headersWithFilters[] = $dao->toArray();
-    }
-  } catch (Exception $e) {
-    throw new API_Exception('Failed to retrieve headers with filters: ' . $e->getMessage(), 500);
+    return CRM_Simplemail_BAO_SimpleMailHeader::getHeadersWithFilters();
+  } catch (CRM_Extension_Exception $e) {
+    throw new API_Exception($e->getMessage(), $e->getErrorCode());
   }
-
-  return array('is_error' => 0, 'values' => $headersWithFilters);
 }
 
 if (!function_exists('_get_api_instance')) {
@@ -258,8 +237,9 @@ function _get_image_dir_relative_path($field) {
 
 /**
  * Get the URL for the directory of an image field
+ * TODO (robin): Remove this after migration to BAO is complete
  *
- * @param string $field Name of the image field in the DB
+*@param string $field Name of the image field in the DB
  *
  * @throws API_Exception
  *
