@@ -10,7 +10,6 @@
         scope: {
           model: '=',
           uploader: '=',
-          form: '=',
           config: '=',
           remove: '&onRemove'
         },

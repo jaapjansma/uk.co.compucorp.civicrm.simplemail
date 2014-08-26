@@ -76,27 +76,13 @@ function civicrm_api3_simple_mail_header_get($params) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_header_uploadimage($params) {
-  $tempFile = $_FILES['file']['tmp_name'];
+  try {
+    $result = CRM_Simplemail_BAO_SimpleMailHeader::uploadImage($params);
+    $values = array($result);
 
-  $fileName = CRM_Utils_File::makeFileName($_FILES['file']['name']);
-  $dirName = _get_image_dir_path($params['field']);
-
-  // Create the upload directory, if it doesn't already exist
-  CRM_Utils_File::createDir($dirName);
-
-  $file = $dirName . $fileName;
-
-  // Move the uploaded file to the upload directory
-  if (move_uploaded_file($tempFile, $file)) {
-    $imageDirUrl = _get_image_dir_url($params['field']);
-    $imageUrl = $imageDirUrl . $fileName;
-
-    return array(
-      'imageUrl' => $imageUrl,
-      'imageFileName' => $fileName
-    );
-  } else {
-    throw new API_Exception('Failed to move the uploaded file', 500);
+    return civicrm_api3_create_success($values, $params, NULL, 'uploadimage');
+  } catch (CRM_Extension_Exception $e) {
+    return civicrm_api3_create_error($e->getMessage());
   }
 }
 

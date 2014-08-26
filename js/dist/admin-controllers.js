@@ -156,8 +156,8 @@
         // using the 'file' input element instead of the drop zone, so as to not leave orphan files behind
         $scope.remove(item.field);
 
-        $scope.header[item.field] = response.imageFileName;
-        $scope.header[item.field + '_url'] = response.imageUrl;
+        $scope.header[item.field] = response.values[0].imageFileName;
+        $scope.header[item.field + '_url'] = response.values[0].imageUrl;
 
         $scope.header.uploadingField = null;
 
