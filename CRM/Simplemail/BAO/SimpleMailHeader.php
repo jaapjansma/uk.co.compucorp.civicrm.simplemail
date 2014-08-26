@@ -114,10 +114,11 @@ class CRM_Simplemail_BAO_SimpleMailHeader extends CRM_Simplemail_DAO_SimpleMailH
     if (move_uploaded_file($tempFile, $file)) {
       $imageUrl = static::getImageUrl($fileName, $params['field']);
 
-      return array(
-        'imageUrl'      => $imageUrl,
-        'imageFileName' => $fileName
+      $result['values'] = array(
+        array('imageUrl' => $imageUrl, 'imageFileName' => $fileName)
       );
+
+      return $result;
     }
     else {
       throw new CRM_Extension_Exception('Failed to move the uploaded file', 500);

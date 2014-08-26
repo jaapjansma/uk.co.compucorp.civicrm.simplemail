@@ -71,9 +71,8 @@ function civicrm_api3_simple_mail_header_get($params) {
 function civicrm_api3_simple_mail_header_uploadimage($params) {
   try {
     $result = CRM_Simplemail_BAO_SimpleMailHeader::uploadImage($params);
-    $values = array($result);
 
-    return civicrm_api3_create_success($values, $params, NULL, 'uploadimage');
+    return civicrm_api3_create_success($result['values'], $params, NULL, 'uploadimage');
   } catch (CRM_Extension_Exception $e) {
     return civicrm_api3_create_error($e->getMessage());
   }
