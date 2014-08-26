@@ -44,7 +44,12 @@ class CRM_Simplemail_BAO_SimpleMailHeader extends CRM_Simplemail_DAO_SimpleMailH
     $query .= " FROM civicrm_simplemailheader h";
     $query .= $withFilters ? " RIGHT JOIN civicrm_simplemailheaderfilter f ON h.id = f.header_id" : "";
     $query .= " WHERE $whereClause";
-    $query .= " ORDER BY h.id";
+
+    // Using UNION to simulate OUTER JOIN as MySQL does not support OUTER (or FULL) JOIN
+    $query .= $withFilters ? " UNION " . str_replace('RIGHT JOIN', 'LEFT JOIN', $query) : "";
+
+//    $query .= " ORDER BY h.id";
+
 
     try {
       /** @var CRM_Simplemail_DAO_SimpleMailHeader|CRM_Simplemail_DAO_SimpleMailHeaderFilter|CRM_Core_DAO $dao */
@@ -63,9 +68,7 @@ class CRM_Simplemail_BAO_SimpleMailHeader extends CRM_Simplemail_DAO_SimpleMailH
     } catch (Exception $e) {
       $dao = isset($dao) ? $dao : NULL;
 
-      throw new CRM_Extension_Exception(
-        'Failed to retrieve headers with filters: ' . $e->getMessage(), 500, array('dao' => $dao)
-      );
+      throw new CRM_Extension_Exception('Failed to retrieve headers: ' . $e->getMessage(), 500, array('dao' => $dao));
     }
 
     return array('values' => $headersWithFilters, 'dao' => $dao);
