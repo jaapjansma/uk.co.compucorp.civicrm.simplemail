@@ -219,7 +219,6 @@
             });
         },
 
-
         // TODO (robin): Validation before submitting request
         submitMassEmail: function () {
           var self = this;
@@ -301,6 +300,10 @@
 
                 console.log('Mailing saved', response);
 
+                // This is to set the mailing ID when a new mailing is created, as the ID would be 'new' otherwise.
+                // Setting the ID here would automatically ensure that clicking on the navigation buttons (e.g. 'next')
+                // would redirect to the correct URL (i.e. with correct mailing ID and step in the URL), as the
+                // navigation logic in this service uses mailing ID to figure out redirections.
                 if (isNaN(self.getMailingId())) {
                   self.setMailingId(+response.data.values[0].id);
                 }
@@ -387,17 +390,6 @@
               }
             }
           });
-        },
-
-        /**
-         * Get the current mailing (as specified by the mailing ID in the URL segment)
-         * @deprecated TODO (robin): Remove this as no longer being used
-         * @returns {*|Object|HttpPromise}
-         */
-        getCurrent: function () {
-          var mailingId = this.getMailingId();
-
-          return mailingId ? this.get(mailingId) : null;
         },
 
         getRecipientGroupIds: function () {
