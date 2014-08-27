@@ -31,7 +31,7 @@
     <name>crm_mailing_id</name>
     <table>civicrm_mailing</table>
     <key>id</key>
-    <onDelete>SET NULL</onDelete>
+    <onDelete>CASCADE</onDelete>
   </foreignKey>
 
   <!--<field>-->

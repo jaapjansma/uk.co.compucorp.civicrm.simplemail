@@ -84,7 +84,7 @@ CREATE TABLE `civicrm_simplemail` (
 
   ,
   CONSTRAINT FK_civicrm_simplemail_crm_mailing_id FOREIGN KEY (`crm_mailing_id`) REFERENCES `civicrm_mailing` (`id`)
-    ON DELETE SET NULL,
+    ON DELETE CASCADE,
   CONSTRAINT FK_civicrm_simplemail_header_id FOREIGN KEY (`header_id`) REFERENCES `civicrm_simplemailheader` (`id`)
     ON DELETE SET NULL,
   CONSTRAINT FK_civicrm_simplemail_message_id FOREIGN KEY (`message_id`) REFERENCES `civicrm_simplemailmessage` (`id`)
