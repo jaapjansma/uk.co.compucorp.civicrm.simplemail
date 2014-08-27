@@ -21,57 +21,27 @@
     function ($scope, $http, $q, civiApi, log, notification) {
 
       $scope.constants = {
-        ENTITY_NAME: 'SimpleMail'
+        ENTITY_NAME: 'SimpleMail',
+        DRAFT: 'Not Scheduled',
+        SCHEDULED: 'Scheduled',
+        PAST: 'Sent'
       };
 
-      $scope.mailingFilters = ['draft', 'scheduled'];
+      $scope.mailingFilters = {};
+      $scope.mailingFilters[$scope.constants.DRAFT] = true;
+      $scope.mailingFilters[$scope.constants.SCHEDULED] = true;
+      $scope.mailingFilters[$scope.constants.PAST] = false;
 
-      civiApi.get($scope.constants.ENTITY_NAME)
+     civiApi.get($scope.constants.ENTITY_NAME)
         .then(function (response) {
           log.createLog('Mailings retrieved', response);
           $scope.mailings = response.data.values;
         })
-        .then(function () {
-          var now = Date.now();
-          var scheduledDate = null;
-          var mailing = null;
-
-          for (var i = 0, iEnd = $scope.mailings.length; i < iEnd; i++) {
-            var status = 'draft';
-            mailing = $scope.mailings[i];
-
-            if (mailing.hasOwnProperty('send_on')) {
-              scheduledDate = Date.parse(mailing.send_on);
-
-              if (mailing.crm_mailing_id) {
-                if (scheduledDate < now) {
-                  status = 'past';
-                }
-                else {
-                  status = 'scheduled';
-                }
-              }
-            }
-
-            mailing.status = status;
-          }
-        })
-        .catch(function (response) {
+       .catch(function (response) {
           console.log('Failed to retrieve mailing', response);
         });
 
-
-      $scope.toggleFilter = function (filter) {
-        var indexOfFilter = $scope.mailingFilters.indexOf(filter);
-
-        if (indexOfFilter === -1) {
-          $scope.mailingFilters.push(filter);
-        } else {
-          $scope.mailingFilters.splice(indexOfFilter, 1);
-        }
-      };
-
-      $scope.deleteMailing = function (index) {
+     $scope.deleteMailing = function (index) {
         var mailing = $scope.mailings[index];
 
         // First delete the corresponding CiviCRM mailing, if one exists

@@ -43,13 +43,21 @@
       return function (mailings, filters) {
         if (! angular.isArray(mailings)) return false;
 
+        if( ! angular.isObject(filters)) return mailings;
+
+        var activeFilters = [];
+
+        angular.forEach(filters, function(value, key) {
+          if (value) activeFilters.push(key);
+        });
+
         var currentMailing = null;
         var filteredMailings = [];
 
         for (var i = 0, iEnd = mailings.length; i < iEnd; i++) {
           currentMailing = mailings[i];
 
-          if (filters.indexOf(currentMailing.status) !== -1) {
+          if (activeFilters.indexOf(currentMailing.status) !== -1) {
             filteredMailings.push(currentMailing);
           }
         }

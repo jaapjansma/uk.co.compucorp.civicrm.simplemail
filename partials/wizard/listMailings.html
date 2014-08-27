@@ -14,20 +14,16 @@
     <div class="filter inline">
       <p class="filter-title">Mailing status:</p>
 
-      <input ng-click="toggleFilter('draft')" ng-checked="mailingFilters.indexOf('draft') !== -1"
-             id="filter-draft-mailings" type="checkbox"/>
+      <input ng-model="mailingFilters[constants.DRAFT]" id="filter-draft-mailings" type="checkbox"/>
       <label for="filter-draft-mailings">Draft</label>
 
-      <input ng-click="toggleFilter('scheduled')" ng-checked="mailingFilters.indexOf('scheduled') !== -1"
-             id="filter-scheduled-mailings" type="checkbox"/>
+      <input ng-model="mailingFilters[constants.SCHEDULED]" id="filter-scheduled-mailings" type="checkbox"/>
       <label for="filter-scheduled-mailings">Scheduled</label>
 
-      <input ng-click="toggleFilter('past')" ng-checked="mailingFilters.indexOf('past') !== -1"
-             id="filter-past-mailings"
-             type="checkbox"/>
+      <input ng-model="mailingFilters[constants.PAST]" id="filter-past-mailings" type="checkbox"/>
       <label for="filter-past-mailings">Past</label>
     </div>
-  </div>
+ </div>
 
   <table id="sm-mailings-table">
     <thead>
@@ -36,6 +32,11 @@
       <th class="name">Name</th>
       <th class="subject">Subject</th>
       <th class="current-status">Status</th>
+      <th class="created-by">Created By</th>
+      <th class="created-date">Created Date</th>
+      <th class="scheduled">Scheduled</th>
+      <th class="started">Started</th>
+      <th class="completed">Completed</th>
       <th class="action-buttons">Action</th>
     </tr>
     </thead>
@@ -45,6 +46,13 @@
       <td class="name">{{mailing.name}}</td>
       <td class="subject">{{mailing.subject}}</td>
       <td class="current-status">{{mailing.status}}</td>
+
+      <td class="created-by">{{mailing.sort_name}}</td>
+      <td class="created-date">{{mailing.created_date}}</td>
+      <td class="scheduled">{{mailing.scheduled_date}}</td>
+      <td class="started">{{mailing.start_date}}</td>
+      <td class="completed">{{mailing.end_date}}</td>
+
       <td class="action-buttons">
         <a ng-if="mailing.status === 'draft' || mailing.status === 'scheduled'"
            ng-href="#/mailings/{{mailing.id}}" class="button">

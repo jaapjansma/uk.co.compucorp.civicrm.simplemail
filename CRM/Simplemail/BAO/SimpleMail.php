@@ -76,6 +76,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
       while ($dao->fetch()) {
         $mailing = $dao->toArray();
+        $mailing['status'] = $mailing['status'] ?: 'Not Scheduled';
+
         $crmMailingId = $mailing['crm_mailing_id'];
 
         $group = new CRM_Mailing_DAO_MailingGroup();
