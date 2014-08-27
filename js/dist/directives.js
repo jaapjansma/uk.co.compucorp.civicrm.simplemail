@@ -51,11 +51,6 @@
           scope.selectedItem = null;
           scope.filteredItems = [];
 
-          scope.selectImage = function (index) {
-            console.log('Image selected with index', index);
-            scope.selectedIndex = index;
-          };
-
           // Setup the index of saved selected image once all headers have been retrieved
           scope.$watchCollection(function () {
               return scope.items;
@@ -81,31 +76,16 @@
               }
             });
 
-          // TODO (robin): This might not be needed anymore - delete in the future if things keep working as expected
-//          scope.$watch(function () {
-//              return element.find('ul').find('img').length;
-//            },
-//            function (newVal, oldVal) {
-//              if (scope.selectedFilterId === 'all') {
-//                $timeout(function () {
-//                  scope.setWidth();
-//                }, 500);
-//              }
-//            });
-
-          scope.filterItems = function () {
-            scope.filteredItems = headersForSelectedFilter(scope.items, scope.selectedFilterId);
-
-            $timeout(function () {
-              scope.setWidth();
-            }, 200);
-          };
-
-          scope.updateSelection = function () {
-            var item = itemFromCollection(scope.filteredItems, 'id', scope.selectedItemId);
-
-            scope.selectedIndex = item.index;
-          };
+          // This will make sure that, even if selectedItemId was received late, the selectedIndex is set correctly
+          scope.$watch(function () {
+              return scope.selectedItemId;
+            },
+            function (newVal, oldVal) {
+              if (newVal) {
+                scope.updateSelection();
+              }
+            }
+          );
 
           /*
            Upon change of filter:
@@ -129,6 +109,23 @@
               scope.filterItems();
               scope.updateSelection();
             }, true);
+
+          // Filter items based on the currently selected filter and update the carousel width
+          scope.filterItems = function () {
+            scope.filteredItems = headersForSelectedFilter(scope.items, scope.selectedFilterId);
+
+            $timeout(function () {
+              scope.setWidth();
+            }, 200);
+          };
+
+          // Update the index of the selected item to the item's relative position in the currently filtered list
+          // This will make sure that correct image is highlighted as selected even when the list is filtered
+          scope.updateSelection = function () {
+            var item = itemFromCollection(scope.filteredItems, 'id', scope.selectedItemId);
+
+            scope.selectedIndex = item.index;
+          };
 
           scope.resetWidth = function () {
             element.find('ul').width('100%');
