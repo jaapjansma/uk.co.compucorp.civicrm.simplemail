@@ -6,22 +6,39 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * Create a new SimpleMail based on array-data
    *
    * @param array $params key-value pairs
-   * @return CRM_Simplemail_DAO_SimpleMail|NULL
    *
+   * @return CRM_Simplemail_DAO_SimpleMail|NULL
+   */
   public static function create($params) {
-    $className = 'CRM_Simplemail_DAO_SimpleMail';
+    $civiMailing = static::createCiviMailing($params);
+
+    if ($civiMailing->id) {
+      $params['crm_mailing_id'] = $civiMailing->id;
+    }
+
     $entityName = 'SimpleMail';
+
     $hook = empty($params['id']) ? 'create' : 'edit';
 
     CRM_Utils_Hook::pre($hook, $entityName, CRM_Utils_Array::value('id', $params), $params);
-    $instance = new $className();
+    $instance = new static;
     $instance->copyValues($params);
     $instance->save();
     CRM_Utils_Hook::post($hook, $entityName, $instance->id, $instance);
 
     return $instance;
-  } */
+  }
 
+  /**
+   * Get a list of mailings, which consist of data combined from Simple Mail, CiviCRM Mail, mailing job and contact
+   * tables
+   *
+   * @param array $params Array of optional params. Providing 'id' as a param would return a particular mailing with the
+   *                      corresponding Simple Mail ID.
+   *
+   * @return array
+   * @throws CRM_Extension_Exception
+   */
   public static function getMailing($params) {
     $whereClause = isset($params['id']) ? 'sm.id = ' . (int) $params['id'] : 'true';
 
@@ -59,9 +76,155 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
         $mailings[] = $dao->toArray();
       }
     } catch (Exception $e) {
-      throw new API_Exception('Failed to retrieve mailings: ' . $e->getMessage(), 500);
+      $dao = isset($dao) ? $dao : NULL;
+
+      throw new CRM_Extension_Exception('Failed to retrieve mailings: ' . $e->getMessage(), 500, array('dao' => $dao));
     }
 
-    return array('is_error' => 0, 'values' => $mailings);
+    return array('is_error' => 0, 'values' => $mailings, 'dao' => $dao);
+  }
+
+  ///////////////////////
+  // Protected Methods //
+  ///////////////////////
+
+  protected static function getEmailTemplatePath() {
+    // TODO (robin): Retrieve the extension directory from Core_Config
+    $templateDir = 'civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/email-templates/';
+    $templateFileName = 'wave.html';
+
+    return $templateDir . $templateFileName;
+  }
+
+  protected static function generateEmailHtml($params) {
+    // Setup paths
+    $templateFile = static::getEmailTemplatePath();
+
+    // Setup template variables
+    $template = new stdClass();
+    $template->title = isset($params['title']) && $params['title'] ? $params['title'] : NULL;
+    $template->body = isset($params['title']) && $params['body'] ? $params['body'] : NULL;
+    $template->contactDetails = isset($params['contact_details']) && $params['contact_details']
+      ? $params['contact_details']
+      : NULL;
+
+    // Retrieve header if the mailing has one, and assign header and logo images in the template accordingly
+    if (isset($params['header_id'])) {
+      $header = new CRM_Simplemail_BAO_SimpleMailHeader();
+      $header->id = (int) $params['header_id'];
+      $header->find();
+
+      if ($header->fetch()) {
+        $template->headerImage = $header->image
+          ? CRM_Simplemail_BAO_SimpleMailHeader::getImageUrl($header->image, 'image')
+          : NULL;
+
+        $template->logo = $header->show_logo && $header->logo_image
+          ? CRM_Simplemail_BAO_SimpleMailHeader::getImageUrl($header->logo_image, 'logo_image')
+          : NULL;
+      }
+    }
+
+    // Retrieve campaign message if the mailing has one, and assign campaign text in the template accordingly
+    if (isset($params['message_id'])) {
+      $message = new CRM_Simplemail_BAO_SimpleMailMessage();
+      $message->id = (int) $params['message_id'];
+      $message->find();
+
+      if ($message->fetch()) {
+        $template->campaignMessage = $message->text ?: NULL;
+      }
+    }
+
+    // Output parsed template
+    ob_start();
+
+    require $templateFile;
+
+    return ob_get_clean();
+  }
+
+  protected static function createCiviMailing($params) {
+    //////////////////////////////////
+    // Setup CiviCRM mailing params //
+    //////////////////////////////////
+
+    // Mailing name
+    if (isset($params['name'])) {
+      $crmMailingParams['name'] = $params['name'];
+    }
+
+    // From name and email
+    if (isset($params['from_address'])) {
+      $fromName = $fromEmail = NULL;
+
+      if (preg_match('/"(.*)" <(.*)>/', $params['from_address'], $match)) {
+        $fromName = $match[1];
+        $fromEmail = $match[2];
+      }
+
+      $crmMailingParams['from_name'] = $fromName;
+      $crmMailingParams['from_email'] = $fromEmail;
+    }
+
+    // Mailing subject
+    if (isset($params['subject'])) {
+      $crmMailingParams['subject'] = $params['subject'];
+    }
+
+    // Body HTML
+    $crmMailingParams['body_html'] = static::generateEmailHtml($params);
+
+    // Groups
+    // TODO (robin): Is this even needed if we manage mailing groups separately?
+//    if (isset($mailingGroups)) {
+//      $crmMailingParams['groups'] = static::getRecipientGroups($params);
+//    }
+
+    // Scheduled date
+    if (isset($params['scheduled_date'])) {
+      $crmMailingParams['scheduled_date'] = str_replace(array('-', ':', ' '), '', $params['scheduled_date']) ?: NULL;
+    }
+
+    // De-duplicate emails
+    if (isset($params['dedupe_email'])) {
+      $crmMailingParams['dedupe_email'] = $params['dedupe_email'];
+    }
+    else {
+      $crmMailingParams['dedupe_email'] = 0;
+    }
+
+    /////////
+    // End //
+    /////////
+
+    $crmMailingId = array(
+      'mailing_id' => isset($params['crm_mailing_id']) ? $params['crm_mailing_id'] : NULL
+    );
+
+    // Create or update CiviCRM mailing - a mailing job would be created (scheduled) if scheduled date has been set
+    $crmMailing = CRM_Mailing_BAO_Mailing::create($crmMailingParams, $crmMailingId);
+
+    /////////////////////////////////
+    // Generate mailing recipients //
+    /////////////////////////////////
+
+    $removeDuplicateEmails = isset($params['dedupe_email']) ? TRUE : FALSE;
+
+    // Compute the recipients and store them in the mailing recipients table
+    CRM_Mailing_BAO_Mailing::getRecipients(
+      $crmMailing->id,
+      $crmMailing->id,
+      NULL,
+      NULL,
+      TRUE,
+      $removeDuplicateEmails
+    );
+
+    /////////
+    // End //
+    /////////
+
+    return $crmMailing;
   }
 }

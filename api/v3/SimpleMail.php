@@ -42,7 +42,14 @@ function civicrm_api3_simple_mail_delete($params) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_get($params) {
-  return CRM_Simplemail_BAO_SimpleMail::getMailing($params);
+  try {
+    $result = CRM_Simplemail_BAO_SimpleMail::getMailing($params);
+
+    return civicrm_api3_create_success($result['values'], $params, null, 'get', $result['dao']);
+  } catch (CRM_Extension_Exception $e) {
+    $errorData = $e->getErrorData();
+    return civicrm_api3_create_error($e->getMessage(), array(), $errorData['dao']);
+  }
 }
 
 /**
@@ -176,34 +183,6 @@ function civicrm_api3_simple_mail_sendtestemail($params) {
     throw new API_Exception('Failed to create or update CiviCRM mass mailing', 500);
   }
 }
-
-/**
- * SimpleMail.GetEmailHtml API
- *
- * @param array $params
- *
- * @return array API result descriptor
- * @see civicrm_api3_create_success
- * @see civicrm_api3_create_error
- * @throws API_Exception
- */
-function civicrm_api3_simple_mail_getemailhtml($params) {
-  require_once 'sites/all/modules/civicrm/api/class.api.php';
-
-  if (!isset($params['id'])) {
-    throw new API_Exception(
-      'Failed to submit for mass email as Simple Mail mailing ID was not provided', 405);
-  }
-
-  $mailing = _get_simple_mail_mailing((int) $params['id']);
-  $campaignMsg = _get_simple_mail_campaign_message((int) $mailing->message_id);
-  $header = _get_simple_mail_header((int) $mailing->header_id);
-
-  $template = _generate_email_template($mailing, $campaignMsg, $header);
-
-  return $template;
-}
-
 
 //////////////////////
 // Helper Functions //
