@@ -327,12 +327,6 @@
           log.createLog('Groups retrieved', response);
           $scope.groups = response.values;
         });
-
-      civiApi.post('SimpleMail', {id: mailing.getMailingId()}, 'getemailhtml')
-        .then(function(response) {
-          $scope.models.emailHtml = response.data.result;
-          $scope.$broadcast('EmailPreviewReady');
-        });
     }
   ]);
 
