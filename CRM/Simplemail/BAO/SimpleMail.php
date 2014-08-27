@@ -16,6 +16,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       $params['crm_mailing_id'] = $civiMailing->id;
     }
 
+    static::updateRecipientGroups($params);
+
     $entityName = 'SimpleMail';
 
     $hook = empty($params['id']) ? 'create' : 'edit';
@@ -66,14 +68,28 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     GROUP BY sm.id
   ";
 
+    $mailings = array();
+
     try {
       /** @var CRM_Core_DAO $dao */
       $dao = CRM_Core_DAO::executeQuery($query);
 
-      $mailings = array();
-
       while ($dao->fetch()) {
-        $mailings[] = $dao->toArray();
+        $mailing = $dao->toArray();
+        $crmMailingId = $mailing['crm_mailing_id'];
+
+        $group = new CRM_Mailing_DAO_MailingGroup();
+        $group->mailing_id = $crmMailingId;
+        $group->find();
+
+        $groupEntityIds = array();
+        while ($group->fetch()) {
+          $groupEntityIds[] = $group->entity_id;
+        }
+
+        $mailing['recipient_group_entity_ids'] = $groupEntityIds;
+
+        $mailings[] = $mailing;
       }
     } catch (Exception $e) {
       $dao = isset($dao) ? $dao : NULL;
@@ -82,6 +98,52 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     }
 
     return array('is_error' => 0, 'values' => $mailings, 'dao' => $dao);
+  }
+
+  /**
+   * Update recipient groups for the mailing - add new groups, and delete removed groups
+   *
+   * @param $params
+   */
+  public static function updateRecipientGroups($params) {
+    if (empty($params['recipient_group_entity_ids'])) {
+      return;
+    }
+
+    $currentGroupEntityIds = $params['recipient_group_entity_ids'];
+
+    $group = new CRM_Mailing_DAO_MailingGroup();
+    $group->mailing_id = $params['crm_mailing_id'];
+    $group->find();
+
+    $existingGroupsWithEntityIdKeys = array();
+    while ($group->fetch()) {
+      $existingGroupsWithEntityIdKeys[$group->entity_id] = $group->toArray();
+    }
+
+    $existingGroupEntityIds = array_keys($existingGroupsWithEntityIdKeys);
+
+    $removedGroupEntityIds = array_diff($existingGroupEntityIds, $currentGroupEntityIds);
+    $addedGroupEntityIds = array_diff($currentGroupEntityIds, $existingGroupEntityIds);
+
+    // Add new groups
+    foreach ($addedGroupEntityIds as $id) {
+      $group->reset();
+      $group->mailing_id = $params['crm_mailing_id'];
+      $group->group_type = 'Include';
+      $group->entity_table = 'civicrm_group';
+      $group->entity_id = $id;
+      $group->save();
+    }
+
+    // Delete removed groups
+    foreach ($removedGroupEntityIds as $id) {
+      $removedGroup = $existingGroupsWithEntityIdKeys[$id];
+
+      $group->reset();
+      $group->id = $removedGroup['id'];
+      $group->delete();
+    }
   }
 
   ///////////////////////
@@ -144,6 +206,13 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     return ob_get_clean();
   }
 
+  /**
+   * Create or update CiviCRM mailing
+   *
+   * @param $params
+   *
+   * @return object
+   */
   protected static function createCiviMailing($params) {
     //////////////////////////////////
     // Setup CiviCRM mailing params //
@@ -174,12 +243,6 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     // Body HTML
     $crmMailingParams['body_html'] = static::generateEmailHtml($params);
-
-    // Groups
-    // TODO (robin): Is this even needed if we manage mailing groups separately?
-//    if (isset($mailingGroups)) {
-//      $crmMailingParams['groups'] = static::getRecipientGroups($params);
-//    }
 
     // Scheduled date
     if (isset($params['scheduled_date'])) {

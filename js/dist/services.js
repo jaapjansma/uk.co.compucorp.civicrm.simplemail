@@ -326,105 +326,112 @@
          *
          * @param newGroupIds
          */
-        saveRecipientGroupIds: function (newGroupIds) {
-          var self = this;
+        //saveRecipientGroupIds: function (newGroupIds) {
+        //  var self = this;
+        //
+        //  // TODO (robin): This could probably be optimised to avoid the additional API call
+        //  this.getRecipientGroupIds().then(function (oldGroupIds) {
+        //    console.log('Old groups', oldGroupIds);
+        //    console.log('New groups', newGroupIds);
+        //
+        //    var removed = utility.arrayDiff(oldGroupIds, newGroupIds);
+        //    var added = utility.arrayDiff(newGroupIds, oldGroupIds);
+        //
+        //    console.log('Removed', removed);
+        //    console.log('Added', added);
+        //
+        //    if (removed.length) {
+        //      self.getRecipientGroups()
+        //        .then(function (response) {
+        //          for (var i = 0, iEnd = removed.length; i < iEnd; i++) {
+        //            var removeId = null;
+        //
+        //            for (var j = 0, jEnd = response.length; j < jEnd; j++) {
+        //              if (response[j].entity_id === removed[i]) {
+        //                removeId = +response[j].id;
+        //              }
+        //            }
+        //
+        //            civiApi.remove('SimpleMailRecipientGroup', {id: removeId})
+        //              .success(function (response) {
+        //                if (!response.is_error) {
+        //                  console.log('Group deleted', response);
+        //                } else {
+        //                  console.log('Failed to delete group', response);
+        //                }
+        //              })
+        //              .error(function (response) {
+        //                console.log('Failed to delete group', response);
+        //              });
+        //          }
+        //        });
+        //    }
+        //
+        //    if (added.length) {
+        //      for (var i = 0, end = added.length; i < end; i++) {
+        //        var data = {
+        //          mailing_id: self.getMailingId(),
+        //          group_type: 'Included',
+        //          entity_table: 'civicrm_group',
+        //          entity_id: added[i]
+        //        };
+        //
+        //        civiApi.create('SimpleMailRecipientGroup', data)
+        //          .success(function (response) {
+        //            if (!response.is_error) {
+        //              console.log('Group added', response);
+        //            } else {
+        //              console.log('Failed to add group', response);
+        //            }
+        //          })
+        //          .error(function (response) {
+        //            console.log('Failed to add group', response);
+        //          });
+        //      }
+        //    }
+        //  });
+        //},
 
-          // TODO (robin): This could probably be optimised to avoid the additional API call
-          this.getRecipientGroupIds().then(function (oldGroupIds) {
-            console.log('Old groups', oldGroupIds);
-            console.log('New groups', newGroupIds);
-
-            var removed = utility.arrayDiff(oldGroupIds, newGroupIds);
-            var added = utility.arrayDiff(newGroupIds, oldGroupIds);
-
-            console.log('Removed', removed);
-            console.log('Added', added);
-
-            if (removed.length) {
-              self.getRecipientGroups()
-                .then(function (response) {
-                  for (var i = 0, iEnd = removed.length; i < iEnd; i++) {
-                    var removeId = null;
-
-                    for (var j = 0, jEnd = response.length; j < jEnd; j++) {
-                      if (response[j].entity_id === removed[i]) {
-                        removeId = +response[j].id;
-                      }
-                    }
-
-                    civiApi.remove('SimpleMailRecipientGroup', {id: removeId})
-                      .success(function (response) {
-                        if (!response.is_error) {
-                          console.log('Group deleted', response);
-                        } else {
-                          console.log('Failed to delete group', response);
-                        }
-                      })
-                      .error(function (response) {
-                        console.log('Failed to delete group', response);
-                      });
-                  }
-                });
-            }
-
-            if (added.length) {
-              for (var i = 0, end = added.length; i < end; i++) {
-                var data = {
-                  mailing_id: self.getMailingId(),
-                  group_type: 'Included',
-                  entity_table: 'civicrm_group',
-                  entity_id: added[i]
-                };
-
-                civiApi.create('SimpleMailRecipientGroup', data)
-                  .success(function (response) {
-                    if (!response.is_error) {
-                      console.log('Group added', response);
-                    } else {
-                      console.log('Failed to add group', response);
-                    }
-                  })
-                  .error(function (response) {
-                    console.log('Failed to add group', response);
-                  });
-              }
-            }
-          });
-        },
-
-        getRecipientGroupIds: function () {
-          var self = this;
-
-          console.log('Message ID', self.config.scope.mailing.message_id);
-          return this.getRecipientGroups()
-            .then(function (response) {
-              var groupIds = [];
-              console.log('Message ID', self.config.scope.mailing.message_id);
-
-              for (var i = 0, end = response.length; i < end; i++) {
-                groupIds.push(response[i].entity_id);
-              }
-
-              console.log('Group IDs', groupIds);
-
-              return groupIds;
-            });
-        },
+        //getRecipientGroupIds: function () {
+        //  var self = this;
+        //
+        //  console.log('Message ID', self.config.scope.mailing.message_id);
+        //  return this.getRecipientGroups()
+        //    .then(function (response) {
+        //      var groupIds = [];
+        //      console.log('Message ID', self.config.scope.mailing.message_id);
+        //
+        //      for (var i = 0, end = response.length; i < end; i++) {
+        //        groupIds.push(response[i].entity_id);
+        //      }
+        //
+        //      console.log('Group IDs', groupIds);
+        //
+        //      return groupIds;
+        //    });
+        //},
 
         /**
          * Get all recipient groups for the current mailing
          *
          * @returns {*|Object|HttpPromise|*|Object|HttpPromise}
          */
-        getRecipientGroups: function () {
-          return civiApi.get('SimpleMailRecipientGroup', {mailing_id: this.getMailingId()})
-            .then(function (response) {
-              if (response.data.is_error) return $q.reject(response);
-
-              console.log('Recipient groups retrieved', response);
-              return response.data.values;
-            });
-        },
+        //getRecipientGroups: function () {
+        //  return civiApi.get('MailingGroup', {mailing_id: this.getMailingId()})
+        //    .then(function (response) {
+        //      if (response.data.is_error) return $q.reject(response);
+        //
+        //      console.log('Recipient groups retrieved', response);
+        //      return response.data.values;
+        //    });
+          //return civiApi.get('SimpleMailRecipientGroup', {mailing_id: this.getMailingId()})
+          //  .then(function (response) {
+          //    if (response.data.is_error) return $q.reject(response);
+          //
+          //    console.log('Recipient groups retrieved', response);
+          //    return response.data.values;
+          //  });
+        //},
 
         /**
          * Set the current step. This should be defined at each step in order for next/prev step buttons to work correctly.

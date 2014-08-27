@@ -63,7 +63,7 @@
 
       $scope.toggleFilter = function (filter) {
         var indexOfFilter = $scope.mailingFilters.indexOf(filter);
-        
+
         if (indexOfFilter === -1) {
           $scope.mailingFilters.push(filter);
         } else {
@@ -145,13 +145,6 @@
       mailing.getMailing()
         .then(function (response) {
           $scope.mailing = response;
-        })
-        // Group IDs are set within 'then' below as, otherwise, $scope.mailing would get overridden by the above 'then',
-        // in case group IDs got retrieve before the mailing. Chaining it to promise like done here solves this.
-        .then(function () {
-          mailing.getRecipientGroupIds().then(function (response) {
-            $scope.mailing.recipientGroupIds = response;
-          });
         });
 
       // Get the list of mailing recipient groups
@@ -176,7 +169,7 @@
 
       $scope.headers = [];
 
-     // Initialise the step
+      // Initialise the step
       mailing.initStep({step: 2, scope: $scope});
 
       $scope.constants = {
@@ -234,7 +227,7 @@
           if (response.data.is_error) return $q.reject(response);
 
           $scope.headers = response.data.values;
-       })
+        })
         .then(function () {
           $scope.models.headersLoaded = true;
         })
@@ -289,7 +282,7 @@
         .catch(function (response) {
           console.log('Failed to retrieve the mailing', response);
         });
-  }
+    }
   ]);
 
   /**
