@@ -260,7 +260,7 @@
                   .catch(function (response) {
                     console.log('Failed to submit mailing for mass email', response);
                   });
-              });
+              };
           });
         },
 
@@ -435,7 +435,7 @@
             self.submitTestEmail();
           };
 
-          scope.saveAndContinue = function () {
+          scope.saveAndContinueLater = function () {
             self.setMailing(scope.mailing);
             self.saveProgress()
               .then(function () {
