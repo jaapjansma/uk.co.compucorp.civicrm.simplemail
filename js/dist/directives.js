@@ -119,6 +119,16 @@
             }, 200);
           };
 
+          /**
+           * Select an image when it is clicked
+           *
+           * @param index
+           */
+          scope.selectImage = function (index) {
+            console.log('Image selected with index', index);
+            scope.selectedIndex = index;
+          };
+
           // Update the index of the selected item to the item's relative position in the currently filtered list
           // This will make sure that correct image is highlighted as selected even when the list is filtered
           scope.updateSelection = function () {
