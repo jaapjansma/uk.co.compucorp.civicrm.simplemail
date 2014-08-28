@@ -107,6 +107,34 @@ function civicrm_api3_simple_mail_deletemassemail($params) {
   return TRUE;
 }
 
+/*
+ * Overview:
+ * 1. Get the SM mailing using the API
+ * 2. Generate a Civi mailing from the SM mailing
+ * 3. Return the Civi mailing ID
+ */
+
+/*
+ * Buttons on the last page of the wizard:
+ * 1. Draft - Prev, Submit, Cancel
+ *    Show this for mailings without either schedule date or Civi mailing ID, or none
+ *
+ * 2. Scheduled - Prev, Update, Cancel
+ *    Otherwise, show this for mailings i.e. with both schedule data and Civi mailing ID
+ */
+
+/*
+ * Buttons next to mailings in the SM mailing listing:
+ * 1. Draft - Edit, Delete:
+ *    Show these for mailings without a Civi mailing ID
+ *
+ * 2. Scheduled - Edit, Delete (, Cancel):
+ *    Show these for mailings with scheduled date in the future and with Civi mailing ID
+ *
+ * 3. Complete - Delete (, Archive, Re-use):
+ *    Show these for mailings with scheduled date in the past and with Civi mailing ID
+ */
+
 /**
  * SimpleMail.SendTestEmail API
  *
@@ -118,69 +146,14 @@ function civicrm_api3_simple_mail_deletemassemail($params) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_sendtestemail($params) {
-  require_once 'sites/all/modules/civicrm/api/class.api.php';
+  try {
+    $result = CRM_Simplemail_BAO_SimpleMail::sendTestEmail($params);
 
-  /*
-   * Overview:
-   * 1. Get the SM mailing using the API
-   * 2. Generate a Civi mailing from the SM mailing
-   * 3. Return the Civi mailing ID
-   */
+    return civicrm_api3_create_success($result['values'], $params, null, 'senttestemail', $result['dao']);
+  } catch (CRM_Extension_Exception $e) {
+    $errorData = $e->getErrorData();
 
-  /*
-   * Buttons on the last page of the wizard:
-   * 1. Draft - Prev, Submit, Cancel
-   *    Show this for mailings without either schedule date or Civi mailing ID, or none
-   *
-   * 2. Scheduled - Prev, Update, Cancel
-   *    Otherwise, show this for mailings i.e. with both schedule data and Civi mailing ID
-  */
-
-  /*
-   * Buttons next to mailings in the SM mailing listing:
-   * 1. Draft - Edit, Delete:
-   *    Show these for mailings without a Civi mailing ID
-   *
-   * 2. Scheduled - Edit, Delete (, Cancel):
-   *    Show these for mailings with scheduled date in the future and with Civi mailing ID
-   *
-   * 3. Complete - Delete (, Archive, Re-use):
-   *    Show these for mailings with scheduled date in the past and with Civi mailing ID
-   */
-
-  if (!isset($params['id'])) {
-    throw new API_Exception(
-      'Failed to submit for mass email as Simple Mail mailing ID was not provided', 405);
-  }
-  if (!isset($params['groupId'])) {
-    throw new API_Exception('Failed to submit mass emailing job as no group was provided', 405);
-  }
-
-  // Create or update CiviCRM mass emailing
-  $crmMailing = _create_or_update_civicrm_mass_mailing((int) $params['id']);
-
-  // Create a mass test emailing job and run it
-  if ($crmMailing->id) {
-
-    $job = new CRM_Mailing_BAO_MailingJob();
-    $job->mailing_id = $crmMailing->id;
-    $job->is_test = TRUE;
-    $job->save();
-
-    $testParams = array(
-      'test_group' => (int) $params['groupId'],
-      'job_id'     => $job->id
-    );
-
-    $isComplete = FALSE;
-    while (!$isComplete) {
-      $isComplete = CRM_Mailing_BAO_MailingJob::runJobs($testParams);
-    }
-
-    return array('crmMailingId' => $crmMailing->id);
-  }
-  else {
-    throw new API_Exception('Failed to create or update CiviCRM mass mailing', 500);
+    return civicrm_api3_create_error($e->getMessage(), array(), $errorData['dao']);
   }
 }
 

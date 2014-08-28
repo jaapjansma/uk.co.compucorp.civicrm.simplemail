@@ -199,7 +199,6 @@
 
         setMailing: function (mailing) {
           this.config.mailing = mailing;
-//           this.config.mailing = $q.when(mailing);
         },
 
         /**
@@ -266,15 +265,22 @@
         },
 
         /**
-         *
+         * Send a request to send test email
          */
         submitTestEmail: function () {
-          var self = this;
+          this.getMailing()
+            .then(function (mailing) {
+              if (!mailing.crm_mailing_id) {
+                notification.error('Cannot send test email as CiviCRM mailing does not exist for this');
+                return;
+              }
 
-          this.getMailing().then(function (mailing) {
               notification.info('Sending test email');
 
-              civiApi.post('SimpleMail', {id: self.getMailingId(), groupId: mailing.testRecipientGroupId}, 'sendtestemail')
+              civiApi.post('SimpleMail', {
+                crmMailingId: mailing.crm_mailing_id,
+                groupId: mailing.testRecipientGroupId
+              }, 'sendtestemail')
                 .then(function (response) {
                   console.log(response);
                   notification.success('Test email send');

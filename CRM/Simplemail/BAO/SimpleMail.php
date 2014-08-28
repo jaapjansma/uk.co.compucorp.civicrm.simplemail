@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Class CRM_Simplemail_BAO_SimpleMail
+ */
 class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
   /**
@@ -100,15 +103,57 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       throw new CRM_Extension_Exception('Failed to retrieve mailings: ' . $e->getMessage(), 500, array('dao' => $dao));
     }
 
-    return array('is_error' => 0, 'values' => $mailings, 'dao' => $dao);
+    return array('values' => $mailings, 'dao' => $dao);
   }
+
+  /**
+   * @param $params
+   *
+   * @return array
+   * @throws CRM_Extension_Exception
+   */
+  public static function sendTestEmail($params) {
+    if (empty($params['crmMailingId'])) {
+      throw new CRM_Extension_Exception(
+        'Failed to send test email as CiviCRM mailing ID not provided', 405, array('dao' => NULL)
+      );
+    }
+
+    if (empty($params['groupId'])) {
+      throw new CRM_Extension_Exception(
+        'Failed to send test email as recipient group was not provided', 405, array('dao' => NULL)
+      );
+    }
+
+    $job = new CRM_Mailing_BAO_MailingJob();
+    $job->mailing_id = $params['crmMailingId'];
+    $job->is_test = TRUE;
+    $job->save();
+
+    $testParams = array(
+      'test_group' => (int) $params['groupId'],
+      'job_id'     => $job->id
+    );
+
+    $isComplete = FALSE;
+    while (!$isComplete) {
+      $isComplete = CRM_Mailing_BAO_MailingJob::runJobs($testParams);
+    }
+
+    return array('values' => array(array('jobId' => $job->id)), 'dao' => $job);
+  }
+
+///////////////////////
+// Protected Methods //
+///////////////////////
 
   /**
    * Update recipient groups for the mailing - add new groups, and delete removed groups
    *
    * @param $params
+   * @return void
    */
-  public static function updateRecipientGroups($params) {
+  protected static function updateRecipientGroups($params) {
     if (empty($params['recipient_group_entity_ids'])) {
       return;
     }
@@ -149,10 +194,11 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     }
   }
 
-  ///////////////////////
-  // Protected Methods //
-  ///////////////////////
-
+  /**
+   * Get the path of the email template to be used for rendering the email HTML body
+   *
+   * @return string
+   */
   protected static function getEmailTemplatePath() {
     // TODO (robin): Retrieve the extension directory from Core_Config
     $templateDir = 'civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/email-templates/';
@@ -161,6 +207,13 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     return $templateDir . $templateFileName;
   }
 
+  /**
+   * Generate email HTML body using the email template and mailing data
+   *
+   * @param $params
+   *
+   * @return string
+   */
   protected static function generateEmailHtml($params) {
     // Setup paths
     $templateFile = static::getEmailTemplatePath();
