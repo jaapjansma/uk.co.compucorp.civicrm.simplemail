@@ -17,8 +17,8 @@
    * Listing of mailing wizards
    */
   controllers.controller('MailingsController', [
-    '$scope', '$http', '$q', 'civiApiServices', 'loggingServices', 'notificationServices',
-    function ($scope, $http, $q, civiApi, log, notification) {
+    '$scope', '$http', '$q', 'civiApiServices', 'loggingServices', 'notificationServices', '$filter',
+    function ($scope, $http, $q, civiApi, log, notification, $filter) {
 
       $scope.constants = {
         ENTITY_NAME: 'SimpleMail',
@@ -27,15 +27,24 @@
         PAST: 'Sent'
       };
 
-      $scope.mailingFilters = {};
-      $scope.mailingFilters[$scope.constants.DRAFT] = true;
-      $scope.mailingFilters[$scope.constants.SCHEDULED] = true;
-      $scope.mailingFilters[$scope.constants.PAST] = false;
+      $scope.models = {};
+
+      $scope.mailingFilters = {
+        status: {}, 
+        creator: 'all'
+      };
+        
+      $scope.mailingFilters.status[$scope.constants.DRAFT] = true;
+      $scope.mailingFilters.status[$scope.constants.SCHEDULED] = true;
+      $scope.mailingFilters.status[$scope.constants.PAST] = false;
 
      civiApi.get($scope.constants.ENTITY_NAME)
         .then(function (response) {
           log.createLog('Mailings retrieved', response);
           $scope.mailings = response.data.values;
+
+         var creators = $filter('extractColumn')($scope.mailings, 'sort_name');
+         $scope.models.creators = $filter('unique')(creators);
         })
        .catch(function (response) {
           console.log('Failed to retrieve mailing', response);

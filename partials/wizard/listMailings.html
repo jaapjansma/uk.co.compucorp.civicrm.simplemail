@@ -14,16 +14,25 @@
     <div class="filter inline">
       <p class="filter-title">Mailing status:</p>
 
-      <input ng-model="mailingFilters[constants.DRAFT]" id="filter-draft-mailings" type="checkbox"/>
+      <input ng-model="mailingFilters.status[constants.DRAFT]" id="filter-draft-mailings" type="checkbox"/>
       <label for="filter-draft-mailings">Draft</label>
 
-      <input ng-model="mailingFilters[constants.SCHEDULED]" id="filter-scheduled-mailings" type="checkbox"/>
+      <input ng-model="mailingFilters.status[constants.SCHEDULED]" id="filter-scheduled-mailings" type="checkbox"/>
       <label for="filter-scheduled-mailings">Scheduled</label>
 
-      <input ng-model="mailingFilters[constants.PAST]" id="filter-past-mailings" type="checkbox"/>
+      <input ng-model="mailingFilters.status[constants.PAST]" id="filter-past-mailings" type="checkbox"/>
       <label for="filter-past-mailings">Past</label>
     </div>
- </div>
+
+    <div class="filter inline">
+      <p class="filter-title">Created By:</p>
+
+      <select ui-select2 ng-model="mailingFilters.creator" data-placeholder="Created By" name="" id="">
+        <option value="all">All</option>
+        <option ng-repeat="creator in models.creators" value="{{creator}}">{{creator}}</option>
+      </select>
+    </div>
+  </div>
 
   <table id="sm-mailings-table">
     <thead>
@@ -40,7 +49,7 @@
       <th class="action-buttons">Action</th>
     </tr>
     </thead>
-    <tr ng-repeat="mailing in (mailings | mailingsByStatus:mailingFilters)" ng-class-even="'even-row'"
+    <tr ng-repeat="mailing in (mailings | filterMailings:mailingFilters)" ng-class-even="'even-row'"
         ng-class-odd="'odd-row'">
       <td class="id">{{mailing.id}}</td>
       <td class="name">{{mailing.name}}</td>
@@ -54,9 +63,9 @@
       <td class="completed">{{mailing.end_date}}</td>
 
       <td class="action-buttons">
-        <a ng-if="mailing.status === 'draft' || mailing.status === 'scheduled'"
+        <a ng-if="mailing.status === constants.DRAFT || mailing.status === constants.SCHEDULED"
            ng-href="#/mailings/{{mailing.id}}" class="button">
-          {{mailing.status === 'draft' ? 'Edit' : 'Update'}}
+          {{mailing.status === constants.DRAFT ? 'Edit' : 'Update'}}
         </a>
         <a href ng-click="deleteMailing($index)" class="button">Delete</a>
       </td>

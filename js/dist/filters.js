@@ -38,16 +38,35 @@
     }
   ]);
 
-  filters.filter('mailingsByStatus', [
-    function () {
+  filters.filter('filterMailings', ['$filter',
+    function ($filter) {
       return function (mailings, filters) {
         if (! angular.isArray(mailings)) return false;
 
         if( ! angular.isObject(filters)) return mailings;
 
+        var filteredMailings = mailings;
+
+        if (filters.hasOwnProperty('status') && filters.status) {
+          filteredMailings = $filter('filterMailingsByStatus')(mailings, filters.status);
+        }
+
+        if (filters.hasOwnProperty('creator') && filters.creator) {
+          filteredMailings = $filter('filterMailingsByCreator')(filteredMailings, filters.creator);
+        }
+
+        return filteredMailings;
+      }
+    }
+  ]);
+
+  filters.filter('filterMailingsByStatus', [
+    function () {
+      return function (mailings, filters) {
+
         var activeFilters = [];
 
-        angular.forEach(filters, function(value, key) {
+        angular.forEach(filters, function (value, key) {
           if (value) activeFilters.push(key);
         });
 
@@ -57,7 +76,28 @@
         for (var i = 0, iEnd = mailings.length; i < iEnd; i++) {
           currentMailing = mailings[i];
 
-          if (activeFilters.indexOf(currentMailing.status) !== -1) {
+          if (currentMailing.hasOwnProperty('status') && activeFilters.indexOf(currentMailing.status) !== -1) {
+            filteredMailings.push(currentMailing);
+          }
+        }
+
+        return filteredMailings;
+      }
+    }
+  ]);
+
+  filters.filter('filterMailingsByCreator', [
+    function () {
+      return function (mailings, creator) {
+        if (angular.lowercase(creator) === 'all') return mailings;
+
+        var currentMailing = null;
+        var filteredMailings = [];
+
+        for (var i = 0, iEnd = mailings.length; i < iEnd; i++) {
+          currentMailing = mailings[i];
+
+          if (currentMailing.hasOwnProperty('sort_name') && currentMailing.sort_name === creator) {
             filteredMailings.push(currentMailing);
           }
         }
@@ -95,17 +135,43 @@
       return function (items, uniqueKey) {
         var keys = [];
         var uniqueItems = [];
+
+        uniqueKey = uniqueKey || 0;
         
         angular.forEach(items, function(value, key) {
-          if (keys.indexOf(value[uniqueKey]) === -1) {
-            keys.push(value[uniqueKey]);
+          var candidate = null;
+          if (angular.isObject(value) && value.hasOwnProperty(uniqueKey)) {
+            candidate = value[uniqueKey];
+          } else if (angular.isString(value)) {
+            candidate = value;
+          }
+
+          if (keys.indexOf(candidate) === -1) {
+            keys.push(candidate);
             uniqueItems.push(value);
           }
+
         });
 
         return uniqueItems;
       }
     }
   ]);
+
+  filters.filter('extractColumn', [
+    function () {
+      return function (collection, column) {
+        var extractedColumn = [];
+
+        angular.forEach(collection, function (value, key) {
+          if (angular.isObject(value) && value.hasOwnProperty(column) && value[column]) {
+            extractedColumn.push(value[column]);
+          }
+        });
+
+        return extractedColumn;
+      }
+    }
+  ])
 })();
 

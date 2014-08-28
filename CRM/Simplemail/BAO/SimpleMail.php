@@ -3,7 +3,8 @@
 class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
   /**
-   * Create a new SimpleMail based on array-data
+   * Create or update a SimpleMail mailing and the corresponding CiviCRM mailing, along with other related tasks, such
+   * as creating a mailing job for scheduling mass emailing.
    *
    * @param array $params key-value pairs
    *
