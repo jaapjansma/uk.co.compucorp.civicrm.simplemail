@@ -14,6 +14,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @return CRM_Simplemail_DAO_SimpleMail|NULL
    */
   public static function create($params) {
+    static::sanitiseParams($params);
+
     $civiMailing = static::createCiviMailing($params);
 
     if ($civiMailing->id) {
@@ -220,8 +222,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     // Setup template variables
     $template = new stdClass();
-    $template->title = isset($params['title']) && $params['title'] ? $params['title'] : NULL;
-    $template->body = isset($params['title']) && $params['body'] ? $params['body'] : NULL;
+    $template->title = empty($params['title']) ? NULL : $params['title'];
+    $template->body = empty($params['body']) ? NULL : $params['body'];
     $template->contactDetails = isset($params['contact_details']) && $params['contact_details']
       ? $params['contact_details']
       : NULL;
@@ -345,5 +347,16 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     /////////
 
     return $crmMailing;
+  }
+
+  /**
+   * Sanitise the params in order to make it conform to the requirements of the entity
+   *
+   * @param $params
+   */
+  protected static function sanitiseParams(&$params) {
+    if (!empty($params['body'])) {
+      $params['body'] = html_entity_decode($params['body']);
+    }
   }
 }
