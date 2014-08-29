@@ -63,6 +63,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @throws CRM_Extension_Exception
    */
   public static function submitMassEmail($params) {
+    $params['scheduled_id'] = CRM_Core_Session::singleton()->get('userID');
+
     static::sanitiseParams($params);
 
     /* Scheduled mailing jobs are being updated first here as it will help in two ways:
@@ -104,7 +106,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       = "
     SELECT
       sm.id, sm.crm_mailing_id, sm.from_address, sm.header_id, sm.title, sm.body, sm.contact_details, sm.message_id,
-      cm.name, cm.subject, cm.body_html, cm.created_id, cm.created_date, cm.scheduled_date,
+      cm.name, cm.subject, cm.body_html, cm.created_id, cm.created_date, cm.scheduled_id, cm.scheduled_date,
       MIN(j.start_date) start_date, MAX(j.end_date) end_date, j.status,
       c.sort_name,
       GROUP_CONCAT(DISTINCT g.entity_id) recipient_group_entity_ids
@@ -242,6 +244,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * Update recipient groups for the mailing - add new groups, and delete removed groups
    *
    * @param $params
+   *
    * @return void
    */
   protected static function updateRecipientGroups($params) {
@@ -390,6 +393,11 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     // Body HTML
     $crmMailingParams['body_html'] = static::generateEmailHtml($params);
+
+    // Scheduler ID
+    if (!empty($params['scheduled_id'])) {
+      $crmMailingParams['scheduled_id'] = $params['scheduled_id'];
+    }
 
     // Scheduled date
     if (!empty($params['scheduled_date'])) {
