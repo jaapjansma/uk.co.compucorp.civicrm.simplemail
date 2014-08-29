@@ -86,7 +86,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       sm.id, sm.crm_mailing_id, sm.from_address, sm.header_id, sm.title, sm.body, sm.contact_details, sm.message_id,
       cm.name, cm.subject, cm.body_html, cm.created_id, cm.created_date, cm.scheduled_date,
       MIN(j.start_date) start_date, MAX(j.end_date) end_date, j.status,
-      c.sort_name
+      c.sort_name,
+      GROUP_CONCAT(DISTINCT g.entity_id) recipient_group_entity_ids
 
     FROM civicrm_simplemail sm
 
@@ -98,6 +99,9 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     LEFT JOIN civicrm_contact c
     ON cm.created_id = c.id
+
+    LEFT JOIN civicrm_mailing_group g
+    ON cm.id = g.mailing_id
 
     WHERE $whereClause
 
@@ -112,20 +116,9 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
       while ($dao->fetch()) {
         $mailing = $dao->toArray();
+
         $mailing['status'] = $mailing['status'] ?: 'Not Scheduled';
-
-        $crmMailingId = $mailing['crm_mailing_id'];
-
-        $group = new CRM_Mailing_DAO_MailingGroup();
-        $group->mailing_id = $crmMailingId;
-        $group->find();
-
-        $groupEntityIds = array();
-        while ($group->fetch()) {
-          $groupEntityIds[] = $group->entity_id;
-        }
-
-        $mailing['recipient_group_entity_ids'] = $groupEntityIds;
+        $mailing['recipient_group_entity_ids'] = explode(',', $mailing['recipient_group_entity_ids']);
 
         $mailings[] = $mailing;
       }
