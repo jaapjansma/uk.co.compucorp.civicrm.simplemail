@@ -43,6 +43,15 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @throws CRM_Extension_Exception
    */
   public static function submitMassEmail($params) {
+    /* Scheduled mailing jobs are being updated first here as it will help in two ways:
+     *
+     * 1. In case mass mailing was being submitted for the first time, there won't be any jobs for it. The update method
+     *    would simply not find any jobs and therefore won't have to save any records.
+     *
+     * 2. CRM_Mailing_BAO_Mailing::create() created a mailing job if one does not exist yet. For such situation, if the
+     *    update method was used after the create() method below, the mailing job's scheduled date would be updated
+     *    unnecessarily.
+    */
     static::updateScheduledMailingJobs($params);
     static::create($params);
   }
@@ -193,6 +202,15 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    */
   protected static function rescheduleMailingJobs($crmMailingId, $date) {
     $mailingJob = new CRM_Mailing_BAO_MailingJob();
+
+    // This needs to be done as there can only be one query per DAO (see docs for reset()) - without this, the DAO
+    // object was keeping residual data from previous operations elsewhere on the same DAO, making the below operations
+    // unpredictable and fail
+    $mailingJob->reset();
+
+    // This is needed as the reset() above clears the query completely
+    $mailingJob->selectAdd('*');
+
     $mailingJob->mailing_id = $crmMailingId;
     $mailingJob->status = 'Scheduled';
     $mailingJob->is_test = 0;
