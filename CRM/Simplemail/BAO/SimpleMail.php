@@ -38,6 +38,26 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   }
 
   /**
+   * Delete the CiviCRM mailing corresponding to the SimpleMail mailing currently being deleted, as it would indirectly
+   * cause deletion of SimpleMail mailing and any associated scheduled mailing jobs
+   *
+   * @return void
+   * @throws CRM_Extension_Exception
+   */
+  public function delete() {
+    if (!$this->crm_mailing_id) {
+      throw new CRM_Extension_Exception(
+        'Failed to delete mailing it does not have a corresponding CiviCRM mailing associated', 500
+      );
+    }
+
+    $civiMailing = new CRM_Mailing_BAO_Mailing();
+    $civiMailing->id = (int) $this->crm_mailing_id;
+    $civiMailing->find(TRUE);
+    $civiMailing->delete(); // This will cascade and delete the corresponding SimpleMail mailing and mailing jobs
+  }
+
+  /**
    * @param $params
    *
    * @throws CRM_Extension_Exception
