@@ -228,7 +228,7 @@
 
               return mailing;
             })
-            .then(function(mailing) {
+            .then(function (mailing) {
               return civiApi.post(constants.ENTITY, mailing, 'submitmassemail');
               //return self.saveProgress();
             })
@@ -236,7 +236,7 @@
               notification.success('Mailing submitted for mass emailing');
               redirectToListing();
             })
-           .catch(function (response) {
+            .catch(function (response) {
               notification.error('Oops! Failed to submit the mailing for mass emailing');
               console.log('Something went wrong when trying to submit for mass emailing', response);
 
@@ -404,7 +404,7 @@
             self.prevStep();
           };
 
-          scope.submitMassEmail = function() {
+          scope.submitMassEmail = function () {
             self.setMailing(scope.mailing);
             self.submitMassEmail();
           };
@@ -610,7 +610,7 @@
             method: 'POST',
             url: '/civicrm/ajax/rest',
             data: serialisedData,  // pass in data as strings
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }  // set the headers so AngularJS POSTs the data as form data (and not request payload, which CiviCRM doesn't recognise)
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'}  // set the headers so AngularJS POSTs the data as form data (and not request payload, which CiviCRM doesn't recognise)
           });
         }
       }
