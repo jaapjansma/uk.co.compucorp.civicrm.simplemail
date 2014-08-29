@@ -220,48 +220,62 @@
 
         // TODO (robin): Validation before submitting request
         submitMassEmail: function () {
-          var self = this;
-          var now = Date.create().format('{yyyy}-{{MM}}-{{dd}} {{HH}}:{{mm}}:{{ss}}');
-
-          this.getMailing().then(function (response) {
-            var mailing = response;
-
-            if (mailing.send_immediately) {
-              // If the mailing already has an associated CiviCRM mail, don't do anything
-              if ('crm_mailing_id' in mailing) {
-                return false;
-              } else {
-                mailing.send_on = now;
+          this.getMailing()
+            .then(function (mailing) {
+              if (mailing.send_immediately) {
+                mailing.scheduled_date = Date.create().format('{yyyy}-{{MM}}-{{dd}} {{HH}}:{{mm}}:{{ss}}');
               }
-            }
 
-            // Save the mailing
-            // TODO (robin): Could this use saveProgress() instead of duplicating the logic here?
-            civiApi.create(constants.ENTITY, mailing)
-              .then(function () {
-                // Send the API request to submit mass email
-                civiApi.post('SimpleMail', {id: self.getMailingId()}, 'submitmassemail')
-                  .then(function (response) {
-                    if (response.data.is_error) return $q.reject(response);
+              return mailing;
+            })
+            .then(function(mailing) {
+              return civiApi.post(constants.ENTITY, mailing, 'submitmassemail');
+              //return self.saveProgress();
+            })
+            .then(function () {
+              notification.success('Mailing submitted for mass emailing');
+              redirectToListing();
+            })
+           .catch(function (response) {
+              notification.error('Oops! Failed to submit the mailing for mass emailing');
+              console.log('Something went wrong when trying to submit for mass emailing', response);
 
-                    console.log(response);
-                    mailing.crm_mailing_id = response.data.crmMailingId;
+              return $q.reject(response);
+            });
+        },
 
-                    civiApi.create(constants.ENTITY, mailing)
-                      .then(function(response) {
-                        console.log(response);
-                        notification.success('Mailing submitted for mass emailing');
+        /**
+         * Save progress of the mailing
+         *
+         * @returns {*}
+         */
+        saveProgress: function () {
+          var self = this;
 
-                        redirectToListing();
-                      });
+          return this.getMailing()
+            .then(function (mailing) {
+              return civiApi.create(constants.ENTITY, mailing);
+            })
+            .then(function (response) {
+              if (response.data.is_error) return $q.reject(response);
 
-                    return true;
-                  })
-                  .catch(function (response) {
-                    console.log('Failed to submit mailing for mass email', response);
-                  });
-              };
-          });
+              console.log('Mailing saved', response);
+              notification.success('Saved the mailing successfully');
+
+              // This is to set the mailing ID when a new mailing is created, as the ID would be 'new' otherwise.
+              // Setting the ID here would automatically ensure that clicking on the navigation buttons (e.g. 'next')
+              // would redirect to the correct URL (i.e. with correct mailing ID and step in the URL), as the
+              // navigation logic in this service uses mailing ID to figure out redirections.
+              if (isNaN(self.getMailingId())) {
+                self.setMailingId(+response.data.values[0].id);
+              }
+            })
+            .catch(function (response) {
+              notification.error('Failed to save the mailing');
+              console.log('Failed to save the mailing', response);
+
+              return $q.reject(response);
+            });
         },
 
         /**
@@ -277,54 +291,18 @@
 
               notification.info('Sending test email');
 
-              civiApi.post('SimpleMail', {
-                crmMailingId: mailing.crm_mailing_id,
-                groupId: mailing.testRecipientGroupId
-              }, 'sendtestemail')
-                .then(function (response) {
-                  console.log(response);
-                  notification.success('Test email send');
-                });
-            }
-          );
+              var data = {crmMailingId: mailing.crm_mailing_id, groupId: mailing.testRecipientGroupId};
+              return civiApi.post('SimpleMail', data, 'sendtestemail');
+            })
+            .then(function (response) {
+              console.log(response);
+              notification.success('Test email send');
+            })
+            .catch(function (response) {
+              notification.error('Failed to send test email');
+              console.log('Failed to send test email', response);
+            });
         },
-
-        /**
-         * Save progress of the mailing
-         *
-         * @returns {constants.ENTITY}
-         */
-        saveProgress: function () {
-          var self = this;
-
-          return this.getMailing().then(function (response) {
-            var mailing = response;
-
-            return civiApi.create(constants.ENTITY, mailing)
-              .then(function (response) {
-                if (response.data.is_error) return $q.reject(response);
-
-                console.log('Mailing saved', response);
-
-                // This is to set the mailing ID when a new mailing is created, as the ID would be 'new' otherwise.
-                // Setting the ID here would automatically ensure that clicking on the navigation buttons (e.g. 'next')
-                // would redirect to the correct URL (i.e. with correct mailing ID and step in the URL), as the
-                // navigation logic in this service uses mailing ID to figure out redirections.
-                if (isNaN(self.getMailingId())) {
-                  self.setMailingId(+response.data.values[0].id);
-                }
-              })
-              // Group IDs need to be saved *after* saving mailing as in case of a new mailing there won't be a mailing
-              // ID. However, by saving the mailing first, we can get the id of the newly created mailing.
-              .then(function () {
-                if (self.getStep() === Steps.FIRST) {
-                  if (angular.isDefined(mailing.recipientGroupIds) && mailing.recipientGroupIds.length) {
-                    self.saveRecipientGroupIds(mailing.recipientGroupIds);
-                  }
-                }
-              });
-          });
-       },
 
         /**
          * Set the current step. This should be defined at each step in order for next/prev step buttons to work correctly.

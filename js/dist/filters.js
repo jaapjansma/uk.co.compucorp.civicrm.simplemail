@@ -41,6 +41,8 @@
   filters.filter('filterMailings', ['$filter',
     function ($filter) {
       return function (mailings, filters) {
+        // TODO (robin): Uncomment this - for testing only
+        return mailings;
         if (! angular.isArray(mailings)) return false;
 
         if( ! angular.isObject(filters)) return mailings;

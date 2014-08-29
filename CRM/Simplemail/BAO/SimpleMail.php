@@ -38,6 +38,25 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   }
 
   /**
+   * @param $params
+   *
+   * @throws CRM_Extension_Exception
+   */
+  public static function submitMassEmail($params) {
+    static::updateScheduledMailingJobs($params);
+    static::create($params);
+  }
+
+  /**
+   * Cancel mailing jobs for a CiviCRM mailing with the provided ID
+   *
+   * @param int $crmMailingId CiviCRM mailing ID
+   */
+  public static function cancelMailingJobs($crmMailingId) {
+    CRM_Mailing_BAO_MailingJob::cancel($crmMailingId);
+  }
+
+  /**
    * Get a list of mailings, which consist of data combined from Simple Mail, CiviCRM Mail, mailing job and contact
    * tables
    *
@@ -145,9 +164,46 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     return array('values' => array(array('jobId' => $job->id)), 'dao' => $job);
   }
 
-///////////////////////
-// Protected Methods //
-///////////////////////
+  ///////////////////////
+  // Protected Methods //
+  ///////////////////////
+
+  /**
+   * Update scheduled jobs for the mailing
+   *
+   * @param $params
+   *
+   * @throws CRM_Extension_Exception
+   */
+  protected static function updateScheduledMailingJobs($params) {
+    if (empty($params['scheduled_date'])) {
+      throw new CRM_Extension_Exception(
+        'Failed to update scheduled job(s) for the mailing as scheduled date not provided', 405, array('dao' => NULL)
+      );
+    }
+
+    static::rescheduleMailingJobs($params['crm_mailing_id'], $params['scheduled_date']);
+  }
+
+  /**
+   * Reschedule jobs for a mailing given by CiviCRM mailing ID
+   *
+   * @param int    $crmMailingId The ID of CiviCRM mailing for which the jobs need to be rescheduled
+   * @param string $date         Date to reschedule to
+   */
+  protected static function rescheduleMailingJobs($crmMailingId, $date) {
+    $mailingJob = new CRM_Mailing_BAO_MailingJob();
+    $mailingJob->mailing_id = $crmMailingId;
+    $mailingJob->status = 'Scheduled';
+    $mailingJob->is_test = 0;
+
+    if ($mailingJob->find()) {
+      while ($mailingJob->fetch()) {
+        $mailingJob->scheduled_date = $date;
+        $mailingJob->save();
+      }
+    }
+  }
 
   /**
    * Update recipient groups for the mailing - add new groups, and delete removed groups
@@ -303,8 +359,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $crmMailingParams['body_html'] = static::generateEmailHtml($params);
 
     // Scheduled date
-    if (isset($params['scheduled_date'])) {
-      $crmMailingParams['scheduled_date'] = str_replace(array('-', ':', ' '), '', $params['scheduled_date']) ?: NULL;
+    if (!empty($params['scheduled_date'])) {
+      $crmMailingParams['scheduled_date'] = $params['scheduled_date'];
     }
 
     // De-duplicate emails
@@ -355,8 +411,15 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @param $params
    */
   protected static function sanitiseParams(&$params) {
+    // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
     if (!empty($params['body'])) {
       $params['body'] = html_entity_decode($params['body']);
+    }
+
+    // Reformat the scheduled date for a format required by CivCRM
+    if (!empty($params['scheduled_date'])) {
+      $dateTime = new DateTime($params['scheduled_date']);
+      $params['scheduled_date'] = $dateTime->format('YmdHis');
     }
   }
 }

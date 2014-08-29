@@ -55,9 +55,6 @@ function civicrm_api3_simple_mail_get($params) {
 /**
  * SimpleMail.SubmitMassEmail API
  *
- * TODO (robin): Refactor this towards the end
- * TODO (robin): Should this better be pushed to the queue instead?
- *
  * @param array $params
  *
  * @return array API result descriptor
@@ -66,22 +63,15 @@ function civicrm_api3_simple_mail_get($params) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_submitmassemail($params) {
-  /*
-   * Overview:
-   *
-   * 1. Get the SM mailing using the API
-   * 2. Generate a Civi mailing from the SM mailing
-   * 3. Return the Civi mailing ID
-   */
+  try {
+    $result = CRM_Simplemail_BAO_SimpleMail::submitMassEmail($params);
 
+    return civicrm_api3_create_success($result['values'], $params, NULL, 'submitmassemail', $result['dao']);
+  } catch (CRM_Extension_Exception $e) {
+    $errorData = $e->getErrorData();
 
-  if (!isset($params['id'])) {
-    throw new API_Exception('Failed to submit mass emailing job as Simple Mail mailing ID was not provided', 405);
+    return civicrm_api3_create_error($e->getMessage(), array(), $errorData['dao']);
   }
-
-  $crmMailing = _create_or_update_civicrm_mass_mailing((int) $params['id']);
-
-  return array('crmMailingId' => $crmMailing->id);
 }
 
 /**
