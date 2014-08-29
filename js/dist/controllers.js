@@ -50,6 +50,11 @@
           console.log('Failed to retrieve mailing', response);
         });
 
+      /**
+       * Delete a mailing given by its index in the mailings array
+       *
+       * @param index
+       */
      $scope.deleteMailing = function (index) {
         var mailing = $scope.mailings[index];
 
