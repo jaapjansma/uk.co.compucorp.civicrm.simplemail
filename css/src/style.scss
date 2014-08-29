@@ -7,6 +7,8 @@ $medium-grey: #a0a0a0;
 $light-grey: #c0c0c0;
 $lightest-grey: #f0f0f0;
 $yellow: lightgoldenrodyellow;
+$orange: orange;
+$green: green;
 
 /* Themed colours */
 $drop-zone: $yellow;
@@ -25,6 +27,14 @@ $border-radius: 3px;
 
 .sm-container {
 /*   overflow: hidden; */
+  .fa-clock-o {
+    color: $orange;
+  }
+
+  .fa-check,
+  .fa-check-circle-o {
+    color: $green;
+  }
 
   .quickdate {
     font-size: 0.8rem;
@@ -80,7 +90,8 @@ $border-radius: 3px;
   table {
     tr {
       td.current-status {
-        text-transform: capitalize;        
+        text-transform: capitalize;
+        text-align: center;
       }
       td.thumb {
         img {

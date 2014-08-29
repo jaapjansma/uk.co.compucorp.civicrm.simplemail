@@ -39,7 +39,6 @@
     <tr>
       <th class="id">ID</th>
       <th class="name">Name</th>
-      <th class="subject">Subject</th>
       <th class="current-status">Status</th>
       <th class="created-by">Created By</th>
       <th class="created-date">Created Date</th>
@@ -53,10 +52,13 @@
         ng-class-odd="'odd-row'">
       <td class="id">{{mailing.id}}</td>
       <td class="name">{{mailing.name}}</td>
-      <td class="subject">{{mailing.subject}}</td>
-      <td class="current-status">{{mailing.status}}</td>
+      <td class="current-status">
+        <i class="fa fa-2x" ng-class="{Scheduled: 'fa-clock-o', Complete: 'fa-check-circle-o'}[mailing.status]"></i>
+        <!--        {{mailing.status}}-->
+      </td>
 
-      <td class="created-by">{{mailing.sort_name}}</td>
+      <td class="created-by"><a
+          ng-href="/civicrm/contact/view?reset=1&cid={{mailing.created_id}}">{{mailing.sort_name}}</a></td>
       <td class="created-date">{{mailing.created_date}}</td>
       <td class="scheduled">{{mailing.scheduled_date}}</td>
       <td class="started">{{mailing.start_date}}</td>
