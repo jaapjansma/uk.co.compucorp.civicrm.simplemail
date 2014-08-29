@@ -77,7 +77,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
      *    unnecessarily.
     */
     static::updateScheduledMailingJobs($params);
-    static::create($params);
+    return static::create($params);
   }
 
   /**
@@ -238,6 +238,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
         $mailingJob->save();
       }
     }
+    
+    $mailingJob->free();
   }
 
   /**
