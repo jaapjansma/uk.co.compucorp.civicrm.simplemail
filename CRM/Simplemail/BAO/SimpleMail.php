@@ -43,6 +43,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @throws CRM_Extension_Exception
    */
   public static function submitMassEmail($params) {
+    static::sanitiseParams($params);
+
     /* Scheduled mailing jobs are being updated first here as it will help in two ways:
      *
      * 1. In case mass mailing was being submitted for the first time, there won't be any jobs for it. The update method
