@@ -144,6 +144,10 @@ function civicrm_api3_simple_mail_sendtestemail($params) {
   }
 }
 
+//////////////////////
+// Helper Functions //
+//////////////////////
+
 /**
  * @param $entity
  * @param $id
