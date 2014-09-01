@@ -62,6 +62,20 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    *
    * @throws CRM_Extension_Exception
    */
+  public static function cancelMassEmail($params) {
+    if (empty($params['crm_mailing_id'])) {
+      throw new CRM_Extension_Exception('Failed to cancel mass mailing as CiviCRM mailing ID not available', 500);
+    }
+
+    static::cancelMailingJobs($params['crm_mailing_id']);
+  }
+
+  /**
+   * @param $params
+   *
+   * @return \CRM_Simplemail_DAO_SimpleMail|NULL
+   * @throws CRM_Extension_Exception
+   */
   public static function submitMassEmail($params) {
     $params['scheduled_id'] = CRM_Core_Session::singleton()->get('userID');
 
@@ -77,16 +91,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
      *    unnecessarily.
     */
     static::updateScheduledMailingJobs($params);
-    return static::create($params);
-  }
 
-  /**
-   * Cancel mailing jobs for a CiviCRM mailing with the provided ID
-   *
-   * @param int $crmMailingId CiviCRM mailing ID
-   */
-  public static function cancelMailingJobs($crmMailingId) {
-    CRM_Mailing_BAO_MailingJob::cancel($crmMailingId);
+    return static::create($params);
   }
 
   /**
@@ -238,8 +244,17 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
         $mailingJob->save();
       }
     }
-    
+
     $mailingJob->free();
+  }
+
+  /**
+   * Cancel mailing jobs for a CiviCRM mailing with the provided ID
+   *
+   * @param int $crmMailingId CiviCRM mailing ID
+   */
+  protected static function cancelMailingJobs($crmMailingId) {
+    CRM_Mailing_BAO_MailingJob::cancel($crmMailingId);
   }
 
   /**
