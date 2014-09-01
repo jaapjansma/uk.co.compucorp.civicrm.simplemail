@@ -107,6 +107,12 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
    */
   public $from_address;
   /**
+   * Email address for the reply to button
+   *
+   * @var string
+   */
+  public $reply_address;
+  /**
    * The ID of a mailing header
    *
    * @var int unsigned
@@ -194,6 +200,16 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
             'type' => 'Text',
           ) ,
         ) ,
+        'reply_address' => array(
+          'name' => 'reply_address',
+          'type' => CRM_Utils_Type::T_STRING,
+          'title' => ts('Reply Address') ,
+          'maxlength' => 256,
+          'size' => CRM_Utils_Type::HUGE,
+          'html' => array(
+            'type' => 'Text',
+          ) ,
+        ) ,
         'header_id' => array(
           'name' => 'header_id',
           'type' => CRM_Utils_Type::T_INT,
@@ -239,6 +255,7 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
         'id' => 'id',
         'crm_mailing_id' => 'crm_mailing_id',
         'from_address' => 'from_address',
+        'reply_address' => 'reply_address',
         'header_id' => 'header_id',
         'title' => 'title',
         'body' => 'body',

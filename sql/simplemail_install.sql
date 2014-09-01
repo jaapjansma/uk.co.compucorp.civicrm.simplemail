@@ -73,6 +73,7 @@ CREATE TABLE `civicrm_simplemail` (
   `id`              INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique SimpleMail ID',
   `crm_mailing_id`  INT UNSIGNED COMMENT 'The ID of CiviCRM mailing, once it has been generated from Simple Mail',
   `from_address`    VARCHAR(256) COMMENT 'Name and email address for the from field',
+  `reply_address`   VARCHAR(256) COMMENT 'Email address for the reply to button',
   `header_id`       INT UNSIGNED COMMENT 'The ID of a mailing header',
   `title`           VARCHAR(64) COMMENT 'Title/strapline for the email (in the title region)',
   `body`            TEXT COMMENT 'Body of the email',

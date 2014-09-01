@@ -34,39 +34,21 @@
     <onDelete>CASCADE</onDelete>
   </foreignKey>
 
-  <!--<field>-->
-  <!--<name>name</name>-->
-  <!--<type>varchar</type>-->
-  <!--<length>64</length>-->
-  <!--<title>Name</title>-->
-  <!--<comment>Name of the mailing</comment>-->
-  <!--&lt;!&ndash;<required>true</required>&ndash;&gt;-->
-  <!--<add>4.4</add>-->
-  <!--</field>-->
-
-  <!--<field>-->
-  <!--<name>remove_duplicates</name>-->
-  <!--<type>boolean</type>-->
-  <!--<default>0</default>-->
-  <!--&lt;!&ndash;<required>true</required>&ndash;&gt;-->
-  <!--</field>-->
-
-  <!--<field>-->
-  <!--<name>resume_step</name>-->
-  <!--<type>int unsigned</type>-->
-  <!--<title>Resume Step</title>-->
-  <!--&lt;!&ndash;<required>true</required>&ndash;&gt;-->
-  <!--<default>1</default>-->
-  <!--<comment>The step to resume from on the wizard</comment>-->
-  <!--<add>4.4</add>-->
-  <!--</field>-->
-
-  <!--TODO (robin): Get rid of this later once migration to BAO is complete and joined results are working-->
   <field>
     <name>from_address</name>
     <type>varchar</type>
     <length>256</length>
     <comment>Name and email address for the from field</comment>
+    <html>
+      <type>Text</type>
+    </html>
+  </field>
+
+  <field>
+    <name>reply_address</name>
+    <type>varchar</type>
+    <length>256</length>
+    <comment>Email address for the reply to button</comment>
     <html>
       <type>Text</type>
     </html>
@@ -85,16 +67,6 @@
     <key>id</key>
     <onDelete>SET NULL</onDelete>
   </foreignKey>
-
-  <!--<field>-->
-  <!--<name>subject</name>-->
-  <!--<type>varchar</type>-->
-  <!--<length>64</length>-->
-  <!--<title>Subject</title>-->
-  <!--<comment>Subject of the email</comment>-->
-  <!--&lt;!&ndash;<required>true</required>&ndash;&gt;-->
-  <!--<add>4.4</add>-->
-  <!--</field>-->
 
   <field>
     <name>title</name>
@@ -137,21 +109,5 @@
     <key>id</key>
     <onDelete>SET NULL</onDelete>
   </foreignKey>
-
-  <!--<field>-->
-  <!--<name>send_immediately</name>-->
-  <!--<type>boolean</type>-->
-  <!--<default>0</default>-->
-  <!--&lt;!&ndash;<required>true</required>&ndash;&gt;-->
-  <!--</field>-->
-
-  <!--<field>-->
-  <!--<name>send_on</name>-->
-  <!--<type>datetime</type>-->
-  <!--<title>Send On</title>-->
-  <!--<comment>Date scheduled for sending emails</comment>-->
-  <!--&lt;!&ndash;<required>false</required>&ndash;&gt;-->
-  <!--<add>4.4</add>-->
-  <!--</field>-->
 
 </table>
