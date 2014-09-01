@@ -1,13 +1,18 @@
 (function () {
   "use strict";
 
+  /**
+   * @type {ng.IModule}
+   */
   var filters = angular.module('simpleMail.filters', []);
 
   /**
-   * Search for an item by a key in a collection, and return it if found
-   *
-   * @ngdoc filter
+   * @ngDoc filter
    * @name itemFromCollection
+   * @kind function
+   *
+   * @description Search for an item by a key in a collection, and return it if found
+   *
    * @param collection An array of objects or arrays
    * @param searchKey
    * @param searchValue
@@ -38,11 +43,14 @@
     }
   ]);
 
+  /**
+   * @ngDoc filter
+   * @name filterMailings
+   * @kind function
+   */
   filters.filter('filterMailings', ['$filter',
     function ($filter) {
       return function (mailings, filters) {
-        // TODO (robin): Uncomment this - for testing only
-        return mailings;
         if (! angular.isArray(mailings)) return false;
 
         if( ! angular.isObject(filters)) return mailings;
@@ -62,6 +70,10 @@
     }
   ]);
 
+  /**
+   * @ngDoc filter
+   * @name filterMailingsByStatus
+   */
   filters.filter('filterMailingsByStatus', [
     function () {
       return function (mailings, filters) {
@@ -88,6 +100,10 @@
     }
   ]);
 
+  /**
+   * @ngDoc filter
+   * @name filterMailingsByCreator
+   */
   filters.filter('filterMailingsByCreator', [
     function () {
       return function (mailings, creator) {
@@ -109,6 +125,9 @@
     }
   ]);
 
+  /**
+   * @ngDoc filter
+   */
   filters.filter('headersForSelectedFilter', ['uniqueFilter',
     function (unique) {
       return function (headers, filterId) {
@@ -132,6 +151,9 @@
     }
   ]);
 
+  /**
+   * @ngDoc filter
+   */
   filters.filter('unique', [
     function () {
       return function (items, uniqueKey) {
@@ -160,6 +182,9 @@
     }
   ]);
 
+  /**
+   * @ngDoc filter
+   */
   filters.filter('extractColumn', [
     function () {
       return function (collection, column) {

@@ -34,7 +34,8 @@
   ]);
 
   /**
-   * @ngdoc directive
+   * @ngDoc directive
+   * @name smSimpleImageCarousel
    */
   directives.directive('smSimpleImageCarousel', ['paths', '$timeout', '$rootScope', 'itemFromCollectionFilter', 'headersForSelectedFilterFilter',
     function (paths, $timeout, $rootScope, itemFromCollection, headersForSelectedFilter) {
@@ -218,6 +219,23 @@
       return {
         link: link
       };
+    }
+  ]);
+
+  /**
+   * @ngdoc directive
+   */
+  directives.directive('smMailingActionButtons', ['paths',
+    function (paths) {
+      return {
+        scope: {
+          mailing: '=',
+          constants: '=statusConstants',
+          delete: '&onDelete',
+          cancel: '&onCancel'
+        },
+        templateUrl: paths.TEMPLATES_DIR() + '/action-buttons.html'
+      }
     }
   ]);
 })();

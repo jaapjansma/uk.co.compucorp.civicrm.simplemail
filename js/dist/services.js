@@ -260,7 +260,7 @@
               if (response.data.is_error) return $q.reject(response);
 
               console.log('Mailing saved', response);
-              notification.success('Saved the mailing successfully');
+              notification.success('Mailing saved');
 
               // This is to set the mailing ID when a new mailing is created, as the ID would be 'new' otherwise.
               // Setting the ID here would automatically ensure that clicking on the navigation buttons (e.g. 'next')

@@ -2,9 +2,9 @@
   "use strict";
 
   /**
-   * Controllers for the mailing wizard section of the app
+   * @type {ng.IModule}
    *
-   * @type {*|module}
+   * @description Controllers for the mailing wizard section of the app
    */
   var controllers = angular.module('simpleMail.app.controllers', []);
 
@@ -14,7 +14,10 @@
   }]);
 
   /**
-   * Listing of mailing wizards
+   * @ngDoc controller
+   * @name MailingsController
+   *
+   * @description Listing of mailing wizards
    */
   controllers.controller('MailingsController', [
     '$scope', '$http', '$q', 'civiApiServices', 'loggingServices', 'notificationServices', '$filter',
@@ -24,16 +27,19 @@
         ENTITY_NAME: 'SimpleMail',
         DRAFT: 'Not Scheduled',
         SCHEDULED: 'Scheduled',
-        PAST: 'Sent'
+        SENT: 'Complete',
+        CANCELLED: 'Canceled'
       };
 
       $scope.models = {};
 
       $scope.mailingFilters = {
-        status: {}, 
+        status: {},
         creator: 'all'
       };
-        
+
+      $scope.filteredMailings = [];
+
       $scope.mailingFilters.status[$scope.constants.DRAFT] = true;
       $scope.mailingFilters.status[$scope.constants.SCHEDULED] = true;
       $scope.mailingFilters.status[$scope.constants.PAST] = false;
@@ -51,24 +57,72 @@
         });
 
       /**
-       * Delete a mailing given by its index in the mailings array
+       * @name deleteMailing
+       * @description Delete a mailing given by its index in the mailings array
        *
-       * @param index
+       * @param mailing
        */
-     $scope.deleteMailing = function (index) {
-        var mailing = $scope.mailings[index];
+      $scope.deleteMailing = function (mailing) {
+        if (!mailing.hasOwnProperty('_internal')) mailing._internal = {};
 
-       civiApi.remove('SimpleMail', mailing)
-         .then(function (response) {
-           if (response.data.is_error) return $q.reject(response);
+        // Don't do anything if the button was pressed already and waiting for server response
+        if (mailing._internal.deleteEnabled === false) {
+          return;
+        }
 
-           notification.success('Mailing deleted');
-           $scope.mailings.splice(index, 1);
-         })
-         .catch(function (response) {
-           notification.error('Failed to delete the mailing', response.data.error_message);
-           console.log('Failed to delete the mailing', response);
-         });
+        mailing._internal.deleteEnabled = false;
+
+        var index = $scope.mailings.indexOf(mailing);
+
+        if (index !== -1) {
+          civiApi.remove('SimpleMail', mailing)
+            .then(function (response) {
+              if (response.data.is_error) return $q.reject(response);
+
+              notification.success('Mailing deleted');
+               $scope.mailings.splice(index, 1);
+              mailing._internal.deleteEnabled = true;
+            })
+            .catch(function (response) {
+              notification.error('Failed to delete the mailing', response.data.error_message);
+              console.log('Failed to delete the mailing', response);
+              mailing._internal.deleteEnabled = true;
+            });
+        }
+      };
+
+      /**
+       * Cancel scheduled mass mailing
+       *
+       * @param mailing
+       */
+      $scope.cancelMailing = function (mailing) {
+        if (!mailing.hasOwnProperty('_internal')) mailing._internal = {};
+
+        // Don't do anything if the button was pressed already and waiting for server response
+        if (mailing._internal.cancelEnabled === false) {
+          return;
+        }
+
+        mailing._internal.cancelEnabled = false;
+
+        var index = $scope.mailings.indexOf(mailing);
+
+        if (index !== -1) {
+          civiApi.post('SimpleMail', mailing, 'cancelmassemail')
+            .then(function (response) {
+              if (response.data.is_error) return $q.reject(response);
+
+              notification.success('Mailing cancelled');
+              mailing.status = 'Canceled';
+              mailing._internal.cancelEnabled = true;
+            })
+            .catch(function (response) {
+              notification.error('Failed to cancel the mailing');
+              console.log('Failed to cancel the mailing', response);
+              mailing._internal.cancelEnabled = true;
+            })
+        }
       };
     }
   ]);

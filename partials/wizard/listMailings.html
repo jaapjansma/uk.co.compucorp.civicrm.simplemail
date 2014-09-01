@@ -20,8 +20,11 @@
       <input ng-model="mailingFilters.status[constants.SCHEDULED]" id="filter-scheduled-mailings" type="checkbox"/>
       <label for="filter-scheduled-mailings">Scheduled</label>
 
-      <input ng-model="mailingFilters.status[constants.PAST]" id="filter-past-mailings" type="checkbox"/>
-      <label for="filter-past-mailings">Past</label>
+      <input ng-model="mailingFilters.status[constants.SENT]" id="filter-sent-mailings" type="checkbox"/>
+      <label for="filter-sent-mailings">Sent</label>
+
+      <input ng-model="mailingFilters.status[constants.CANCELLED]" id="filter-cancelled-mailings" type="checkbox"/>
+      <label for="filter-cancelled-mailings">Cancelled</label>
     </div>
 
     <div class="filter inline">
@@ -48,13 +51,15 @@
       <th class="action-buttons">Action</th>
     </tr>
     </thead>
-    <tr ng-repeat="mailing in (mailings | filterMailings:mailingFilters)" ng-class-even="'even-row'"
+    <tr ng-repeat="mailing in filteredMailings = (mailings | filterMailings:mailingFilters)" ng-class-even="'even-row'"
         ng-class-odd="'odd-row'">
       <td class="id">{{mailing.id}}</td>
       <td class="name">{{mailing.name}}</td>
       <td class="current-status">
-        <i class="fa fa-2x" ng-class="{Scheduled: 'fa-clock-o', Complete: 'fa-check-circle-o'}[mailing.status]"></i>
-        <!--        {{mailing.status}}-->
+        <i class="fa fa-2x"
+           ng-class="{Scheduled: 'fa-clock-o', Complete: 'fa-check-circle-o', 'Not Scheduled': 'fa-pencil', Canceled: 'fa-times-circle-o'}[mailing.status]"
+           title="{{mailing.status}}">
+        </i>
       </td>
 
       <td class="created-by"><a
@@ -65,11 +70,12 @@
       <td class="completed">{{mailing.end_date}}</td>
 
       <td class="action-buttons">
-        <a ng-if="mailing.status === constants.DRAFT || mailing.status === constants.SCHEDULED"
-           ng-href="#/mailings/{{mailing.id}}" class="button">
-          {{mailing.status === constants.DRAFT ? 'Edit' : 'Update'}}
-        </a>
-        <a href ng-click="deleteMailing($index)" class="button">Delete</a>
+        <div data-sm-mailing-action-buttons
+             data-mailing="mailing"
+             data-status-constants="constants"
+             data-on-delete="deleteMailing(mailing)"
+             data-on-cancel="cancelMailing(mailing)">
+        </div>
       </td>
     </tr>
   </table>
