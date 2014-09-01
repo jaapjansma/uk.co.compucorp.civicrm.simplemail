@@ -75,7 +75,7 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
 }
 
 /**
- * SimpleMail.DeleteMassEmail API
+ * SimpleMail.CancelMassEmail API
  *
  * @param array $params
  *
@@ -84,17 +84,14 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
  * @see civicrm_api3_create_error
  * @throws API_Exception
  */
-function civicrm_api3_simple_mail_deletemassemail($params) {
-  if (!isset($params['crmMailingId'])) {
-    throw new API_Exception(
-      'Failed to delete mass email as CiviCRM mailing ID not provided', 405);
+function civicrm_api3_simple_mail_cancelmassemail($params) {
+  try {
+    CRM_Simplemail_BAO_SimpleMail::cancelMassEmail($params);
+
+    return civicrm_api3_create_success(1, $params, NULL, 'cancelmassemail');
+  } catch (CRM_Extension_Exception $e) {
+    return civicrm_api3_create_error($e->getMessage());
   }
-
-  $crmMailingId = $params['crmMailingId'];
-
-  CRM_Mailing_BAO_Mailing::del($crmMailingId);
-
-  return TRUE;
 }
 
 /*
