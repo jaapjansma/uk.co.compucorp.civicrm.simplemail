@@ -21,12 +21,19 @@
 
     <h2>Message details:</h2>
 
-    <div class="field-group clearfix">
-      <label for="">From address</label>
-      <select ui-select2 ng-model="mailing.from_address" data-placeholder="Select from address" name="" id="">
-        <option value=""></option>
-        <option ng-repeat="email in fromEmailOptionValues" value="{{email.label}}">{{email.label}}</option>
-      </select>
+    <div class="cols clearfix">
+      <div class="col one-half field-group left">
+        <label for="">From address</label>
+        <select class="full-width" ui-select2 ng-model="mailing.from_address" data-placeholder="Select from address" name="" id="">
+          <option value=""></option>
+          <option ng-repeat="email in fromEmailOptionValues" value="{{email.label}}">{{email.label}}</option>
+        </select>
+      </div>
+
+      <div class="col one-half field-group right">
+        <label for="reply-address">Reply To</label>
+        <input class="full-width" id="reply-address" ng-model="mailing.reply_address" type="text"/>
+      </div>
     </div>
 
     <div class="field-group clearfix">

@@ -311,7 +311,7 @@ $border-radius: 3px;
   }
   
   .full-width {
-    width: $full;
+    width: $full !important;
   }
   
   .buttons {
@@ -330,6 +330,10 @@ $border-radius: 3px;
   .field-group.inline .auto-width {
     width: auto;
   }
+  .one-half {
+    width: $one-half;
+    box-sizing: border-box;
+  }
   .one-third {
     width: $one-third;
     box-sizing: border-box;
@@ -344,7 +348,7 @@ $border-radius: 3px;
   }
       
   .select2-container {    
-    width: $one-half;    
+    width: $one-half;
   }
   
   .cols {
@@ -380,7 +384,7 @@ $border-radius: 3px;
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
-    padding: 0.25rem;
+    padding: 0.4rem;
   }
   textarea {
     resize: none;    
@@ -393,6 +397,10 @@ $border-radius: 3px;
     margin: 0.5rem 0;
   }
   input {
+    border-radius: 3px;
+  }
+  input,
+  .select2-container {
     margin: 0.5rem 0;
   }
   
