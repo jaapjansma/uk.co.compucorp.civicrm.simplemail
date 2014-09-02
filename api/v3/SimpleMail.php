@@ -45,7 +45,7 @@ function civicrm_api3_simple_mail_get($params) {
   try {
     $result = CRM_Simplemail_BAO_SimpleMail::getMailing($params);
 
-    return civicrm_api3_create_success($result['values'], $params, null, 'get', $result['dao']);
+    return civicrm_api3_create_success($result['values'], $params, null, 'get', $result['dao'], $result['extraValues']);
   } catch (CRM_Extension_Exception $e) {
     $errorData = $e->getErrorData();
     return civicrm_api3_create_error($e->getMessage(), array(), $errorData['dao']);

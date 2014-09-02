@@ -151,11 +151,19 @@ $border-radius: 3px;
         display: inline;
         margin-right: 1rem;
       }
-      input {
-        margin-left: 1rem;        
-      }
+      input {}
       label {
         margin-left: 0.25rem;
+      }
+      ul.inline {
+        li {
+          margin: 0;
+          padding: 0;
+        }
+        label {
+          float: none;
+          display: inline;
+        }
       }
     }
   }
@@ -329,6 +337,9 @@ $border-radius: 3px;
   }
   .field-group.inline .auto-width {
     width: auto;
+  }
+  ul.inline {
+    list-style: inline;
   }
   .one-half {
     width: $one-half;

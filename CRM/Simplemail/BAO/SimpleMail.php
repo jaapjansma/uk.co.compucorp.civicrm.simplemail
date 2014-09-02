@@ -156,7 +156,11 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       throw new CRM_Extension_Exception('Failed to retrieve mailings: ' . $e->getMessage(), 500, array('dao' => $dao));
     }
 
-    return array('values' => $mailings, 'dao' => $dao);
+    return array(
+      'values'      => $mailings,
+      'dao'         => $dao,
+      'extraValues' => array('userId' => CRM_Core_Session::singleton()->get('userID'))
+    );
   }
 
   /**

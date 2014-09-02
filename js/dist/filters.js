@@ -106,16 +106,16 @@
    */
   filters.filter('filterMailingsByCreator', [
     function () {
-      return function (mailings, creator) {
-        if (angular.lowercase(creator) === 'all') return mailings;
+      return function (mailings, creatorId) {
+        if (creatorId === 'all') return mailings;
 
-        var currentMailing = null;
         var filteredMailings = [];
 
+        var currentMailing = null;
         for (var i = 0, iEnd = mailings.length; i < iEnd; i++) {
           currentMailing = mailings[i];
 
-          if (currentMailing.hasOwnProperty('sort_name') && currentMailing.sort_name === creator) {
+          if (currentMailing.hasOwnProperty('created_id') && currentMailing.created_id === creatorId) {
             filteredMailings.push(currentMailing);
           }
         }
@@ -162,7 +162,7 @@
 
         uniqueKey = uniqueKey || 0;
         
-        angular.forEach(items, function(value, key) {
+        angular.forEach(items, function(value) {
           var candidate = null;
           if (angular.isObject(value) && value.hasOwnProperty(uniqueKey)) {
             candidate = value[uniqueKey];
@@ -187,14 +187,22 @@
    */
   filters.filter('extractColumn', [
     function () {
-      return function (collection, column) {
+      return function (collection, columns) {
         var extractedColumn = [];
 
-        angular.forEach(collection, function (value, key) {
-          if (angular.isObject(value) && value.hasOwnProperty(column) && value[column]) {
-            extractedColumn.push(value[column]);
-          }
-        });
+        if (angular.isObject(collection) && angular.isObject(columns)) {
+          angular.forEach(collection, function (item) {
+            var row = {};
+
+            angular.forEach(columns, function (column, alias) {
+              if (angular.isObject(item) && item.hasOwnProperty(column) && item[column]) {
+                row[alias] = item[column];
+              }
+            });
+
+            extractedColumn.push(row);
+          });
+        }
 
         return extractedColumn;
       }

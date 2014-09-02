@@ -11,28 +11,38 @@
   </div>
 
   <div ng-show="showFilters" class="filters crm-form-block">
-    <div class="filter inline">
-      <p class="filter-title">Mailing status:</p>
+    <div class="field-group filter inline clearfix">
+      <p class="filter-title label">Mailing status:</p>
 
-      <input ng-model="mailingFilters.status[constants.DRAFT]" id="filter-draft-mailings" type="checkbox"/>
-      <label for="filter-draft-mailings">Draft</label>
+      <ul class="inline" style="list-style: none; padding: 0; margin: 0;">
+        <li>
+          <input ng-model="mailingFilters.status[constants.DRAFT]" id="filter-draft-mailings" type="checkbox"/>
+          <label for="filter-draft-mailings">Not Scheduled</label>
+        </li>
 
-      <input ng-model="mailingFilters.status[constants.SCHEDULED]" id="filter-scheduled-mailings" type="checkbox"/>
-      <label for="filter-scheduled-mailings">Scheduled</label>
+        <li>
+          <input ng-model="mailingFilters.status[constants.SCHEDULED]" id="filter-scheduled-mailings" type="checkbox"/>
+          <label for="filter-scheduled-mailings">Scheduled</label>
+        </li>
 
-      <input ng-model="mailingFilters.status[constants.SENT]" id="filter-sent-mailings" type="checkbox"/>
-      <label for="filter-sent-mailings">Sent</label>
+        <li>
+          <input ng-model="mailingFilters.status[constants.SENT]" id="filter-sent-mailings" type="checkbox"/>
+          <label for="filter-sent-mailings">Sent</label>
+        </li>
 
-      <input ng-model="mailingFilters.status[constants.CANCELLED]" id="filter-cancelled-mailings" type="checkbox"/>
-      <label for="filter-cancelled-mailings">Cancelled</label>
+        <li>
+          <input ng-model="mailingFilters.status[constants.CANCELLED]" id="filter-cancelled-mailings" type="checkbox"/>
+          <label for="filter-cancelled-mailings">Cancelled</label>
+        </li>
+      </ul>
     </div>
 
-    <div class="filter inline">
-      <p class="filter-title">Created By:</p>
+    <div class="field-group filter inline clearfix">
+      <p class="filter-title label">Created By:</p>
 
       <select ui-select2 ng-model="mailingFilters.creator" data-placeholder="Created By" name="" id="">
         <option value="all">All</option>
-        <option ng-repeat="creator in models.creators" value="{{creator}}">{{creator}}</option>
+        <option ng-repeat="creator in models.creators" value="{{creator.id}}">{{creator.name}}</option>
       </select>
     </div>
   </div>

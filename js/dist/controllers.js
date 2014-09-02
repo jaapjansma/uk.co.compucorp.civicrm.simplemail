@@ -31,6 +31,8 @@
         CANCELLED: 'Canceled'
       };
 
+      $scope.showFilters = true;
+
       $scope.models = {};
 
       $scope.mailingFilters = {
@@ -44,15 +46,17 @@
       $scope.mailingFilters.status[$scope.constants.SCHEDULED] = true;
       $scope.mailingFilters.status[$scope.constants.PAST] = false;
 
-     civiApi.get($scope.constants.ENTITY_NAME)
+      civiApi.get($scope.constants.ENTITY_NAME)
         .then(function (response) {
           log.createLog('Mailings retrieved', response);
           $scope.mailings = response.data.values;
 
-         var creators = $filter('extractColumn')($scope.mailings, 'sort_name');
-         $scope.models.creators = $filter('unique')(creators);
+          var creators = $filter('extractColumn')($scope.mailings, {id: 'created_id', name: 'sort_name'});
+          $scope.models.creators = $filter('unique')(creators, 'id');
+
+          $scope.mailingFilters.creator = response.data.userId;
         })
-       .catch(function (response) {
+        .catch(function (response) {
           console.log('Failed to retrieve mailing', response);
         });
 
