@@ -111,10 +111,10 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $query
       = "
     SELECT
-      sm.id, sm.crm_mailing_id, sm.from_address, sm.header_id, sm.title, sm.body, sm.contact_details, sm.message_id,
+      sm.id, sm.crm_mailing_id, sm.from_address, sm.header_id, sm.title, sm.body, sm.contact_details, sm.message_id, sm.reply_address,
       cm.name, cm.subject, cm.body_html, cm.created_id, cm.created_date, cm.scheduled_id, cm.scheduled_date,
       MIN(j.start_date) start_date, MAX(j.end_date) end_date, j.status,
-      c.sort_name,
+      c.sort_name, c.external_identifier,
       GROUP_CONCAT(DISTINCT g.entity_id) recipient_group_entity_ids
 
     FROM civicrm_simplemail sm
@@ -332,6 +332,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     // Setup template variables
     $template = new stdClass();
     $template->title = empty($params['title']) ? NULL : $params['title'];
+    $template->replyAddress = static::getMailToLink($params);
     $template->body = empty($params['body']) ? NULL : $params['body'];
     $template->contactDetails = isset($params['contact_details']) && $params['contact_details']
       ? $params['contact_details']
@@ -371,6 +372,32 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     require $templateFile;
 
     return ob_get_clean();
+  }
+
+  /**
+   * Generate the link for mailto for the reply button in the template
+   *
+   * @param $params
+   *
+   * @return string
+   */
+  protected static function getMailToLink($params) {
+    if (empty($params['reply_address']) || empty($params['subject']) || empty($params['id'])) {
+      return NULL;
+    }
+
+    $subject = rawurlencode($params['subject']);
+
+    $subject .= !empty($params['external_identifier'])
+      ? rawurlencode(' -- Membership ID: ') . '{contact.external_identifier} '
+      : '';
+
+    $subject .= rawurlencode(' -- Mailing ID: ' . $params['id']);
+
+    $mailToLink = $params['reply_address'];
+    $mailToLink .= '?subject=' . $subject;
+
+    return 'mailto:' . $mailToLink;
   }
 
   /**
