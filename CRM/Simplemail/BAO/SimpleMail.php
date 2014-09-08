@@ -115,7 +115,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       cm.name, cm.subject, cm.body_html, cm.created_id, cm.created_date, cm.scheduled_id, cm.scheduled_date,
       MIN(j.start_date) start_date, MAX(j.end_date) end_date, j.status,
       c.sort_name, c.external_identifier,
-      GROUP_CONCAT(DISTINCT g.entity_id) recipient_group_entity_ids
+      GROUP_CONCAT(DISTINCT g.id) recipient_group_entity_ids
 
     FROM civicrm_simplemail sm
 
@@ -128,8 +128,11 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     LEFT JOIN civicrm_contact c
     ON cm.created_id = c.id
 
-    LEFT JOIN civicrm_mailing_group g
-    ON cm.id = g.mailing_id
+    LEFT JOIN civicrm_mailing_group mg
+    ON cm.id = mg.mailing_id
+
+    LEFT JOIN civicrm_group g
+    ON (mg.entity_id = g.id AND g.is_hidden = 0)
 
     WHERE $whereClause
 
@@ -262,51 +265,50 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   }
 
   /**
+   * @param $crmMailingId
+   *
+   * @return array
+   */
+  public static function getRecipientGroups($crmMailingId) {
+    $sql
+      = "SELECT
+    	  mg.*,
+    	  g.is_hidden, g.saved_search_id
+        FROM civicrm_mailing_group mg
+        LEFT JOIN civicrm_group g
+        ON mg.entity_id = g.id
+        WHERE mg.mailing_id = $crmMailingId";
+
+    /** @var CRM_Core_DAO|CRM_Mailing_DAO_MailingGroup|CRM_Contact_BAO_Group $dao */
+    $dao = CRM_Core_DAO::executeQuery($sql);
+
+    $groups = $smartGroups = array();
+
+    while ($dao->fetch()) {
+      if ($dao->is_hidden) {
+        $smartGroups[] = $dao->toArray();
+      }
+      else {
+        $groups[] = $dao->toArray();
+      }
+    }
+
+    return array('groups' => $groups, 'smartGroups' => $smartGroups);
+  }
+
+  /**
    * Update recipient groups for the mailing - add new groups, and delete removed groups
    *
    * @param $params
    *
    * @return void
    */
-  protected static function updateRecipientGroups($params) {
-    if (empty($params['recipient_group_entity_ids'])) {
-      return;
+  public static function updateRecipientGroups($params) {
+    if (!empty($params['recipient_group_entity_ids'])) {
+      static::updateGroups((int) $params['crm_mailing_id'], $params['recipient_group_entity_ids']);
     }
 
-    $currentGroupEntityIds = $params['recipient_group_entity_ids'];
-
-    $group = new CRM_Mailing_DAO_MailingGroup();
-    $group->mailing_id = $params['crm_mailing_id'];
-    $group->find();
-
-    $existingGroupsWithEntityIdKeys = array();
-    while ($group->fetch()) {
-      $existingGroupsWithEntityIdKeys[$group->entity_id] = $group->toArray();
-    }
-
-    $existingGroupEntityIds = array_keys($existingGroupsWithEntityIdKeys);
-
-    $removedGroupEntityIds = array_diff($existingGroupEntityIds, $currentGroupEntityIds);
-    $addedGroupEntityIds = array_diff($currentGroupEntityIds, $existingGroupEntityIds);
-
-    // Add new groups
-    foreach ($addedGroupEntityIds as $id) {
-      $group->reset();
-      $group->mailing_id = $params['crm_mailing_id'];
-      $group->group_type = 'Include';
-      $group->entity_table = 'civicrm_group';
-      $group->entity_id = $id;
-      $group->save();
-    }
-
-    // Delete removed groups
-    foreach ($removedGroupEntityIds as $id) {
-      $removedGroup = $existingGroupsWithEntityIdKeys[$id];
-
-      $group->reset();
-      $group->id = $removedGroup['id'];
-      $group->delete();
-    }
+    static::updateSmartGroups((int) $params['crm_mailing_id']);
   }
 
   /**
@@ -487,11 +489,100 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       $removeDuplicateEmails
     );
 
+//    static::createRecipientsFromSearch($crmMailing->id);
+
     /////////
     // End //
     /////////
 
     return $crmMailing;
+  }
+
+  /**
+   * TODO (robin): Remove this as not needed anymore
+   *
+   * Create records for mailing recipients, if the mailing was initiated from the contact search results
+   *
+   * @param $crmMailingId
+   */
+  protected static function createRecipientsFromSearch($crmMailingId) {
+    if ($crmMailingId) {
+      $session = CRM_Core_Session::singleton();
+      $sessionScope = CRM_Simplemail_Form_SimpleMailRecipientsFromSearch::getSessionScope();
+
+      if ($searchContacts = $session->get('searchContacts', $sessionScope)) {
+        $contacts = static::transformContacts($searchContacts);
+
+        /** @var CRM_Mailing_BAO_Recipients $contact */
+        $mailingRecipient = new CRM_Mailing_BAO_Recipients();
+
+        foreach ($contacts as $contact) {
+          $mailingRecipient->mailing_id = $crmMailingId;
+          $mailingRecipient->contact_id = $contact['contact_id'];
+          $mailingRecipient->email_id = $contact['email_id'];
+          $mailingRecipient->insert();
+        }
+
+        // Once we are done with creating the recipients, clear the session scope so as to not do this all over again on
+        // each save of the mailing. Note that, since we are clearing the entire session scope right now, in future, we
+        // might need to only clear the 'searchContacts' key within the scope if we use the same scope for storing other
+        // information
+        $session->resetScope($sessionScope);
+      }
+    }
+  }
+
+  /**
+   * TODO (robin): Remove this as not needed anymore
+   *
+   * Processes an array of contacts, returning an array of contacts' IDs and their corresponding primary email's IDs
+   *
+   * @param array $contacts An array of contacts
+   *
+   * @return array An array consisting of contact IDs and corresponding email IDs
+   */
+  protected static function transformContacts($contacts) {
+    $bracketedContactIds = array_map(
+      function ($contact) {
+        return '(' . $contact['contact_id'] . ')';
+      }, $contacts
+    );
+
+    $tempTableName = 'SM_TEMP_MAILING_RECIPIENTS';
+
+    /** @var CRM_Contact_BAO_Contact|CRM_Core_BAO_Email $dao */
+    $dao = new CRM_Core_DAO();
+
+    // Create a temporary table
+    $dao->query("CREATE TEMPORARY TABLE $tempTableName (contact_id INT(11))");
+
+    // Insert the IDs of the recipients into the temporary table
+    $insertValues = implode(', ', $bracketedContactIds);
+    $dao->query("INSERT INTO $tempTableName (contact_id) VALUES $insertValues");
+
+    // Join the temporary table to the emails table in order to retrieve the corresponding email IDs
+    $dao->query(
+      "SELECT
+        c.contact_id,
+        e.id, e.contact_id
+      FROM $tempTableName c
+      LEFT JOIN civicrm_email e
+      ON c.contact_id = e.contact_id
+      WHERE e.is_primary = 1"
+    );
+
+    $transformedContacts = array();
+
+    while ($dao->fetch()) {
+      $transformedContacts[$dao->contact_id] = array(
+        'contact_id' => $dao->contact_id,
+        'email_id'   => $dao->id
+      );
+    }
+
+    $dao->free();
+
+    return $transformedContacts;
   }
 
   /**
@@ -510,5 +601,88 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       $dateTime = new DateTime($params['scheduled_date']);
       $params['scheduled_date'] = $dateTime->format('YmdHis');
     }
+  }
+
+  /////////////////////
+  // Private methods //
+  /////////////////////
+
+  /**
+   * @param int   $crmMailingId
+   * @param array $newGroupEntityIds
+   */
+  private static function updateGroups($crmMailingId, $newGroupEntityIds) {
+    list($existingGroups) = static::getRecipientGroups($crmMailingId);
+
+    $existingGroupsWithEntityIdAsKeys = array();
+    foreach ($existingGroups as $group) {
+      $existingGroupsWithEntityIdAsKeys[$group['entity_id']] = $group;
+    }
+
+    $existingGroupEntityIds = array_keys($existingGroupsWithEntityIdAsKeys);
+
+    $removedGroupEntityIds = array_diff($existingGroupEntityIds, $newGroupEntityIds);
+    $addedGroupEntityIds = array_diff($newGroupEntityIds, $existingGroupEntityIds);
+
+    // Add new groups
+    foreach ($addedGroupEntityIds as $entityId) {
+      static::createMailingGroup($crmMailingId, $entityId);
+    }
+
+    // Delete removed groups
+    foreach ($removedGroupEntityIds as $entityId) {
+      $removedGroup = $existingGroupsWithEntityIdAsKeys[$entityId];
+
+      static::deleteMailingGroup($removedGroup['id']);
+    }
+  }
+
+  /**
+   * @param $crmMailingId
+   */
+  private static function updateSmartGroups($crmMailingId) {
+    $session = CRM_Core_Session::singleton();
+    $sessionScope = CRM_Simplemail_Form_SimpleMailRecipientsFromSearch::getSessionScope();
+    $smartGroupId = $session->get('smartGroupId', $sessionScope);
+    $session->resetScope($sessionScope);
+
+    if ($smartGroupId) {
+      $dao = new CRM_Mailing_DAO_MailingGroup();
+
+      $dao->reset();
+      $dao->mailing_id = $crmMailingId;
+      $dao->group_type = 'Include';
+      $dao->entity_table = 'civicrm_group';
+      $dao->entity_id = $smartGroupId;
+      $dao->save();
+    }
+
+    $session->resetScope($sessionScope);
+  }
+
+  /**
+   * @param $crmMailingId
+   * @param $entityId
+   */
+  private static function createMailingGroup($crmMailingId, $entityId) {
+    $group = new CRM_Mailing_DAO_MailingGroup();
+
+    $group->reset();
+    $group->mailing_id = $crmMailingId;
+    $group->group_type = 'Include';
+    $group->entity_table = 'civicrm_group';
+    $group->entity_id = $entityId;
+    $group->save();
+  }
+
+  /**
+   * @param $mailingGroupId
+   */
+  private static function deleteMailingGroup($mailingGroupId) {
+    $group = new CRM_Mailing_DAO_MailingGroup();
+
+    $group->reset();
+    $group->id = $mailingGroupId;
+    $group->delete();
   }
 }

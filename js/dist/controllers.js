@@ -44,7 +44,8 @@
 
       $scope.mailingFilters.status[$scope.constants.DRAFT] = true;
       $scope.mailingFilters.status[$scope.constants.SCHEDULED] = true;
-      $scope.mailingFilters.status[$scope.constants.PAST] = false;
+      $scope.mailingFilters.status[$scope.constants.SENT] = true;
+      $scope.mailingFilters.status[$scope.constants.CANCELLED] = true;
 
       civiApi.get($scope.constants.ENTITY_NAME)
         .then(function (response) {
@@ -135,8 +136,8 @@
    * Step 1 of the wizard
    */
   controllers.controller('CreateMailingController', [
-    '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'paths', 'mailingServices',
-    function ($scope, $http, $routeParams, $location, civiApi, log, notification, paths, mailing) {
+    '$scope', '$http', '$routeParams', '$location', '$filter', 'civiApiServices', 'loggingServices', 'notificationServices', 'paths', 'mailingServices',
+    function ($scope, $http, $routeParams, $location, $filter, civiApi, log, notification, paths, mailing) {
       // Initialise the step
       mailing.initStep({step: 1, scope: $scope});
 
@@ -156,7 +157,7 @@
       civiApi.get($scope.constants.ENTITY_NAME)
         .success(function (response) {
           log.createLog('Groups retrieved', response);
-          $scope.groups = response.values;
+          $scope.groups = $filter('filter')(response.values, {is_hidden: 0});
         });
     }
   ]);

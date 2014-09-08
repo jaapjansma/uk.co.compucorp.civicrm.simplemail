@@ -138,3 +138,12 @@ function simplemail_civicrm_entityTypes(&$entityTypes) {
     'table' => 'civicrm_simplemailheaderfilter'
   );
 }
+
+function simplemail_civicrm_searchTasks($objectType, &$tasks) {
+  $tasks[] = array(
+    'title' => 'Schedule/Send a Simple Mail Mass Mailing',
+    'class' => array(
+      'CRM_Simplemail_Form_SimpleMailRecipientsFromSearch'
+    )
+  );
+}

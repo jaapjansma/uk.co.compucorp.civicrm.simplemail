@@ -7,7 +7,7 @@
   /**
    * Generic services
    *
-   * @type {*|module}
+   * @type {ng.IModule}
    */
   var services = angular.module('simpleMail.services', []);
 
@@ -35,6 +35,9 @@
     }
   ]);
 
+  /**
+   * @ngdoc factory
+   */
   services.factory('mailingServices', ['$location', '$routeParams', '$q', 'civiApiServices', 'paths', 'utilityServices', 'notificationServices',
     function ($location, $routeParams, $q, civiApi, paths, utility, notification) {
       var constants = {

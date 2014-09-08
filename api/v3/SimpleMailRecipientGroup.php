@@ -1,5 +1,7 @@
 <?php
 
+// TODO (robin): Remove this entity
+
 /**
  * SimpleMailRecipientGroup.create API specification (optional)
  * This is used for documentation and validation.

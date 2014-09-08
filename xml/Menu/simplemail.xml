@@ -24,4 +24,10 @@
     <title>SimpleMail</title>
     <access_arguments>access CiviCRM</access_arguments>
   </item>
+  <item>
+    <path>civicrm/simple-mail/recipient-from-search</path>
+    <page_callback>CRM_Simplemail_Form_SimpleMailRecipientsFromSearch</page_callback>
+    <title>SimpleMailRecipientsFromSearch</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
 </menu>
