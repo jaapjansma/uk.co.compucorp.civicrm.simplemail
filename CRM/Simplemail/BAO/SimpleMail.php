@@ -92,6 +92,9 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     */
     static::updateScheduledMailingJobs($params);
 
+    // This wouldn't have been needed if CRM_Mailing_BAO_Mailing::create() was able to run getRecipients() itself
+    // towards the end, which unfortunately fails due to a bug in the add() method where it instantiates the DAO
+    // instead of the BAO!
     static::createRecipients((int) $params['crm_mailing_id'], static::shouldRemoveDuplicateEmails($params));
 
     return static::create($params);
