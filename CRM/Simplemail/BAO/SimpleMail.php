@@ -6,6 +6,11 @@
 class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
   /**
+   * Name of the extension (and the directory)
+   */
+  const EXT_NAME = 'uk.co.compucorp.simplemail';
+
+  /**
    * Create or update a SimpleMail mailing and the corresponding CiviCRM mailing, along with other related tasks, such
    * as creating a mailing job for scheduling mass emailing.
    *
@@ -322,8 +327,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @return string
    */
   protected static function getEmailTemplatePath() {
-    // TODO (robin): Retrieve the extension directory from Core_Config
-    $templateDir = 'civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/email-templates/';
+    $templateDir = static::getExtensionDir() . 'email-templates' . DIRECTORY_SEPARATOR;
     $templateFileName = 'wave.html';
 
     return $templateDir . $templateFileName;
@@ -607,5 +611,14 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $group->reset();
     $group->id = $mailingGroupId;
     $group->delete();
+  }
+
+  /**
+   * Get the absolute path of the extension directory
+   *
+   * @return string
+   */
+  private static function getExtensionDir() {
+    return CRM_Core_Config::singleton()->extensionsDir . DIRECTORY_SEPARATOR . static::EXT_NAME . DIRECTORY_SEPARATOR;
   }
 }
