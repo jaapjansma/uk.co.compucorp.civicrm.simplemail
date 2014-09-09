@@ -92,6 +92,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     */
     static::updateScheduledMailingJobs($params);
 
+    static::createRecipients((int) $params['crm_mailing_id'], static::shouldRemoveDuplicateEmails($params));
+
     return static::create($params);
   }
 
@@ -414,9 +416,28 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @return object
    */
   protected static function createCiviMailing($params) {
-    //////////////////////////////////
-    // Setup CiviCRM mailing params //
-    //////////////////////////////////
+    $crmMailingParams = static::buildCiviMailingParams($params);
+
+    $crmMailingId = array(
+      'mailing_id' => isset($params['crm_mailing_id']) ? $params['crm_mailing_id'] : NULL
+    );
+
+    // Create or update CiviCRM mailing - a mailing job would be created (scheduled) if scheduled date has been set
+    $crmMailing = CRM_Mailing_BAO_Mailing::create($crmMailingParams, $crmMailingId);
+
+    return $crmMailing;
+  }
+
+  /**
+   * Build the params array needed for creating CiviCRM mailing and related things (e.g. jobs), in a format required by
+   * the CRM_Mailing_BAO_Mailing::create() method
+   *
+   * @param array $params
+   *
+   * @return array
+   */
+  protected static function buildCiviMailingParams($params) {
+    $crmMailingParams = array();
 
     // Mailing name
     if (isset($params['name'])) {
@@ -462,40 +483,17 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       $crmMailingParams['dedupe_email'] = 0;
     }
 
-    /////////
-    // End //
-    /////////
+    return $crmMailingParams;
+  }
 
-    $crmMailingId = array(
-      'mailing_id' => isset($params['crm_mailing_id']) ? $params['crm_mailing_id'] : NULL
-    );
-
-    // Create or update CiviCRM mailing - a mailing job would be created (scheduled) if scheduled date has been set
-    $crmMailing = CRM_Mailing_BAO_Mailing::create($crmMailingParams, $crmMailingId);
-
-    /////////////////////////////////
-    // Generate mailing recipients //
-    /////////////////////////////////
-
-    $removeDuplicateEmails = isset($params['dedupe_email']) ? TRUE : FALSE;
-
-    // Compute the recipients and store them in the mailing recipients table
-    CRM_Mailing_BAO_Mailing::getRecipients(
-      $crmMailing->id,
-      $crmMailing->id,
-      NULL,
-      NULL,
-      TRUE,
-      $removeDuplicateEmails
-    );
-
-//    static::createRecipientsFromSearch($crmMailing->id);
-
-    /////////
-    // End //
-    /////////
-
-    return $crmMailing;
+  /**
+   * Create recipients for the mailing. This should ideally be done at the end of the wizard, while scheduling a mailing.
+   *
+   * @param int  $crmMailingId
+   * @param bool $removeDuplicateEmails
+   */
+  protected static function createRecipients($crmMailingId, $removeDuplicateEmails) {
+    CRM_Mailing_BAO_Mailing::getRecipients($crmMailingId, $crmMailingId, NULL, NULL, TRUE, $removeDuplicateEmails);
   }
 
   /**
@@ -504,6 +502,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * Create records for mailing recipients, if the mailing was initiated from the contact search results
    *
    * @param $crmMailingId
+   *
+   * @deprecated
    */
   protected static function createRecipientsFromSearch($crmMailingId) {
     if ($crmMailingId) {
@@ -538,6 +538,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * Processes an array of contacts, returning an array of contacts' IDs and their corresponding primary email's IDs
    *
    * @param array $contacts An array of contacts
+   *
+   * @deprecated
    *
    * @return array An array consisting of contact IDs and corresponding email IDs
    */
@@ -601,6 +603,15 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       $dateTime = new DateTime($params['scheduled_date']);
       $params['scheduled_date'] = $dateTime->format('YmdHis');
     }
+  }
+
+  /**
+   * @param $params
+   *
+   * @return bool
+   */
+  protected static function shouldRemoveDuplicateEmails($params) {
+    return isset($params['dedupe_email']);
   }
 
   /////////////////////
