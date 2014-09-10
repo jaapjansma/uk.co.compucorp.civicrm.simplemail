@@ -295,8 +295,8 @@
    * Step 3
    */
   controllers.controller('TestMailingController', [
-    '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'mailingServices',
-    function ($scope, $http, $routeParams, $location, civiApi, log, notification, mailing) {
+    '$scope', '$http', '$routeParams', '$location', '$filter', 'civiApiServices', 'loggingServices', 'notificationServices', 'mailingServices',
+    function ($scope, $http, $routeParams, $location, $filter, civiApi, log, notification, mailing) {
       // Initialise the step
       mailing.initStep({step: 3, scope: $scope});
 
@@ -324,7 +324,7 @@
       civiApi.get($scope.constants.ENTITY_NAME)
         .success(function (response) {
           log.createLog('Groups retrieved', response);
-          $scope.groups = response.values;
+          $scope.groups = $filter('filter')(response.values, {is_hidden: 0});
         });
     }
   ]);
