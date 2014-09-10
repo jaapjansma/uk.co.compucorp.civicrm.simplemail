@@ -8,7 +8,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   /**
    * Name of the extension (and the directory)
    */
-  const EXT_NAME = 'uk.co.compucorp.simplemail';
+  const EXT_NAME = 'uk.co.compucorp.civicrm.simplemail';
 
   /**
    * Create or update a SimpleMail mailing and the corresponding CiviCRM mailing, along with other related tasks, such
