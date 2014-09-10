@@ -35,24 +35,24 @@
     return '/civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/partials/admin/' + url;
   }
 
-  app.config(['$routeProvider',
-    function ($routeProvider) {
+  app.config(['$routeProvider', 'paths',
+    function ($routeProvider, paths) {
       $routeProvider
         // TODO (robin): add resolvers to listing controllers in order to not render view until API has returned data
         .when('/headers', {
-          templateUrl: partialUrl('listHeaders.html'),
+          templateUrl: paths.PARTIALS_DIR() + '/admin/listHeaders.html',
           controller: 'HeadersAdminController'
         })
         .when('/headers/:headerId/edit', {
-          templateUrl: partialUrl('editHeader.html'),
+          templateUrl: paths.PARTIALS_DIR() + '/admin/editHeader.html',
           controller: 'HeaderAdminController'
         })
         .when('/headers/new', {
-          templateUrl: partialUrl('editHeader.html'),
+          templateUrl: paths.PARTIALS_DIR() + '/admin/editHeader.html',
           controller: 'HeaderAdminController'
         })
         .when('/messages', {
-          templateUrl: partialUrl('listMessages.html'),
+          templateUrl: paths.PARTIALS_DIR() + '/admin/listMessages.html',
           controller: 'MessagesAdminController'
         })
         .otherwise({

@@ -4,7 +4,7 @@
   var constants = angular.module('simpleMail.constants', []);
 
   constants.constant('paths', {
-    EXT_DIR: '/civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail',
+    EXT_DIR: '/civicrm_custom/extensions/uk.co.compucorp.civicrm.simplemail',
 
     /**
      * @return {string}

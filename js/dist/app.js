@@ -49,23 +49,23 @@
           redirectTo: '/mailings/:mailingId/steps/1'
         })
         .when('/mailings/:mailingId/steps/1', {
-          templateUrl: partialUrl('steps.html'),
+          templateUrl: paths.PARTIALS_DIR() + '/wizard/steps/steps.html',
           controller: 'CreateMailingController'
         })
         .when('/mailings/:mailingId/steps/2', {
-          templateUrl: partialUrl('steps.html'),
+          templateUrl: paths.PARTIALS_DIR() + '/wizard/steps/steps.html',
           controller: 'ComposeMailingController'
         })
         .when('/steps/2', {
-          templateUrl: partialUrl('steps.html'),
+          templateUrl: paths.PARTIALS_DIR() + '/wizard/steps/steps.html',
           controller: 'ComposeMailingController'
         })
         .when('/mailings/:mailingId/steps/3', {
-          templateUrl: partialUrl('steps.html'),
+          templateUrl: paths.PARTIALS_DIR() + '/wizard/steps/steps.html',
           controller: 'TestMailingController'
         })
         .when('/mailings/:mailingId/steps/4', {
-          templateUrl: partialUrl('steps.html'),
+          templateUrl: paths.PARTIALS_DIR() + '/wizard/steps/steps.html',
           controller: 'ScheduleAndSendController'
         })
         .otherwise({
