@@ -4,7 +4,8 @@
   /**
    * Simple Mail admin app
    *
-   * @type {*}
+   * @name simpleMail.adminApp
+   * @type {ng.IModule}
    */
   var app = angular.module('simpleMail.adminApp', [
     'ngRoute',
