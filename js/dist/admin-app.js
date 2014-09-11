@@ -30,11 +30,6 @@
     'angularFileUpload'
   ]);
 
-  // TODO (robin): Remove this and use path constants
-  function partialUrl(url) {
-    return '/civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/partials/admin/' + url;
-  }
-
   app.config(['$routeProvider', 'paths',
     function ($routeProvider, paths) {
       $routeProvider
