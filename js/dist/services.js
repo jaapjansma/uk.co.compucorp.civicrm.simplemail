@@ -47,10 +47,18 @@
       /**
        * Steps for the mailing wizard
        *
+       * @readonly
        * @enum {number}
        */
       var Steps = {
+        /**
+         * First step of the wizard
+         */
         FIRST: 1,
+
+        /**
+         * Last step of the wizard
+         */
         LAST: 4
       };
 
@@ -64,6 +72,9 @@
       /**
        * Get the URL corresponding to the current step
        *
+       * @param {object} params
+       * @param {number} params.mailingId
+       * @param {number} params.step
        * @returns {string}
        */
       var getStepUrl = function (params) {
@@ -73,6 +84,7 @@
       /**
        * Get the partial path for the current step
        *
+       * @param {number} step
        * @returns {string}
        */
       var getStepPartialPath = function (step) {
@@ -93,16 +105,22 @@
         config: {
           /**
            * The ID of the current mailing
+           *
+           * @type {?number}
            */
           mailingId: null,
 
           /**
            * The current mailing object
+           *
+           * @type {?object}
            */
           mailing: null,
 
           /**
            * Current step of the wizard, initialised to first step
+           *
+           * @type {number}
            */
           step: Steps.FIRST
         },
@@ -110,6 +128,9 @@
         /**
          * Initialise a step
          *
+         * @param {object} params
+         * @param {number} params.step Current step of the mailing
+         * @param {$rootScope.Scope} params.scope Scope object for binding wizard navigation buttons
          * @returns {self} Returns self for chaining
          */
         initStep: function (params) {
@@ -181,7 +202,7 @@
         /**
          * Get the current mailing ID
          *
-         * @returns {null|number}
+         * @returns {?number}
          */
         getMailingId: function () {
           return this.config.mailingId;
@@ -200,15 +221,20 @@
           return $q.when(this.config.mailing);
         },
 
+        /**
+         * Set mailing
+         *
+         * @param {object} mailing
+         */
         setMailing: function (mailing) {
           this.config.mailing = mailing;
         },
 
         /**
-         * Get mailing by ID
+         * Get mailing by ID as a promise object
          *
          * @param {int} id
-         * @returns {*|Object|HttpPromise}
+         * @returns {IPromise}
          */
         get: function (id) {
           // TODO (robin): Returning HTTP Promises throughout the services could be replaced with returning a generic promise and performing various validation and repetitive tasks in the service, rather that duplicating it in the controllers (e.g. generic implementation of success() and error() could be done within the service to improve re-usability, and a generic promise could be returned back so that every call to an HTTP service doesn't require boilerplate implementation of success() and error() repetitively
@@ -245,12 +271,13 @@
 
               return $q.reject(response);
             });
+          this.saveProgress().then()
         },
 
         /**
          * Save progress of the mailing
          *
-         * @returns {*}
+         * @returns {ng.IPromise<TResult>|*}
          */
         saveProgress: function () {
           var self = this;
@@ -310,7 +337,7 @@
         /**
          * Set the current step. This should be defined at each step in order for next/prev step buttons to work correctly.
          *
-         * @param step
+         * @param {number} step
          * @returns {*}
          */
         setStep: function (step) {
@@ -333,6 +360,11 @@
           this.proceedToStep(this.config.step + 1);
         },
 
+        /**
+         * Proceed to a given step number
+         *
+         * @param {number} step
+         */
         proceedToStep: function (step) {
           var self = this;
 
@@ -345,6 +377,12 @@
             });
         },
 
+        /**
+         * Redirect to a given step number. This doesn't save anything - simply redirects using AngularJS $location
+         * service
+         *
+         * @param {number} step
+         */
         redirectToStep: function (step) {
           $location.path(getStepUrl({
             mailingId: this.getMailingId(),
@@ -352,10 +390,19 @@
           }));
         },
 
+        /**
+         * Cancel all modifications on the current step of a mailing. This simply redirects using AngularJS $location
+         * service back to the listing
+         */
         cancel: function () {
           $location.path(pathRoot);
         },
 
+        /**
+         * Get the current step number of the mailing
+         *
+         * @returns {number}
+         */
         getStep: function () {
           return this.config.step;
         },
@@ -378,6 +425,11 @@
           return this.getStep() !== Steps.LAST;
         },
 
+        /**
+         * Setup various buttons on the mailing
+         *
+         * @returns {self} Returns self for chaining
+         */
         setupButtons: function () {
           var self = this;
           var scope = this.getScope();
@@ -439,8 +491,18 @@
     }
   ]);
 
-// TODO (robin): use the builtin log service of AngularJS and decorate it with custom behavior rather than this below
+  // TODO (robin): use the builtin log service of AngularJS and decorate it with custom behavior rather than this below
+  /**
+   * @ngdoc factory
+   * @name notificationServices
+   */
   services.factory("notificationServices", ['loggingServices',
+    /**
+     * Create a notification
+     *
+     * @param log
+     * @returns {{alert: Function, success: Function, info: Function, error: Function, _createCrmNotication: Function}}
+     */
     function (log) {
       /**
        * Enable or disable all notifications
@@ -451,6 +513,7 @@
 
       /**
        * Enable or disable logging of notifications
+       *
        * @type {boolean}
        */
       var logNotifications = true;
@@ -458,7 +521,8 @@
       /**
        * Notification status constants for passing as argument to CiviCRM notification function
        *
-       * @type {{}}
+       * @readonly
+       * @enum {string}
        */
       var notificationTypes = {
         SUCCESS: 'success',
@@ -468,18 +532,42 @@
       };
 
       return {
+        /**
+         * Create an alert message
+         *
+         * @param subject
+         * @param description
+         */
         alert: function (subject, description) {
           this._createCrmNotication(subject, description, notificationTypes.ALERT);
         },
 
+        /**
+         * Create a success message
+         *
+         * @param subject
+         * @param description
+         */
         success: function (subject, description) {
           this._createCrmNotication(subject, description, notificationTypes.SUCCESS);
         },
 
+        /**
+         * Create an informative message
+         *
+         * @param subject
+         * @param description
+         */
         info: function (subject, description) {
           this._createCrmNotication(subject, description, notificationTypes.INFO);
         },
 
+        /**
+         * Create an error message
+         *
+         * @param subject
+         * @param description
+         */
         error: function (subject, description) {
           this._createCrmNotication(subject, description, notificationTypes.ERROR);
         },
@@ -504,6 +592,10 @@
     }
   ]);
 
+  /**
+   * @ngdoc factory
+   * @name loggingServices
+   */
   services.factory("loggingServices",
     function () {
       /**
