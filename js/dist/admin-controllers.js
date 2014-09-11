@@ -77,6 +77,8 @@
     '$scope', '$http', '$q', '$fileUploader', 'civiApiServices', 'loggingServices', 'notificationServices', '$routeParams', '$location', 'utilityServices',
     function ($scope, $http, $q, $fileUploader, civiApi, log, notification, $routeParams, $location, utils) {
       $scope.header = {};
+      $scope.models = {};
+      $scope.filters = [];
 
       $scope.constants = {
         ENTITY_NAME: 'SimpleMailHeader'

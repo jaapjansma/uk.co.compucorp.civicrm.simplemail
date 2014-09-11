@@ -22,7 +22,7 @@
   var app = angular.module('simpleMail.adminApp', [
     'ngRoute',
     'ngAnimate',
-    'ui.select2',
+    'ui.select',
     'simpleMail.adminApp.controllers',
     'simpleMail.services',
     'simpleMail.directives',
@@ -57,7 +57,7 @@
         })
         .otherwise({
           redirectTo: '/'
-        })
+        });
     }
   ]);
 })();

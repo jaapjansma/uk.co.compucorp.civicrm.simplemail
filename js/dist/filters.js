@@ -207,6 +207,6 @@
         return extractedColumn;
       }
     }
-  ])
+  ]);
 })();
 

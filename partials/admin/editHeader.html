@@ -24,9 +24,12 @@
 
     <div class="field-group inline clearfix">
       <label for="">Filter</label>
-      <select ui-select2 multiple ng-model="header.filterIds" data-placeholder="Select filter(s)" name="" id="">
-        <option ng-repeat="filter in filters" value="{{filter.id}}">{{filter.label}}</option>
-      </select>
+      <ui-select multiple ng-model="header.filterIds" theme="select2">
+        <ui-select-match placeholder="Select filter(s)">{{$item.label}}</ui-select-match>
+        <ui-select-choices repeat="filter.id as filter in filters | filter: {label: $select.search}">
+          {{filter.label}}
+        </ui-select-choices>
+      </ui-select>
     </div>
 
     <div class="field-group inline clearfix">
