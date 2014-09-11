@@ -1,19 +1,6 @@
 (function () {
   "use strict";
 
-// Structure:
-//
-// simpleMail.adminApp
-// simpleMail.adminApp.controllers
-//
-// simpleMail.app
-// simpleMail.app.controllers
-//
-// simpleMail.services
-// simpleMail.filters
-// simpleMail.directives
-// simpleMail.constants
-
   /**
    * Simple Mail admin app
    *
