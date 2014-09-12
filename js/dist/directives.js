@@ -19,7 +19,7 @@
         link: function (scope) {
           scope.$watch(function () {
               return scope.config.required;
-            }, function (newVal, oldVal) {
+            }, function (newVal) {
               if (['0', '1'].indexOf(newVal) !== -1) {
                 scope.isRequired = +newVal ? true : false;
               }
@@ -49,7 +49,7 @@
           itemsLoaded: '='
         },
         templateUrl: paths.TEMPLATES_DIR() + '/simple-image-carousel.html',
-        link: function (scope, element, attr) {
+        link: function (scope, element) {
           scope.selectedIndex = null;
           scope.selectedItem = null;
           scope.filteredItems = [];
@@ -58,7 +58,7 @@
           scope.$watchCollection(function () {
               return scope.items;
             },
-            function (newVal, oldVal) {
+            function (newVal) {
               console.log(newVal);
 
               if (newVal.length) {
@@ -72,7 +72,7 @@
           scope.$watch(function () {
               return scope.selectedIndex;
             },
-            function (newVal, oldVal) {
+            function (newVal) {
               if (newVal !== null) {
                 scope.selectedItemId = scope.filteredItems[scope.selectedIndex].id;
                 console.log('Item ID', scope.selectedItemId);
@@ -83,7 +83,7 @@
           scope.$watch(function () {
               return scope.selectedItemId;
             },
-            function (newVal, oldVal) {
+            function (newVal) {
               if (newVal) {
                 scope.updateSelection();
               }
@@ -106,7 +106,7 @@
           scope.$watch(function () {
               return scope.selectedFilterId;
             },
-            function (newVal, oldVal) {
+            function () {
               console.log('--- Filter changed ---');
 
               scope.filterItems();
@@ -187,7 +187,7 @@
             });
           });
 
-          ngModel.$render = function (value) {
+          ngModel.$render = function () {
             ck.setData(ngModel.$viewValue);
           };
         }
@@ -197,8 +197,15 @@
 
   angular.module(MODULE_NAME).directive('smEmailPreviewer', [
     function () {
-      function link(scope, element, attrs) {
-        scope.$watch(attrs.emailContent, function (oldVal, newVal) {
+      /**
+       *
+       * @param scope
+       * @param element
+       * @param {object} attributes
+       * @param {string} attributes.emailContent
+       */
+      function link(scope, element, attributes) {
+        scope.$watch(attributes.emailContent, function (oldVal, newVal) {
           var content = oldVal ? oldVal : newVal;
           if (content) {
             var iframe = element[0];
