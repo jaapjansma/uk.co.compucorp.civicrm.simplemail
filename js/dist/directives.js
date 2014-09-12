@@ -1,9 +1,11 @@
 (function () {
   "use strict";
 
-  var directives = angular.module('simpleMail.directives', []);
+  var MODULE_NAME = 'simpleMail.directives';
 
-  directives.directive('smImageUploader', ['paths',
+  angular.module(MODULE_NAME, []);
+
+  angular.module(MODULE_NAME).directive('smImageUploader', ['paths',
     function (paths) {
       return {
         restrict: 'A',
@@ -37,7 +39,7 @@
    * @ngDoc directive
    * @name smSimpleImageCarousel
    */
-  directives.directive('smSimpleImageCarousel', ['paths', '$timeout', '$rootScope', 'itemFromCollectionFilter', 'headersForSelectedFilterFilter',
+  angular.module(MODULE_NAME).directive('smSimpleImageCarousel', ['paths', '$timeout', '$rootScope', 'itemFromCollectionFilter', 'headersForSelectedFilterFilter',
     function (paths, $timeout, $rootScope, itemFromCollection, headersForSelectedFilter) {
       return {
         scope: {
@@ -168,7 +170,7 @@
     }
   ]);
 
-  directives.directive('smCkEditor', [
+  angular.module(MODULE_NAME).directive('smCkEditor', [
     function () {
       return {
         require: '?ngModel',
@@ -193,7 +195,7 @@
     }
   ]);
 
-  directives.directive('smEmailPreviewer', [
+  angular.module(MODULE_NAME).directive('smEmailPreviewer', [
     function () {
       function link(scope, element, attrs) {
         scope.$watch(attrs.emailContent, function (oldVal, newVal) {
@@ -225,7 +227,7 @@
   /**
    * @ngdoc directive
    */
-  directives.directive('smMailingActionButtons', ['paths',
+  angular.module(MODULE_NAME).directive('smMailingActionButtons', ['paths',
     function (paths) {
       return {
         scope: {
