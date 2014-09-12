@@ -147,6 +147,7 @@
 
       // Initialise empty mailing
       $scope.mailing = {};
+      $scope.groups = [];
 
       mailing.getMailing()
         .then(function (response) {
@@ -173,7 +174,7 @@
         headersLoaded: false
       };
 
-      $scope.headers = [];
+      $scope.headers = $scope.messages = [];
 
       // Initialise the step
       mailing.initStep({step: 2, scope: $scope});
@@ -256,6 +257,7 @@
 
               console.log('Filter values retrieved', response);
               $scope.filters = response.data.values;
+              $scope.filters.unshift({id: "all", label: "All"});
 
               return true;
             });
@@ -306,6 +308,7 @@
 
       // Initialise empty mailing
       $scope.mailing = {};
+      $scope.groups = [];
 
       $scope.constants = {
         ENTITY_NAME: 'Group'

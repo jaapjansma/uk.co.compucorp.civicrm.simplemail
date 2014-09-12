@@ -16,9 +16,12 @@
     <h2>Mailing Recipients</h2>
     <div class="field-group required">
       <label for="">Include group(s)</label>
-      <select ui-select2 multiple ng-model="mailing.recipient_group_entity_ids" data-placeholder="Select group(s)">
-        <option ng-repeat="group in groups" value="{{group.id}}">{{group.title}}</option>
-      </select>
+      <ui-select multiple ng-model="mailing.recipient_group_entity_ids" theme="select2">
+        <ui-select-match placeholder="Select group(s)">{{$item.title}}</ui-select-match>
+        <ui-select-choices repeat="group.id as group in groups | filter: {title: $select.search}">
+          {{group.title}}
+        </ui-select-choices>
+      </ui-select>
     </div>
   </form>
 </div>

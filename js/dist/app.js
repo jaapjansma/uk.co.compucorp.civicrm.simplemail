@@ -9,7 +9,7 @@
   var app = angular.module('simpleMail.app', [
     'ngRoute',
     'ngAnimate',
-    'ui.select2',
+    'ui.select',
     'ngQuickDate',
     'simpleMail.app.controllers',
     'simpleMail.services',
@@ -17,10 +17,6 @@
     'simpleMail.constants',
     'simpleMail.filters'
   ]);
-
-  function partialUrl(url) {
-    return '/civicrm_custom/extensions/compucorp/uk.co.compucorp.civicrm.simplemail/partials/wizard/steps/' + url;
-  }
 
   app.config(['$routeProvider', 'paths', 'ngQuickDateDefaultsProvider',
     function ($routeProvider, paths, ngQuickDate) {

@@ -5,10 +5,12 @@
     <h2>Select header image:</h2>
 
     <div class="field-group clearfix">
-      <select ui-select2 ng-model="models.selectedFilterId" data-placeholder="Filter" name="" id="">
-        <option value="all">All</option>
-        <option ng-repeat="filter in filters" value="{{filter.id}}">{{filter.label}}</option>
-      </select>
+      <ui-select ng-model="models.selectedFilterId" theme="select2">
+        <ui-select-match placeholder="Filter">{{$select.selected.label}}</ui-select-match>
+        <ui-select-choices repeat="filter.id as filter in filters | filter: {label: $select.search}">
+          {{filter.label}}
+        </ui-select-choices>
+      </ui-select>
     </div>
 
     <div data-sm-image-carousel
@@ -24,10 +26,12 @@
     <div class="cols clearfix">
       <div class="col one-half field-group left">
         <label for="">From address</label>
-        <select class="full-width" ui-select2 ng-model="mailing.from_address" data-placeholder="Select from address" name="" id="">
-          <option value=""></option>
-          <option ng-repeat="email in fromEmailOptionValues" value="{{email.label}}">{{email.label}}</option>
-        </select>
+        <ui-select class="full-width" ng-model="mailing.from_address" theme="select2">
+          <ui-select-match placeholder="Select From Address">{{$select.selected.label}}</ui-select-match>
+          <ui-select-choices repeat="email.id as email in fromEmailOptionValues | filter: {label: $select.search}">
+            {{email.label}}
+          </ui-select-choices>
+        </ui-select>
       </div>
 
       <div class="col one-half field-group right">
@@ -67,17 +71,19 @@
       <div class="field-group col right two-thirds clearfix">
         <div class="field-group clearfix">
           <label for="campaign-message">Campaign message</label>
-          <select ui-select2 ng-model="mailing.message_id" data-placeholder="Select campaign message"
-                  name="campaign-message" id="campaign-message">
-            <option value=""></option>
-            <option selected="selected" ng-repeat="message in messages" value="{{message.id}}">{{message.label}}</option>
-          </select>
+          <ui-select ng-model="mailing.message_id" theme="select2">
+            <ui-select-match placeholder="Select campaign message">{{$select.selected.label}}</ui-select-match>
+            <ui-select-choices repeat="message.id as message in messages | filter: {label: $select.search}">
+              {{message.label}}
+            </ui-select-choices>
+          </ui-select>
         </div>
 
         <div class="field-group">
-          <textarea class="full-width read-only" name="campaign-message-preview"
-                    id="campaign-message-preview" cols="10" rows="4"
-                    ng-readonly="true">{{models.selectedMessage.text}}</textarea>
+          <textarea class="full-width read-only" name="campaign-message-preview" id="campaign-message-preview"
+                    cols="10" rows="4" ng-readonly="true">
+            {{models.selectedMessage.text}}
+          </textarea>
         </div>
       </div>
     </div>
