@@ -295,8 +295,8 @@
    */
   var smMailingActionButtonsDirective = ['paths', function (paths) {
     return {
+      restrict: 'AE',
       scope: {
-        restrict: 'AE',
         mailing: '=',
         constants: '=statusConstants',
         delete: '&onDelete',
