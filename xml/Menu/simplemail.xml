@@ -1,33 +1,21 @@
 <?xml version="1.0"?>
 <menu>
   <item>
-    <path>civicrm/admin/simple-mail/messages</path>
-    <page_callback>CRM_Simplemail_Page_Messages</page_callback>
-    <title>Messages</title>
-    <access_arguments>access CiviCRM</access_arguments>
-  </item>
-  <item>
-    <path>civicrm/admin/simple-mail/headers</path>
-    <page_callback>CRM_Simplemail_Page_Headers</page_callback>
-    <title>Headers</title>
-    <access_arguments>access CiviCRM</access_arguments>
-  </item>
-  <item>
     <path>civicrm/admin/simple-mail</path>
     <page_callback>CRM_Simplemail_Page_SimpleMailAdmin</page_callback>
     <title>SimpleMailAdmin</title>
-    <access_arguments>access CiviCRM</access_arguments>
+    <access_arguments>access CiviSimpleMail</access_arguments>
   </item>
   <item>
     <path>civicrm/simple-mail</path>
     <page_callback>CRM_Simplemail_Page_SimpleMail</page_callback>
     <title>SimpleMail</title>
-    <access_arguments>access CiviCRM</access_arguments>
+    <access_arguments>access CiviSimpleMail</access_arguments>
   </item>
   <item>
     <path>civicrm/simple-mail/recipient-from-search</path>
     <page_callback>CRM_Simplemail_Form_SimpleMailRecipientsFromSearch</page_callback>
     <title>SimpleMailRecipientsFromSearch</title>
-    <access_arguments>access CiviCRM</access_arguments>
+    <access_arguments>access CiviSimpleMail</access_arguments>
   </item>
 </menu>
