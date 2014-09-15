@@ -217,6 +217,19 @@ function simplemail_civicrm_navigationMenu(&$params) {
 }
 
 /**
+ * @param $permissions
+ */
+function simplemail_civicrm_permission(&$permissions) {
+  // Name of extension
+  $prefix = ts('CiviSimpleMail') . ': ';
+
+  $permissions = array(
+    'access CiviSimpleMail' => $prefix . ts('access CiviSimpleMail'),
+    'delete CiviSimpleMail' => $prefix . ts('delete CiviSimpleMail')
+  );
+}
+
+/**
  * Return the maximum key from the menu items array
  *
  * @param $menuArray
