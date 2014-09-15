@@ -10,6 +10,10 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    */
   const EXT_NAME = 'uk.co.compucorp.civicrm.simplemail';
 
+  const PERMISSION_ACCESS = 'access CiviSimpleMail';
+  const PERMISSION_EDIT = 'edit CiviSimpleMail';
+  const PERMISSION_DELETE = 'delete CiviSimpleMail';
+
   /**
    * Create or update a SimpleMail mailing and the corresponding CiviCRM mailing, along with other related tasks, such
    * as creating a mailing job for scheduling mass emailing.
@@ -50,6 +54,9 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @throws CRM_Extension_Exception
    */
   public function delete() {
+    if (!static::authorised(static::PERMISSION_DELETE)) {
+      throw new CRM_Extension_Exception('Sorry! You do not have permission to delete mailings', 500);
+    }
     if (!$this->crm_mailing_id) {
       throw new CRM_Extension_Exception(
         'Failed to delete mailing it does not have a corresponding CiviCRM mailing associated', 500
@@ -216,6 +223,17 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   ///////////////////////
   // Protected Methods //
   ///////////////////////
+
+  /**
+   * Check whether the current user has a certain permission
+   *
+   * @param string $permission
+   *
+   * @return bool
+   */
+  protected static function authorised($permission) {
+    return CRM_Core_Permission::check($permission);
+  }
 
   /**
    * Update scheduled jobs for the mailing
