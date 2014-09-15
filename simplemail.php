@@ -107,9 +107,12 @@ function simplemail_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
   _simplemail_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
 
-
 /**
  * Implementation of hook_civicrm_entityTypes
+ *
+ * This has been used here for registering entities
+ *
+ * @param $entityTypes
  */
 function simplemail_civicrm_entityTypes(&$entityTypes) {
   $entityTypes[] = array(
@@ -134,6 +137,14 @@ function simplemail_civicrm_entityTypes(&$entityTypes) {
   );
 }
 
+/**
+ * Implementation of hook_civicrm_searchTasks
+ *
+ * This has been used here for adding custom search actions on the contact search results page
+ *
+ * @param $objectType
+ * @param $tasks
+ */
 function simplemail_civicrm_searchTasks($objectType, &$tasks) {
   $tasks[] = array(
     'title' => 'Schedule/Send a Simple Mail Mass Mailing',
@@ -141,4 +152,84 @@ function simplemail_civicrm_searchTasks($objectType, &$tasks) {
       'CRM_Simplemail_Form_SimpleMailRecipientsFromSearch'
     )
   );
+}
+
+/**
+ * Implementation of hook_civicrm_navigationMenu
+ *
+ * This has been used here for adding menu links for various Simple Mail pages
+ *
+ * @param $params
+ */
+function simplemail_civicrm_navigationMenu(&$params) {
+  //  Get the maximum key of $params
+  $maxKey = _getMenuKeyMax($params);
+
+  $parentId = $maxKey + 1;
+
+  $children = array();
+
+  $parent = array(
+    'attributes' => array(
+      'label'      => 'Simple Mail',
+      'name'       => 'Simple Mail',
+      'url'        => NULL,
+      'permission' => NULL,
+      'operator'   => NULL,
+      'separator'  => NULL,
+      'parentID'   => NULL,
+      'navID'      => $parentId,
+      'active'     => 1
+    )
+  );
+
+  $currentChildId = $parentId + 1;
+  $children[$currentChildId] = array(
+    'attributes' => array(
+      'label'      => 'New Mailing',
+      'name'       => 'New Mailings',
+      'url'        => 'civicrm/simple-mail#/mailings/new',
+      'permission' => NULL,
+      'operator'   => NULL,
+      'parentID'   => $parentId,
+      'navID'      => $currentChildId,
+      'active'     => 1
+    )
+  );
+
+  $currentChildId++;
+  $children[$currentChildId] = array(
+    'attributes' => array(
+      'label'      => 'Mailings',
+      'name'       => 'Mailings',
+      'url'        => 'civicrm/simple-mail#/mailings',
+      'permission' => NULL,
+      'operator'   => NULL,
+      'parentID'   => $parentId,
+      'navID'      => $currentChildId,
+      'active'     => 1
+    )
+  );
+
+  $parent['child'] = $children;
+
+  $params[$parentId] = $parent;
+}
+
+/**
+ * Return the maximum key from the menu items array
+ *
+ * @param $menuArray
+ *
+ * @return mixed
+ */
+function _getMenuKeyMax($menuArray) {
+  $max = array(max(array_keys($menuArray)));
+  foreach ($menuArray as $v) {
+    if (!empty($v['child'])) {
+      $max[] = _getMenuKeyMax($v['child']);
+    }
+  }
+
+  return max($max);
 }
