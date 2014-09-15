@@ -116,22 +116,22 @@ function simplemail_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
  */
 function simplemail_civicrm_entityTypes(&$entityTypes) {
   $entityTypes[] = array(
-    'name' => 'SimpleMailHeader',
+    'name'  => 'SimpleMailHeader',
     'class' => 'CRM_Simplemail_DAO_SimpleMailHeader',
     'table' => 'civicrm_simplemailheader'
   );
   $entityTypes[] = array(
-    'name' => 'SimpleMailMessage',
+    'name'  => 'SimpleMailMessage',
     'class' => 'CRM_Simplemail_DAO_SimpleMailMessage',
     'table' => 'civicrm_simplemailmessage'
   );
   $entityTypes[] = array(
-    'name' => 'SimpleMail',
+    'name'  => 'SimpleMail',
     'class' => 'CRM_Simplemail_DAO_SimpleMail',
     'table' => 'civicrm_simplemail'
   );
   $entityTypes[] = array(
-    'name' => 'SimpleMailHeaderFilter',
+    'name'  => 'SimpleMailHeaderFilter',
     'class' => 'CRM_Simplemail_DAO_SimpleMailHeaderFilter',
     'table' => 'civicrm_simplemailheaderfilter'
   );
