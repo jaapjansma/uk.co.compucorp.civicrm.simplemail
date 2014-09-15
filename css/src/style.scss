@@ -195,7 +195,6 @@ $border-radius: 3px;
       li {      
         float: left;
         list-style: none;
-/*         height: 100px; */
         height: auto;
         display: block;
 
@@ -213,40 +212,39 @@ $border-radius: 3px;
         }
 
         img.selected {
-/*           border-color: $medium-grey; */
           border-style: solid;
           background: $yellow;          
           box-shadow: 1px 1px 5px 1px rgba(0, 0, 0, 0.15);
-        }
-
-        span {
-          height: 100px;
-          padding: 0.5rem;
-          margin: 0.5rem;          
-          box-sizing: border-box;
-          line-height: 7;
-          display: block;
-          color: $grey;
-
-          .loading {
-            left: 49%;
-            position: relative;
-            top: 25%;
-          }
         }
       }
       
       li:last-child img {
         margin-right: 0.5rem !important;
       }
-
-      li.empty-placeholder {
-        width: 100%;
-        text-align: center;
-      }
-    }    
+    }
   }
-  
+
+  .empty-placeholder {
+    width: 100%;
+    text-align: center;
+
+    span {
+      height: 100px;
+      padding: 0.5rem;
+      margin: 0.5rem;
+      box-sizing: border-box;
+      line-height: 7;
+      display: block;
+      color: $grey;
+
+      .loading {
+        left: 49%;
+        position: relative;
+        top: 25%;
+      }
+    }
+  }
+
   #email-preview {
     background-color: white;
     width: 100%;

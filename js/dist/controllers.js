@@ -34,6 +34,7 @@
       $scope.showFilters = true;
 
       $scope.models = {};
+      $scope.models.mailingsLoaded = false;
 
       $scope.mailingFilters = {
         status: {},
@@ -54,8 +55,12 @@
 
           var creators = $filter('extractColumn')($scope.mailings, {id: 'created_id', name: 'sort_name'});
           $scope.models.creators = $filter('unique')(creators, 'id');
+          $scope.models.creators.unshift({id: 'all', 'name': 'All'});
 
           $scope.mailingFilters.creator = response.data.userId;
+        })
+        .finally(function() {
+          $scope.models.mailingsLoaded = true;
         })
         .catch(function (response) {
           console.log('Failed to retrieve mailing', response);

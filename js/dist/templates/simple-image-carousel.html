@@ -3,7 +3,7 @@
     <img ng-class="{selected: $index === selectedIndex}" ng-click="selectImage($index)" ng-src="{{item.image_url}}" alt=""/>
   </li>
   <li class="empty-placeholder" ng-if="itemsLoaded && !(items | headersForSelectedFilter:selectedFilterId).length">
-    <span>Nothing found :(</span>
+    <span>Nothing here :(</span>
   </li>
   <li class="empty-placeholder" ng-if="!itemsLoaded"><span><i class="loading"></i>Loading</span></li>
 </ul>

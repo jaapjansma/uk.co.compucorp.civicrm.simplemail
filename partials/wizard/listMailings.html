@@ -40,10 +40,12 @@
     <div class="field-group filter inline clearfix">
       <p class="filter-title label">Created By:</p>
 
-      <select ui-select2 ng-model="mailingFilters.creator" data-placeholder="Created By" name="" id="">
-        <option value="all">All</option>
-        <option ng-repeat="creator in models.creators" value="{{creator.id}}">{{creator.name}}</option>
-      </select>
+      <ui-select ng-model="mailingFilters.creator" theme="select2">
+        <ui-select-match placeholder="Created By">{{$select.selected.name}}</ui-select-match>
+        <ui-select-choices repeat="creator.id as creator in models.creators | filter: {name: $select.search}">
+          {{creator.name}}
+        </ui-select-choices>
+      </ui-select>
     </div>
   </div>
 
@@ -87,6 +89,18 @@
              data-on-delete="deleteMailing(mailing)"
              data-on-cancel="cancelMailing(mailing)">
         </div>
+      </td>
+    </tr>
+
+    <tr class="odd-row" ng-if="!models.mailingsLoaded">
+      <td class="empty-placeholder" colspan="9">
+        <span><i class="loading"></i>Loading</span>
+      </td>
+    </tr>
+
+    <tr class="odd-row" ng-if="models.mailingsLoaded && !filteredMailings.length">
+      <td class="empty-placeholder" colspan="9">
+        <span>Nothing here :(</span>
       </td>
     </tr>
   </table>
