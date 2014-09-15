@@ -4,7 +4,7 @@
     <path>civicrm/admin/simple-mail</path>
     <page_callback>CRM_Simplemail_Page_SimpleMailAdmin</page_callback>
     <title>SimpleMailAdmin</title>
-    <access_arguments>access CiviSimpleMail</access_arguments>
+    <access_arguments>access admin CiviSimpleMail</access_arguments>
   </item>
   <item>
     <path>civicrm/simple-mail</path>

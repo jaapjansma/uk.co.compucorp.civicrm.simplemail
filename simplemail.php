@@ -224,8 +224,9 @@ function simplemail_civicrm_permission(&$permissions) {
   $prefix = ts('CiviSimpleMail') . ': ';
 
   $permissions = array(
-    'access CiviSimpleMail' => $prefix . ts('access CiviSimpleMail'),
-    'delete CiviSimpleMail' => $prefix . ts('delete CiviSimpleMail')
+    'access CiviSimpleMail'       => $prefix . ts('access CiviSimpleMail'),
+    'delete CiviSimpleMail'       => $prefix . ts('delete CiviSimpleMail'),
+    'access admin CiviSimpleMail' => $prefix . ts('access admin CiviSimpleMail')
   );
 }
 
