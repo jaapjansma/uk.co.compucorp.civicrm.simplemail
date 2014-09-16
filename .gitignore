@@ -1,6 +1,6 @@
 # Ignore
 build
-*/.sass-cache
+.sass-cache
 bower_components
 coverage
 node_modules
