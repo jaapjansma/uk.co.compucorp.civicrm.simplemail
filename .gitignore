@@ -2,3 +2,5 @@
 build
 */.sass-cache
 bower_components
+coverage
+node_modules
