@@ -259,7 +259,7 @@
         .then(function (response) {
           console.log('Option Group ID', response);
 
-          return civiApi.get('OptionValue', {option_group_id: response})
+          return civiApi.get('OptionValue', {option_group_id: response, is_active: '1'})
         })
         .then(function (response) {
           console.log('Option values retrieved', response);
