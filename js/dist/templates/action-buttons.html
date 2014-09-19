@@ -8,5 +8,6 @@
   <li ng-if="mailing.status === constants.SCHEDULED">
     <a ng-class="{disabled: mailing._internal.cancelEnabled === false}" href ng-click="cancel()">Cancel</a>
   </li>
+  <li><a href ng-click="duplicate()">Duplicate</a></li>
   <li><a ng-class="{disabled: mailing._internal.deleteEnabled === false}" href ng-click="delete()">Delete</a></li>
 </ul>
