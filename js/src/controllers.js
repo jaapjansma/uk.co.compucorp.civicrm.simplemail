@@ -153,15 +153,19 @@
           civiApi.post('SimpleMail', mailing, 'duplicatemassemail')
             .then(function (response) {
               if (response.data.is_error) return $q.reject(response);
-
               notification.success('Mailing duplicated');
 
-              var duplicatedMailing = angular.copy($scope.duplicatedMailing);
-              duplicatedMailing.id = response.data.values[0].id;
+              civiApi.get('SimpleMail', {id: response.data.values[0].id})
+                .then(function (response) {
+                  if (response.data.is_error) return $q.reject(response);
 
-              $scope.mailings.push(duplicatedMailing);
+                  $scope.mailings.push(response.data.values[0]);
+                })
+                .catch(function (response) {
+                  return $q.reject('Failed to retrieve the newly duplicated mailing', response);
+                })
             })
-            .catch(function (response) {
+           .catch(function (response) {
               notification.error('Failed to duplicate the mailing', response.data.error_message);
               console.log('Failed to duplicate the mailing', response);
             });
