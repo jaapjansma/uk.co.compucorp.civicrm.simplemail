@@ -5,6 +5,7 @@
    * Directive to create an image uploader, with drag-n-drop support
    *
    * @ngdoc directive
+   * @name smImageUploader
    * @alias smImageUploader
    *
    * @restrict AE
@@ -51,6 +52,7 @@
    * A directive to create a simple horizontal image carousel
    *
    * @ngdoc directive
+   * @name smImageCarousel
    * @alias smImageCarousel
    *
    * @restrict AE
@@ -73,7 +75,7 @@
         // Setup the index of saved selected image once all headers have been retrieved
         scope.$watchCollection(function () {
             return scope.items;
-        },
+          },
           function (newVal) {
             console.log(newVal);
 
@@ -180,8 +182,8 @@
           console.log('Total length', totalLength);
 
           element.find('ul').width(totalLength);
+        }
       }
-    }
 
       return {
         restrict: 'AE',
@@ -200,6 +202,7 @@
    * A directive to make the CK Editor work in AngularJS app
    *
    * @ngdoc directive
+   * @name smCkEditor
    * @alias smCkEditor
    *
    * @restrict A
@@ -240,6 +243,7 @@
    * A directive to embed a preview of email HTML
    *
    * @ngdoc directive
+   * @name smEmailPreviewer
    * @alias smEmailPreviewer
    *
    * @restrict A
@@ -281,6 +285,7 @@
    * A directive to create action buttons next to each mailing on the listing of mailings
    *
    * @ngdoc directive
+   * @name smMailingActionButtons
    * @alias smMailingActionButtons
    *
    * @restrict AE

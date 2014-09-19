@@ -17,7 +17,7 @@
    * Admin listing of headers
    */
   controllers.controller('HeadersAdminController', [
-    '$scope', '$http', '$q', 'civiApiServices', 'loggingServices', 'notificationServices',
+    '$scope', '$http', '$q', 'CiviApiFactory', 'loggingServices', 'NotificationFactory',
     function ($scope, $http, $q, civiApi, log, notification) {
       $scope.constants = {
         ENTITY_NAME: 'SimpleMailHeader'
@@ -74,7 +74,7 @@
    * Detail page of a header
    */
   controllers.controller('HeaderAdminController', [
-    '$scope', '$http', '$q', '$fileUploader', 'civiApiServices', 'loggingServices', 'notificationServices', '$routeParams', '$location', 'utilityServices',
+    '$scope', '$http', '$q', '$fileUploader', 'CiviApiFactory', 'loggingServices', 'NotificationFactory', '$routeParams', '$location', 'utilityServices',
     function ($scope, $http, $q, $fileUploader, civiApi, log, notification, $routeParams, $location, utils) {
       $scope.header = {};
       $scope.models = {};
@@ -428,7 +428,7 @@
    * Admin list and inline editing of messages
    */
   controllers.controller('MessagesAdminController', [
-    '$scope', '$http', '$q', 'civiApiServices', 'loggingServices', 'notificationServices',
+    '$scope', '$http', '$q', 'CiviApiFactory', 'loggingServices', 'NotificationFactory',
     function ($scope, $http, $q, civiApi, log, notification) {
 
       $scope.$on('$viewContentLoaded', function () {

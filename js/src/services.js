@@ -36,9 +36,65 @@
   ]);
 
   /**
-   * @ngdoc factory
+   * @ngdoc service
+   * @name MailingsListingFactory
+   * @return {object}
    */
-  services.factory('mailingServices', ['$location', '$routeParams', '$q', 'civiApiServices', 'paths', 'utilityServices', 'notificationServices',
+  var MailingsListingProvider = ['$q', 'CiviApiFactory', 'NotificationFactory',
+
+    /**
+     *
+     * @param {$q} $q
+     * @param {CiviApiFactory} civiApi
+     * @param {NotificationFactory} notification
+     * @returns {{mailings: Array, get: Function}}
+     */
+      function ($q, civiApi, notification) {
+      var constants = {
+        entities: {
+          MAILING_ENTITY: 'SimpleMail'
+        }
+      };
+
+      /**
+       * An array containing mailings
+       *
+       * @ngdoc property
+       * @type {Array}
+       */
+      var mailings = [];
+
+      /**
+       * Get a list of mailings
+       *
+       * @ngdoc method
+       * @name MailingsListingFactory#get
+       */
+      var getMailings = function () {
+        return civiApi.get(constants.entities.MAILING_ENTITY)
+          .then(function (response) {
+            if (response.data.is_error) return $q.reject(response);
+          })
+          .catch(function (response) {
+            notification.error(response);
+          })
+      };
+
+      return {
+        // Properties
+        mailings: mailings,
+
+        // Methods
+        get: getMailings
+      };
+    }
+  ];
+
+  /**
+   * TODO (robin): Remove pluralisation of service names and it them PascalCased
+   * @ngdoc service
+   */
+  services.factory('mailingServices', ['$location', '$routeParams', '$q', 'CiviApiFactory', 'paths', 'utilityServices', 'NotificationFactory',
     function ($location, $routeParams, $q, civiApi, paths, utility, notification) {
       var constants = {
         ENTITY: 'SimpleMail'
@@ -491,19 +547,18 @@
     }
   ]);
 
-  // TODO (robin): use the builtin log service of AngularJS and decorate it with custom behavior rather than this below
   /**
-   * @ngdoc factory
-   * @name notificationServices
+   * @ngdoc service
+   * @name NotificationFactory
+   * @return {object}
    */
-  services.factory("notificationServices", ['loggingServices',
+  var NotificationProvider = ['$log',
     /**
      * Create a notification
      *
-     * @param log
-     * @returns {{alert: Function, success: Function, info: Function, error: Function, _createCrmNotication: Function}}
+     * @param $log
      */
-    function (log) {
+      function ($log) {
       /**
        * Enable or disable all notifications
        *
@@ -524,77 +579,196 @@
        * @readonly
        * @enum {string}
        */
-      var notificationTypes = {
-        SUCCESS: 'success',
-        ERROR: 'error',
-        INFO: 'info',
-        ALERT: 'alert'
+      var constants = {
+        notificationTypes: {
+          SUCCESS: 'success',
+          ERROR: 'error',
+          INFO: 'info',
+          ALERT: 'alert'
+        }
+      };
+
+      /**
+       * Create an alert message
+       *
+       * @ngdoc method
+       * @name NotificationFactory#alert
+       * @param subject
+       * @param description
+       */
+      var alert = function (subject, description) {
+        _createCrmNotification(subject, description, constants.notificationTypes.ALERT);
+      };
+
+      /**
+       * Create a success message
+       *
+       * @ngdoc method
+       * @name NotificationFactory#success
+       * @param subject
+       * @param description
+       */
+      var success = function (subject, description) {
+        _createCrmNotification(subject, description, constants.notificationTypes.SUCCESS);
+      };
+
+      /**
+       * Create an informative message
+       *
+       * @ngdoc method
+       * @name NotificationFactory#info
+       * @param subject
+       * @param description
+       */
+      var info = function (subject, description) {
+        _createCrmNotification(subject, description, constants.notificationTypes.INFO);
+      };
+
+      /**
+       * Create an error message
+       *
+       * @ngdoc method
+       * @name NotificationFactory#error
+       * @param subject
+       * @param description
+       */
+      var error = function (subject, description) {
+        _createCrmNotification(subject, description, constants.notificationTypes.ERROR);
+      };
+
+      /**
+       * Wrapper for creating CiviCRM notifications, and optionally logging them
+       *
+       * @ngdoc function
+       * @param subject
+       * @param description
+       * @param type
+       * @private
+       */
+      var _createCrmNotification = function (subject, description, type) {
+        if (notificationEnabled) {
+          description = description || '';
+          CRM.alert(description, subject, type);
+
+          if (logNotifications) $log.debug('(' + type.toUpperCase() + ') ' + subject, description);
+        }
       };
 
       return {
-        /**
-         * Create an alert message
-         *
-         * @param subject
-         * @param description
-         */
-        alert: function (subject, description) {
-          this._createCrmNotication(subject, description, notificationTypes.ALERT);
-        },
-
-        /**
-         * Create a success message
-         *
-         * @param subject
-         * @param description
-         */
-        success: function (subject, description) {
-          this._createCrmNotication(subject, description, notificationTypes.SUCCESS);
-        },
-
-        /**
-         * Create an informative message
-         *
-         * @param subject
-         * @param description
-         */
-        info: function (subject, description) {
-          this._createCrmNotication(subject, description, notificationTypes.INFO);
-        },
-
-        /**
-         * Create an error message
-         *
-         * @param subject
-         * @param description
-         */
-        error: function (subject, description) {
-          this._createCrmNotication(subject, description, notificationTypes.ERROR);
-        },
-
-        /**
-         * Wrapper for creating CiviCRM notifications, and optionally logging them
-         *
-         * @param subject
-         * @param description
-         * @param type
-         * @private
-         */
-        _createCrmNotication: function (subject, description, type) {
-          if (notificationEnabled) {
-            description = description || '';
-            CRM.alert(description, subject, type);
-
-            if (logNotifications) log.createLog('(' + type.toUpperCase() + ') ' + subject, description);
-          }
-        }
+        alert: alert,
+        success: success,
+        info: info,
+        error: error
       };
     }
-  ]);
+  ];
+
+  // TODO (robin): use the builtin log service of AngularJS and decorate it with custom behavior rather than this below
+  // TODO (robin): Switch to revealing module pattern and move logNotifications to global config
+  ///**
+  // * @ngdoc factory
+  // * @name NotificationFactory
+  // */
+  //services.factory("NotificationFactory", ['$log',
+  //  /**
+  //   * Create a notification
+  //   *
+  //   * @param $log
+  //   * @returns {{alert: Function, success: Function, info: Function, error: Function, _createCrmNotication: Function}}
+  //   */
+  //    function ($log) {
+  //    /**
+  //     * Enable or disable all notifications
+  //     *
+  //     * @type {boolean}
+  //     */
+  //    var notificationEnabled = true;
+  //
+  //    /**
+  //     * Enable or disable logging of notifications
+  //     *
+  //     * @type {boolean}
+  //     */
+  //    var logNotifications = true;
+  //
+  //    /**
+  //     * Notification status constants for passing as argument to CiviCRM notification function
+  //     *
+  //     * @readonly
+  //     * @enum {string}
+  //     */
+  //    var notificationTypes = {
+  //      SUCCESS: 'success',
+  //      ERROR: 'error',
+  //      INFO: 'info',
+  //      ALERT: 'alert'
+  //    };
+  //
+  //    return {
+  //      /**
+  //       * Create an alert message
+  //       *
+  //       * @param subject
+  //       * @param description
+  //       */
+  //      alert: function (subject, description) {
+  //        this._createCrmNotication(subject, description, notificationTypes.ALERT);
+  //      },
+  //
+  //      /**
+  //       * Create a success message
+  //       *
+  //       * @param subject
+  //       * @param description
+  //       */
+  //      success: function (subject, description) {
+  //        this._createCrmNotication(subject, description, notificationTypes.SUCCESS);
+  //      },
+  //
+  //      /**
+  //       * Create an informative message
+  //       *
+  //       * @param subject
+  //       * @param description
+  //       */
+  //      info: function (subject, description) {
+  //        this._createCrmNotication(subject, description, notificationTypes.INFO);
+  //      },
+  //
+  //      /**
+  //       * Create an error message
+  //       *
+  //       * @param subject
+  //       * @param description
+  //       */
+  //      error: function (subject, description) {
+  //        this._createCrmNotication(subject, description, notificationTypes.ERROR);
+  //      },
+  //
+  //      /**
+  //       * Wrapper for creating CiviCRM notifications, and optionally logging them
+  //       *
+  //       * @param subject
+  //       * @param description
+  //       * @param type
+  //       * @private
+  //       */
+  //      _createCrmNotication: function (subject, description, type) {
+  //        if (notificationEnabled) {
+  //          description = description || '';
+  //          CRM.alert(description, subject, type);
+  //
+  //          if (logNotifications) $log.debug('(' + type.toUpperCase() + ') ' + subject, description);
+  //        }
+  //      }
+  //    };
+  //  }
+  //]);
 
   /**
    * @ngdoc factory
    * @name loggingServices
+   * @deprecate TODO (robin): Use the $log everywhere and remove this
    */
   services.factory("loggingServices",
     function () {
@@ -624,91 +798,172 @@
       };
     });
 
-  services.factory("civiApiServices", ['$http',
-    function ($http) {
-      return {
-        /**
-         * Return a list of records for the given entity
-         *
-         * @param {string} entityName
-         * @param {object=} config Optional configuration
-         * @returns {*}
-         */
-        get: function (entityName, config) {
-          var data = config || {};
-          return this.post(entityName, data, 'get');
-        },
+  /**
+   * @ngdoc service
+   * @name CiviApiFactory
+   * @alias CiviApiFactory
+   */
+  var CiviApiProvider = ['$http', '$q', '$log', 'NotificationFactory',
+    /**
+     * @param {$http} $http
+     * @param {$q} $q
+     * @param {$log} $log
+     * @param {NotificationFactory} Notification
+     */
+    function($http, $q, $log, Notification) {
+      /**
+       * Return a list of records for the given entity
+       *
+       * @name CiviApiFactory#get
+       * @param {string} entityName
+       * @param {object=} data Optional data to pass in the GET/POST request
+       * @param {{success: string=, error: string=}=} options
+       * @returns {ng.IPromise.<TResult>|*}
+       */
+      var get = function (entityName, data, options) {
+        return post(entityName, data, 'get', options);
+      };
 
-        /**
-         * Return value corresponding to the given name for the entity
-         *
-         * @param {string} entityName
-         * @param {object=} config Optional configuration
-         * @returns {*}
-         */
-        getValue: function (entityName, config) {
-          var data = config || {};
-          return this.post(entityName, data, 'getValue');
-        },
+      /**
+       * Return value corresponding to the given name for the entity
+       *
+       * @name CiviApiFactory#getValue
+       * @param {string} entityName
+       * @param {object=} data Optional configuration
+       * @param {object=} data Optional data to pass in the GET/POST request
+       * @param {{success: string=, error: string=}=} options
+       * @returns {ng.IPromise.<TResult>|*}
+       */
+      var getValue = function (entityName, data, options) {
+        return post(entityName, data, 'getValue', options);
+      };
 
-        /**
-         * Create a new record for the given entity
-         *
-         * @param entityName
-         * @param data
-         * @returns {*}
-         */
-        create: function (entityName, data) {
-          return this.post(entityName, data, 'create');
-        },
+      /**
+       * Create a new record for the given entity
+       *
+       * @name CiviApiFactory#create
+       * @param entityName
+       * @param {object=} data Optional data to pass in the GET/POST request
+       * @param {{success: string=, error: string=}=} options
+       * @returns {ng.IPromise.<TResult>|*}
+       */
+      var create = function (entityName, data, options) {
+        return post(entityName, data, 'create', options);
+      };
 
-        /**
-         * Update an existing record for the given entity
-         *
-         * @param entityName
-         * @param data
-         * @returns {*}
-         */
-        update: function (entityName, data) {
-          return this.post(entityName, data, 'create');
-        },
+      /**
+       * Update an existing record for the given entity
+       *
+       * @name CiviApiFactory#update
+       * @param entityName
+       * @param
+       * @param {object=} data Optional data to pass in the GET/POST request
+       * @param {{success: string=, error: string=}=} options
+       * @returns {ng.IPromise.<TResult>|*}
+       */
+      var update = function (entityName, data, options) {
+        return post(entityName, data, 'create', options);
+      };
 
-        /**
-         * Delete a record for the given entity
-         *
-         * @param entityName
-         * @param data
-         * @returns {*}
-         */
-        remove: function (entityName, data) {
-          return this.post(entityName, data, 'delete')
-        },
+      /**
+       * Delete a record for the given entity
+       *
+       * @name CiviApiFactory#remove
+       * @param {string} entityName
+       * @param {object=} data Optional data to pass in the GET/POST request
+       * @param {{success: string=, error: string=}=} options
+       * @returns {ng.IPromise.<TResult>|*}
+       */
+      var remove = function (entityName, data, options) {
+        return post(entityName, data, 'delete', options)
+      };
 
-        /**
-         * Wrapper to configure HTTP post request and send it to the CiviCRM API for various actions
-         *
-         * @param entityName
-         * @param data
-         * @param action
-         * @returns {*}
-         */
-        post: function (entityName, data, action) {
-          data.entity = entityName;
-          data.action = action;
-          data.sequential = 1;
-          data.json = 1;
+      /**
+       * Send a POST request to the CiviCRM API. This will also create logs and, optionally, notifications.
+       *
+       * @name CiviApiFactory#post
+       * @param {string} entityName
+       * @param {object=} data Optional data to pass in the GET/POST request
+       * @param {string} action
+       * @param {{success: string=, error: string=}=} options
+       * @returns {ng.IPromise<TResult>|*}
+       */
+      var post = function(entityName, data, action, options) {
+        data = data || {};
+        options = options || {};
 
-          // Because data needs to be sent as string for CiviCRM to accept
-          var serialisedData = jQuery.param(data);
+        var successMessage = options.success || null;
+        var errorMessage = options.error || null;
 
-          return $http({
-            method: 'POST',
-            url: '/civicrm/ajax/rest',
-            data: serialisedData,  // pass in data as strings
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'}  // set the headers so AngularJS POSTs the data as form data (and not request payload, which CiviCRM doesn't recognise)
+        return _createPost(entityName, data, action)
+          .then(function(response) {
+            if (response.data.is_error) return $q.reject(response);
+
+            if (successMessage) {
+              Notification.success(successMessage);
+              $log.info(successMessage + ':', response);
+            } else {
+              $log.info('Successfully performed \'' + action + '\' on \'' + entityName + '\' with response:', response);
+            }
+
+            return response;
+          })
+          .catch(function(response) {
+            if (errorMessage) {
+              Notification.error(errorMessage);
+              $log.error(errorMessage + ':', response);
+            } else {
+              $log.error('Failed to perform ' + action + ' on ' + entityName + ' with response:', response);
+            }
+
+            return $q.reject(response);
           });
-        }
-      }
+      };
+
+      /**
+       * Wrapper to configure HTTP post request and send it to the CiviCRM API for various actions
+       *
+       * @param {string} entityName
+       * @param {object=} data Optional data to pass in the GET/POST request
+       * @param {string} action
+       * @returns {HttpPromise}
+       * @private
+       */
+      var _createPost = function (entityName, data, action) {
+        data = data || {};
+
+        data.entity = entityName;
+        data.action = action;
+        data.sequential = 1;
+        data.json = 1;
+
+        // Because data needs to be sent as string for CiviCRM to accept
+        var serialisedData = jQuery.param(data);
+
+        // TODO (robin): Move this to config
+        var postUrl = '/civicrm/ajax/rest';
+
+        // Set the headers so AngularJS POSTs the data as form data (and not request payload, which CiviCRM doesn't recognise)
+        var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
+
+        return $http.post(postUrl, serialisedData, {headers: headers});
+      };
+
+      return {
+        // Methods
+        get: get,
+        getValue: getValue,
+        create: create,
+        update: update,
+        remove: remove,
+        post: post
+      };
     }
-  ]);
+  ];
+
+  angular.module('simpleMail.services')
+    .factory('MailingsListingFactory', MailingsListingProvider)
+    .factory('NotificationFactory', NotificationProvider)
+    .factory('CiviApiFactory', CiviApiProvider)
+  ;
 })();
