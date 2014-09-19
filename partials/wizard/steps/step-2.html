@@ -28,7 +28,7 @@
         <label for="">From address</label>
         <ui-select class="full-width" ng-model="mailing.from_address" theme="select2">
           <ui-select-match placeholder="Select From Address">{{$select.selected.label}}</ui-select-match>
-          <ui-select-choices repeat="email.id as email in fromEmailOptionValues | filter: {label: $select.search}">
+          <ui-select-choices repeat="email.label as email in fromEmailOptionValues | filter: {label: $select.search}">
             {{email.label}}
           </ui-select-choices>
         </ui-select>

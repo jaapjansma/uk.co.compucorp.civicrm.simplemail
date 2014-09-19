@@ -532,7 +532,11 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       $params['body'] = html_entity_decode($params['body']);
     }
 
-    // Reformat the scheduled date for a format required by CivCRM
+    if (!empty($params['from_address'])) {
+      $params['from_address'] = html_entity_decode($params['from_address']);
+    }
+
+     // Reformat the scheduled date for a format required by CivCRM
     if (!empty($params['scheduled_date'])) {
       $dateTime = new DateTime($params['scheduled_date']);
       $params['scheduled_date'] = $dateTime->format('YmdHis');
