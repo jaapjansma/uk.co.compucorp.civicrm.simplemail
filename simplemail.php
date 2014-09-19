@@ -211,6 +211,34 @@ function simplemail_civicrm_navigationMenu(&$params) {
     )
   );
 
+  $currentChildId++;
+  $children[$currentChildId] = array(
+    'attributes' => array(
+      'label'      => 'Headers',
+      'name'       => 'Headers',
+      'url'        => 'civicrm/admin/simple-mail#/headers',
+      'permission' => NULL,
+      'operator'   => NULL,
+      'parentID'   => $parentId,
+      'navID'      => $currentChildId,
+      'active'     => 1
+    )
+  );
+
+  $currentChildId++;
+  $children[$currentChildId] = array(
+    'attributes' => array(
+      'label'      => 'Campaign Messages',
+      'name'       => 'Campaign Messages',
+      'url'        => 'civicrm/admin/simple-mail#/messages',
+      'permission' => NULL,
+      'operator'   => NULL,
+      'parentID'   => $parentId,
+      'navID'      => $currentChildId,
+      'active'     => 1
+    )
+  );
+
   $parent['child'] = $children;
 
   $params[$parentId] = $parent;
