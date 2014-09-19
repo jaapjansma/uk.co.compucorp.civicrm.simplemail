@@ -93,7 +93,7 @@
               if (response.data.is_error) return $q.reject(response);
 
               notification.success('Mailing deleted');
-               $scope.mailings.splice(index, 1);
+              $scope.mailings.splice(index, 1);
               mailing._internal.deleteEnabled = true;
             })
             .catch(function (response) {
@@ -146,13 +146,20 @@
       $scope.duplicateMailing = function (mailing) {
         var index = $scope.mailings.indexOf(mailing);
 
+        // TODO (robin): Ugly hack - fix this when refactoring model manipulations to services
+        $scope.duplicatedMailing = mailing;
+
         if (index !== -1) {
           civiApi.post('SimpleMail', mailing, 'duplicatemassemail')
             .then(function (response) {
               if (response.data.is_error) return $q.reject(response);
 
               notification.success('Mailing duplicated');
-              //$scope.mailings.splice(index, 1);
+
+              var duplicatedMailing = angular.copy($scope.duplicatedMailing);
+              duplicatedMailing.id = response.data.values[0].id;
+
+              $scope.mailings.push(duplicatedMailing);
             })
             .catch(function (response) {
               notification.error('Failed to duplicate the mailing', response.data.error_message);

@@ -155,7 +155,16 @@ function civicrm_api3_simple_mail_sendtestemail($params) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_duplicatemassemail($params) {
-  $params['id'] = $params['crm_mailing_id'] = null;
+  $params['id']
+    = $params['crm_mailing_id']
+    = $params['created_date']
+    = $params['created_id']
+    = $params['external_identifier']
+    = $params['sort_name']
+    = $params['scheduled_date']
+    = $params['scheduled_id']
+    = $params['status']
+    = null;
 
   return _civicrm_api3_basic_create(_civicrm_api3_get_BAO(__FUNCTION__), $params);
 }
