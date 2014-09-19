@@ -321,7 +321,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       }
     }
 
-    return array('groups' => $groups, 'smartGroups' => $smartGroups);
+    return array($groups, $smartGroups);
   }
 
   /**

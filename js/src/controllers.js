@@ -137,6 +137,29 @@
             })
         }
       };
+
+      /**
+       * Create a duplicate of a mailing
+       *
+       * @param mailing
+       */
+      $scope.duplicateMailing = function (mailing) {
+        var index = $scope.mailings.indexOf(mailing);
+
+        if (index !== -1) {
+          civiApi.post('SimpleMail', mailing, 'duplicatemassemail')
+            .then(function (response) {
+              if (response.data.is_error) return $q.reject(response);
+
+              notification.success('Mailing duplicated');
+              //$scope.mailings.splice(index, 1);
+            })
+            .catch(function (response) {
+              notification.error('Failed to duplicate the mailing', response.data.error_message);
+              console.log('Failed to duplicate the mailing', response);
+            });
+        }
+      }
     }
   ]);
 

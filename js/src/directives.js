@@ -299,6 +299,7 @@
       scope: {
         mailing: '=',
         constants: '=statusConstants',
+        duplicate: '&onDuplicate',
         delete: '&onDelete',
         cancel: '&onCancel'
       },

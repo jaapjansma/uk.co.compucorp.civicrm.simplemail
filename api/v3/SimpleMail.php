@@ -144,6 +144,22 @@ function civicrm_api3_simple_mail_sendtestemail($params) {
   }
 }
 
+/**
+ * SimpleMail.DuplicateMassEmail API
+ *
+ * @param array $params
+ *
+ * @return array API result descriptor
+ * @see civicrm_api3_create_success
+ * @see civicrm_api3_create_error
+ * @throws API_Exception
+ */
+function civicrm_api3_simple_mail_duplicatemassemail($params) {
+  $params['id'] = $params['crm_mailing_id'] = null;
+
+  return _civicrm_api3_basic_create(_civicrm_api3_get_BAO(__FUNCTION__), $params);
+}
+
 //////////////////////
 // Helper Functions //
 //////////////////////
