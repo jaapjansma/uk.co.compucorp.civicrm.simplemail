@@ -58,29 +58,21 @@
       $scope.mailingFilters.status[$scope.constants.SENT] = true;
       $scope.mailingFilters.status[$scope.constants.CANCELLED] = true;
 
-      //MailingsListing.get()
-      //  .then(function () {
-      //    $scope.mailings = MailingsListingFactory.mailings;
-      //  });
+      MailingsListing.init()
+        .then(function () {
+          $scope.mailings = MailingsListing.getMailings();
+          $scope.userId = MailingsListing.getUserId();
 
-      civiApi.get($scope.constants.ENTITY_NAME)
-        .then(function (response) {
-          $scope.mailings = response.data.values;
-
-          var creators = $filter('extractColumn')($scope.mailings, {id: 'created_id', name: 'sort_name'});
-          $scope.models.creators = $filter('unique')(creators, 'id');
+          $scope.models.creators = MailingsListing.getCreators();
           $scope.models.creators.unshift({id: 'all', 'name': 'All'});
 
           // The below will cause to show mailings for all users if the current user never created any mailing;
           // otherwise nothing would be shown, potentially confusing the user that mailings are missing/lost
-          var currentUserInCreators = $filter('filter')($scope.models.creators, {id: response.data.userId});
-          $scope.mailingFilters.creator = currentUserInCreators.length ? response.data.userId : 'all';
+          var currentUserInCreators = $filter('filter')($scope.models.creators, {id: $scope.userId});
+          $scope.mailingFilters.creator = currentUserInCreators.length ? $scope.userId : 'all';
         })
         .finally(function () {
           $scope.models.mailingsLoaded = true;
-        })
-        .catch(function (response) {
-          console.log('Failed to retrieve mailing', response);
         });
 
       /**

@@ -40,16 +40,17 @@
    * @name MailingsListingFactory
    * @return {object}
    */
-  var MailingsListingProvider = ['$q', 'CiviApiFactory', 'NotificationFactory',
+  var MailingsListingProvider = ['$q', '$filter', 'CiviApiFactory', 'NotificationFactory',
 
     /**
      *
      * @param {$q} $q
+     * @param $filter
      * @param {CiviApiFactory} civiApi
      * @param {NotificationFactory} notification
-     * @returns {{mailings: Array, get: Function}}
+     * @returns {object}
      */
-      function ($q, civiApi, notification) {
+      function ($q, $filter, civiApi, notification) {
       var constants = {
         entities: {
           MAILING_ENTITY: 'SimpleMail'
@@ -60,32 +61,118 @@
        * An array containing mailings
        *
        * @ngdoc property
+       * @name MailingsListingFactory#mailings
        * @type {Array}
        */
       var mailings = [];
 
       /**
-       * Get a list of mailings
+       * The user ID of the current user
+       *
+       * @ngdoc property
+       * @name MailingsListingFactory#userId
+       * @type {null}
+       */
+      var userId = null;
+
+      /**
+       * @ngdoc property
+       * @name MailingsListingFactory#creators
+       * @type {Array}
+       */
+      var creators = []
+
+      ////////////////////
+      // Public Methods //
+      ////////////////////
+
+      /**
+       * Initialise the factory
        *
        * @ngdoc method
-       * @name MailingsListingFactory#get
+       * @name MailingsListingFactory#init
+       */
+      var init = function () {
+        var deferred = $q.defer();
+
+        initMailings()
+          .then(initCreators)
+          .then(function () {
+            deferred.resolve();
+          })
+          .catch(function (response) {
+            deferred.reject('Failed to initialise mailings');
+            $log.error('Failed to initialise mailings', response);
+          });
+
+        return deferred.promise;
+      };
+
+      // Getters //
+
+      /**
+       * @ngdoc method
+       * @name MailingsListingFactory#getMailings
+       * @returns {Array}
        */
       var getMailings = function () {
-        return civiApi.get(constants.entities.MAILING_ENTITY)
+        return mailings;
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingsListingFactory#getUserId
+       * @returns {Array}
+       */
+      var getUserId = function () {
+        return userId;
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingsListingFactory#getCreators
+       * @returns {Array}
+       */
+      var getCreators = function () {
+        return creators;
+      };
+
+      /////////////////////
+      // Private Methods //
+      /////////////////////
+
+      /**
+       * @name initMailings
+       * @private
+       * @returns {ng.IPromise<TResult>}
+       */
+      var initMailings = function () {
+        return civiApi.get(constants.entities.MAILING_ENTITY, {}, {error: 'Failed to retrieve mailings'})
           .then(function (response) {
             if (response.data.is_error) return $q.reject(response);
+
+            mailings = response.data.values;
+            userId = response.data.userId;
           })
           .catch(function (response) {
             notification.error(response);
           })
       };
 
-      return {
-        // Properties
-        mailings: mailings,
+      /**
+       * @name initCreators
+       * @private
+       */
+      var initCreators = function () {
+        creators = $filter('extractColumn')(mailings, {id: 'created_id', name: 'sort_name'});
+        creators = $filter('unique')(creators, 'id');
+      };
 
-        // Methods
-        get: getMailings
+      return {
+        init: init,
+        getMailings: getMailings,
+        getUserId: getUserId,
+        getCreators: getCreators
       };
     }
   ];
@@ -856,7 +943,6 @@
        *
        * @name CiviApiFactory#update
        * @param entityName
-       * @param
        * @param {object=} data Optional data to pass in the GET/POST request
        * @param {{success: string=, error: string=}=} options
        * @returns {ng.IPromise.<TResult>|*}
