@@ -1854,6 +1854,34 @@
       }
     }
   ]);
+
+
+  /**
+   * Get elements in array 1 that are not in array 2
+   *
+   * @ngdoc filter
+   * @name arrayDiff
+   *
+   * @param {array} array1
+   * @param {array} array2
+   * @return {array}
+   */
+  var arrayDiff = [function () {
+    return function (array1, array2) {
+      var diff = [];
+
+      for (var i = 0, end = array1.length; i < end; i++) {
+        if (-1 === array2.indexOf(array1[i])) {
+          diff.push(array1[i]);
+        }
+      }
+
+      return diff;
+    }
+  }];
+
+  angular.module('simpleMail.filters')
+    .filter('arrayDiff', arrayDiff);
 })();
 
 
@@ -1869,30 +1897,6 @@
    * @type {ng.IModule}
    */
   var services = angular.module('simpleMail.services', []);
-
-  services.factory('utilityServices', [
-    function () {
-      return {
-        /**
-         * Get elements in array 1 that are not in array 2
-         *
-         * @param array1
-         * @param array2
-         */
-        arrayDiff: function (array1, array2) {
-          var diff = [];
-
-          for (var i = 0, end = array1.length; i < end; i++) {
-            if (-1 === array2.indexOf(array1[i])) {
-              diff.push(array1[i]);
-            }
-          }
-
-          return diff;
-        }
-      }
-    }
-  ]);
 
   /**
    * @ngdoc service
@@ -2756,7 +2760,7 @@
      * @param {$log} $log
      * @param {NotificationFactory} Notification
      */
-    function($http, $q, $log, Notification) {
+      function ($http, $q, $log, Notification) {
       /**
        * Return a list of records for the given entity
        *
@@ -2833,7 +2837,7 @@
        * @param {{success: string=, error: string=}=} options
        * @returns {ng.IPromise<TResult>|*}
        */
-      var post = function(entityName, data, action, options) {
+      var post = function (entityName, data, action, options) {
         data = data || {};
         options = options || {};
 
@@ -2841,7 +2845,7 @@
         var errorMessage = options.error || null;
 
         return _createPost(entityName, data, action)
-          .then(function(response) {
+          .then(function (response) {
             if (response.data.is_error) return $q.reject(response);
 
             if (successMessage) {
@@ -2853,7 +2857,7 @@
 
             return response;
           })
-          .catch(function(response) {
+          .catch(function (response) {
             if (errorMessage) {
               Notification.error(errorMessage);
               $log.error(errorMessage + ':', response);
