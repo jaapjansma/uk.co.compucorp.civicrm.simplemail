@@ -74,8 +74,8 @@
    * Detail page of a header
    */
   controllers.controller('HeaderAdminController', [
-    '$scope', '$http', '$q', '$fileUploader', 'CiviApiFactory', 'loggingServices', 'NotificationFactory', '$routeParams', '$location', 'utilityServices',
-    function ($scope, $http, $q, $fileUploader, civiApi, log, notification, $routeParams, $location, utils) {
+    '$scope', '$http', '$q', '$fileUploader', 'CiviApiFactory', 'loggingServices', 'NotificationFactory', '$routeParams', '$location', '$filter',
+    function ($scope, $http, $q, $fileUploader, civiApi, log, notification, $routeParams, $location, $filter) {
       $scope.header = {};
       $scope.models = {};
       $scope.filters = [];
@@ -328,8 +328,8 @@
                   console.log('Old filters', oldFilterIds);
                   console.log('New filters', newFilterIds);
 
-                  var removed = utils.arrayDiff(oldFilterIds, newFilterIds);
-                  var added = utils.arrayDiff(newFilterIds, oldFilterIds);
+                  var removed = $filter('arrayDiff')(oldFilterIds, newFilterIds);
+                  var added = $filter('arrayDiff')(newFilterIds, oldFilterIds);
 
                   console.log('Removed filters', removed);
                   console.log('Added filters', added);

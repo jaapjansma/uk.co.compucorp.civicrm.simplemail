@@ -121,8 +121,8 @@
    * Detail page of a header
    */
   controllers.controller('HeaderAdminController', [
-    '$scope', '$http', '$q', '$fileUploader', 'CiviApiFactory', 'loggingServices', 'NotificationFactory', '$routeParams', '$location', 'utilityServices',
-    function ($scope, $http, $q, $fileUploader, civiApi, log, notification, $routeParams, $location, utils) {
+    '$scope', '$http', '$q', '$fileUploader', 'CiviApiFactory', 'loggingServices', 'NotificationFactory', '$routeParams', '$location', '$filter',
+    function ($scope, $http, $q, $fileUploader, civiApi, log, notification, $routeParams, $location, $filter) {
       $scope.header = {};
       $scope.models = {};
       $scope.filters = [];
@@ -375,8 +375,8 @@
                   console.log('Old filters', oldFilterIds);
                   console.log('New filters', newFilterIds);
 
-                  var removed = utils.arrayDiff(oldFilterIds, newFilterIds);
-                  var added = utils.arrayDiff(newFilterIds, oldFilterIds);
+                  var removed = $filter('arrayDiff')(oldFilterIds, newFilterIds);
+                  var added = $filter('arrayDiff')(newFilterIds, oldFilterIds);
 
                   console.log('Removed filters', removed);
                   console.log('Added filters', added);
@@ -863,23 +863,10 @@
 
         mailing._internal.deleteEnabled = false;
 
-        var index = $scope.mailings.indexOf(mailing);
-
-        if (index !== -1) {
-          civiApi.remove('SimpleMail', mailing)
-            .then(function (response) {
-              if (response.data.is_error) return $q.reject(response);
-
-              notification.success('Mailing deleted');
-              $scope.mailings.splice(index, 1);
-              mailing._internal.deleteEnabled = true;
-            })
-            .catch(function (response) {
-              notification.error('Failed to delete the mailing', response.data.error_message);
-              console.log('Failed to delete the mailing', response);
-              mailing._internal.deleteEnabled = true;
-            });
-        }
+        MailingsListing.deleteMailing(mailing)
+          .finally(function () {
+            mailing._internal.deleteEnabled = true;
+          });
       };
 
       /**
@@ -943,7 +930,7 @@
                   return $q.reject('Failed to retrieve the newly duplicated mailing', response);
                 })
             })
-           .catch(function (response) {
+            .catch(function (response) {
               notification.error('Failed to duplicate the mailing', response.data.error_message);
               console.log('Failed to duplicate the mailing', response);
             });
@@ -1943,7 +1930,7 @@
        * @name MailingsListingFactory#creators
        * @type {Array}
        */
-      var creators = []
+      var creators = [];
 
       ////////////////////
       // Public Methods //
@@ -1964,11 +1951,46 @@
             deferred.resolve();
           })
           .catch(function (response) {
-            deferred.reject('Failed to initialise mailings');
+            deferred.reject();
             $log.error('Failed to initialise mailings', response);
           });
 
         return deferred.promise;
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingsListingFactory#deleteMailing
+       * @param mailing
+       */
+      var deleteMailing = function (mailing) {
+        var deferred = $q.defer();
+
+        var index = mailings.indexOf(mailing);
+
+        if (index !== -1) {
+          civiApi.remove(constants.entities.MAILING_ENTITY, mailing)
+            .then(function () {
+              mailings.splice(index, 1);
+              deferred.resolve();
+            })
+            .catch(function (response) {
+              deferred.reject(response);
+            });
+        } else {
+          deferred.reject('Mailing to be deleted was not found in the list of all mailings');
+        }
+
+        return deferred.promise
+          .then(function () {
+            notification.success('Mailing deleted');
+          })
+          .catch(function (response) {
+            notification.error('Failed to delete the mailing');
+            $log.error('Failed to delete the mailing as it was not found in the list of all mailings', response);
+
+            return $q.reject();
+          });
       };
 
       // Getters //
@@ -2012,8 +2034,6 @@
       var initMailings = function () {
         return civiApi.get(constants.entities.MAILING_ENTITY, {}, {error: 'Failed to retrieve mailings'})
           .then(function (response) {
-            if (response.data.is_error) return $q.reject(response);
-
             mailings = response.data.values;
             userId = response.data.userId;
           })
@@ -2033,6 +2053,7 @@
 
       return {
         init: init,
+        deleteMailing: deleteMailing,
         getMailings: getMailings,
         getUserId: getUserId,
         getCreators: getCreators
@@ -2044,8 +2065,8 @@
    * TODO (robin): Remove pluralisation of service names and it them PascalCased
    * @ngdoc service
    */
-  services.factory('mailingServices', ['$location', '$routeParams', '$q', 'CiviApiFactory', 'paths', 'utilityServices', 'NotificationFactory',
-    function ($location, $routeParams, $q, civiApi, paths, utility, notification) {
+  services.factory('mailingServices', ['$location', '$routeParams', '$q', 'CiviApiFactory', 'paths', 'NotificationFactory',
+    function ($location, $routeParams, $q, civiApi, paths, notification) {
       var constants = {
         ENTITY: 'SimpleMail'
       };
@@ -2859,6 +2880,8 @@
           })
           .catch(function (response) {
             if (errorMessage) {
+              if (response.data.error_message) errorMessage += ': ' + response.data.error_message;
+
               Notification.error(errorMessage);
               $log.error(errorMessage + ':', response);
             } else {

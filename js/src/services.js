@@ -56,7 +56,7 @@
        * @name MailingsListingFactory#creators
        * @type {Array}
        */
-      var creators = []
+      var creators = [];
 
       ////////////////////
       // Public Methods //
@@ -77,11 +77,46 @@
             deferred.resolve();
           })
           .catch(function (response) {
-            deferred.reject('Failed to initialise mailings');
+            deferred.reject();
             $log.error('Failed to initialise mailings', response);
           });
 
         return deferred.promise;
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingsListingFactory#deleteMailing
+       * @param mailing
+       */
+      var deleteMailing = function (mailing) {
+        var deferred = $q.defer();
+
+        var index = mailings.indexOf(mailing);
+
+        if (index !== -1) {
+          civiApi.remove(constants.entities.MAILING_ENTITY, mailing)
+            .then(function () {
+              mailings.splice(index, 1);
+              deferred.resolve();
+            })
+            .catch(function (response) {
+              deferred.reject(response);
+            });
+        } else {
+          deferred.reject('Mailing to be deleted was not found in the list of all mailings');
+        }
+
+        return deferred.promise
+          .then(function () {
+            notification.success('Mailing deleted');
+          })
+          .catch(function (response) {
+            notification.error('Failed to delete the mailing');
+            $log.error('Failed to delete the mailing as it was not found in the list of all mailings', response);
+
+            return $q.reject();
+          });
       };
 
       // Getters //
@@ -125,8 +160,6 @@
       var initMailings = function () {
         return civiApi.get(constants.entities.MAILING_ENTITY, {}, {error: 'Failed to retrieve mailings'})
           .then(function (response) {
-            if (response.data.is_error) return $q.reject(response);
-
             mailings = response.data.values;
             userId = response.data.userId;
           })
@@ -146,6 +179,7 @@
 
       return {
         init: init,
+        deleteMailing: deleteMailing,
         getMailings: getMailings,
         getUserId: getUserId,
         getCreators: getCreators
@@ -157,8 +191,8 @@
    * TODO (robin): Remove pluralisation of service names and it them PascalCased
    * @ngdoc service
    */
-  services.factory('mailingServices', ['$location', '$routeParams', '$q', 'CiviApiFactory', 'paths', 'utilityServices', 'NotificationFactory',
-    function ($location, $routeParams, $q, civiApi, paths, utility, notification) {
+  services.factory('mailingServices', ['$location', '$routeParams', '$q', 'CiviApiFactory', 'paths', 'NotificationFactory',
+    function ($location, $routeParams, $q, civiApi, paths, notification) {
       var constants = {
         ENTITY: 'SimpleMail'
       };
@@ -972,6 +1006,8 @@
           })
           .catch(function (response) {
             if (errorMessage) {
+              if (response.data.error_message) errorMessage += ': ' + response.data.error_message;
+
               Notification.error(errorMessage);
               $log.error(errorMessage + ':', response);
             } else {

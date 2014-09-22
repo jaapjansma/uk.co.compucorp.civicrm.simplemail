@@ -91,23 +91,10 @@
 
         mailing._internal.deleteEnabled = false;
 
-        var index = $scope.mailings.indexOf(mailing);
-
-        if (index !== -1) {
-          civiApi.remove('SimpleMail', mailing)
-            .then(function (response) {
-              if (response.data.is_error) return $q.reject(response);
-
-              notification.success('Mailing deleted');
-              $scope.mailings.splice(index, 1);
-              mailing._internal.deleteEnabled = true;
-            })
-            .catch(function (response) {
-              notification.error('Failed to delete the mailing', response.data.error_message);
-              console.log('Failed to delete the mailing', response);
-              mailing._internal.deleteEnabled = true;
-            });
-        }
+        MailingsListing.deleteMailing(mailing)
+          .finally(function () {
+            mailing._internal.deleteEnabled = true;
+          });
       };
 
       /**
@@ -171,7 +158,7 @@
                   return $q.reject('Failed to retrieve the newly duplicated mailing', response);
                 })
             })
-           .catch(function (response) {
+            .catch(function (response) {
               notification.error('Failed to duplicate the mailing', response.data.error_message);
               console.log('Failed to duplicate the mailing', response);
             });
