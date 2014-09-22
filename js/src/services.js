@@ -119,6 +119,39 @@
           });
       };
 
+      /**
+       * @ngdoc method
+       * @name MailingsListingFactory#cancelMailing
+       * @param mailing
+       */
+      var cancelMailing = function (mailing) {
+        var deferred = $q.defer();
+
+        var index = mailings.indexOf(mailing);
+
+        if (index !== -1) {
+          civiApi.post('SimpleMail', mailing, 'cancelmassemail')
+            .then(function () {
+              mailing.status = 'Canceled';
+              deferred.resolve();
+            })
+            .catch(function (response) {
+              deferred.reject(response);
+            });
+        }
+
+        return deferred.promise
+          .then(function () {
+            notification.success('Mailing cancelled');
+          })
+          .catch(function (response) {
+            notification.error('Failed to cancel the mailing');
+            $log.error('Failed to cancel the mailing as it was not found in the list of all mailings', response);
+
+            return $q.reject();
+          });
+      };
+
       // Getters //
 
       /**
@@ -180,6 +213,7 @@
       return {
         init: init,
         deleteMailing: deleteMailing,
+        cancelMailing: cancelMailing,
         getMailings: getMailings,
         getUserId: getUserId,
         getCreators: getCreators

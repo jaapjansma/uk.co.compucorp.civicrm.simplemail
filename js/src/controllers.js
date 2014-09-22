@@ -112,23 +112,10 @@
 
         mailing._internal.cancelEnabled = false;
 
-        var index = $scope.mailings.indexOf(mailing);
-
-        if (index !== -1) {
-          civiApi.post('SimpleMail', mailing, 'cancelmassemail')
-            .then(function (response) {
-              if (response.data.is_error) return $q.reject(response);
-
-              notification.success('Mailing cancelled');
-              mailing.status = 'Canceled';
-              mailing._internal.cancelEnabled = true;
-            })
-            .catch(function (response) {
-              notification.error('Failed to cancel the mailing');
-              console.log('Failed to cancel the mailing', response);
-              mailing._internal.cancelEnabled = true;
-            })
-        }
+        MailingsListing.cancelMailing(mailing)
+          .finally(function () {
+            mailing._internal.cancelEnabled = true;
+          });
       };
 
       /**

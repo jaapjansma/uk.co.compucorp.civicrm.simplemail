@@ -884,23 +884,10 @@
 
         mailing._internal.cancelEnabled = false;
 
-        var index = $scope.mailings.indexOf(mailing);
-
-        if (index !== -1) {
-          civiApi.post('SimpleMail', mailing, 'cancelmassemail')
-            .then(function (response) {
-              if (response.data.is_error) return $q.reject(response);
-
-              notification.success('Mailing cancelled');
-              mailing.status = 'Canceled';
-              mailing._internal.cancelEnabled = true;
-            })
-            .catch(function (response) {
-              notification.error('Failed to cancel the mailing');
-              console.log('Failed to cancel the mailing', response);
-              mailing._internal.cancelEnabled = true;
-            })
-        }
+        MailingsListing.cancelMailing(mailing)
+          .finally(function () {
+            mailing._internal.cancelEnabled = true;
+          });
       };
 
       /**
@@ -941,138 +928,6 @@
 
   angular.module('simpleMail.app.controllers')
     .controller('MailingsController', MailingsController);
-
-  ///**
-  // * @ngDoc controller
-  // * @name MailingsController
-  // *
-  // * @description Listing of mailing wizards
-  // */
-  //controllers.controller('MailingsController', [
-  //  '$scope', '$http', '$q', 'CiviApiFactory', 'loggingServices', 'NotificationFactory', '$filter', 'MailingsListingFactory',
-  //  function ($scope, $http, $q, civiApi, log, notification, $filter, MailingsListingFactory) {
-  //
-  //    $scope.constants = {
-  //      ENTITY_NAME: 'SimpleMail',
-  //      DRAFT: 'Not Scheduled',
-  //      SCHEDULED: 'Scheduled',
-  //      SENT: 'Complete',
-  //      CANCELLED: 'Canceled'
-  //    };
-  //
-  //    $scope.showFilters = true;
-  //
-  //    $scope.models = {};
-  //    $scope.models.mailingsLoaded = false;
-  //
-  //    $scope.mailingFilters = {
-  //      status: {},
-  //      creator: 'all'
-  //    };
-  //
-  //    $scope.filteredMailings = [];
-  //
-  //    $scope.mailingFilters.status[$scope.constants.DRAFT] = true;
-  //    $scope.mailingFilters.status[$scope.constants.SCHEDULED] = true;
-  //    $scope.mailingFilters.status[$scope.constants.SENT] = true;
-  //    $scope.mailingFilters.status[$scope.constants.CANCELLED] = true;
-  //
-  //    MailingsListingFactory.get()
-  //      .then(function () {
-  //        $scope.mailings = MailingsListingFactory.mailings;
-  //      });
-  //
-  //    civiApi.get($scope.constants.ENTITY_NAME)
-  //      .then(function (response) {
-  //        log.createLog('Mailings retrieved', response);
-  //        $scope.mailings = response.data.values;
-  //
-  //        var creators = $filter('extractColumn')($scope.mailings, {id: 'created_id', name: 'sort_name'});
-  //        $scope.models.creators = $filter('unique')(creators, 'id');
-  //        $scope.models.creators.unshift({id: 'all', 'name': 'All'});
-  //
-  //        // The below will cause to show mailings for all users if the current user never created any mailing;
-  //        // otherwise nothing would be shown, potentially confusing the user that mailings are missing/lost
-  //        var currentUserInCreators = $filter('filter')($scope.models.creators, {id: response.data.userId});
-  //        $scope.mailingFilters.creator = currentUserInCreators.length ? response.data.userId : 'all';
-  //      })
-  //      .finally(function() {
-  //        $scope.models.mailingsLoaded = true;
-  //      })
-  //      .catch(function (response) {
-  //        console.log('Failed to retrieve mailing', response);
-  //      });
-  //
-  //    /**
-  //     * @name deleteMailing
-  //     * @description Delete a mailing given by its index in the mailings array
-  //     *
-  //     * @param mailing
-  //     */
-  //    $scope.deleteMailing = function (mailing) {
-  //      if (!mailing.hasOwnProperty('_internal')) mailing._internal = {};
-  //
-  //      // Don't do anything if the button was pressed already and waiting for server response
-  //      if (mailing._internal.deleteEnabled === false) {
-  //        return;
-  //      }
-  //
-  //      mailing._internal.deleteEnabled = false;
-  //
-  //      var index = $scope.mailings.indexOf(mailing);
-  //
-  //      if (index !== -1) {
-  //        civiApi.remove('SimpleMail', mailing)
-  //          .then(function (response) {
-  //            if (response.data.is_error) return $q.reject(response);
-  //
-  //            notification.success('Mailing deleted');
-  //             $scope.mailings.splice(index, 1);
-  //            mailing._internal.deleteEnabled = true;
-  //          })
-  //          .catch(function (response) {
-  //            notification.error('Failed to delete the mailing', response.data.error_message);
-  //            console.log('Failed to delete the mailing', response);
-  //            mailing._internal.deleteEnabled = true;
-  //          });
-  //      }
-  //    };
-  //
-  //    /**
-  //     * Cancel scheduled mass mailing
-  //     *
-  //     * @param mailing
-  //     */
-  //    $scope.cancelMailing = function (mailing) {
-  //      if (!mailing.hasOwnProperty('_internal')) mailing._internal = {};
-  //
-  //      // Don't do anything if the button was pressed already and waiting for server response
-  //      if (mailing._internal.cancelEnabled === false) {
-  //        return;
-  //      }
-  //
-  //      mailing._internal.cancelEnabled = false;
-  //
-  //      var index = $scope.mailings.indexOf(mailing);
-  //
-  //      if (index !== -1) {
-  //        civiApi.post('SimpleMail', mailing, 'cancelmassemail')
-  //          .then(function (response) {
-  //            if (response.data.is_error) return $q.reject(response);
-  //
-  //            notification.success('Mailing cancelled');
-  //            mailing.status = 'Canceled';
-  //            mailing._internal.cancelEnabled = true;
-  //          })
-  //          .catch(function (response) {
-  //            notification.error('Failed to cancel the mailing');
-  //            console.log('Failed to cancel the mailing', response);
-  //            mailing._internal.cancelEnabled = true;
-  //          })
-  //      }
-  //    };
-  //  }
-  //]);
 
   /**
    * Step 1 of the wizard
@@ -1993,6 +1848,39 @@
           });
       };
 
+      /**
+       * @ngdoc method
+       * @name MailingsListingFactory#cancelMailing
+       * @param mailing
+       */
+      var cancelMailing = function (mailing) {
+        var deferred = $q.defer();
+
+        var index = mailings.indexOf(mailing);
+
+        if (index !== -1) {
+          civiApi.post('SimpleMail', mailing, 'cancelmassemail')
+            .then(function () {
+              mailing.status = 'Canceled';
+              deferred.resolve();
+            })
+            .catch(function (response) {
+              deferred.reject(response);
+            });
+        }
+
+        return deferred.promise
+          .then(function () {
+            notification.success('Mailing cancelled');
+          })
+          .catch(function (response) {
+            notification.error('Failed to cancel the mailing');
+            $log.error('Failed to cancel the mailing as it was not found in the list of all mailings', response);
+
+            return $q.reject();
+          });
+      };
+
       // Getters //
 
       /**
@@ -2054,6 +1942,7 @@
       return {
         init: init,
         deleteMailing: deleteMailing,
+        cancelMailing: cancelMailing,
         getMailings: getMailings,
         getUserId: getUserId,
         getCreators: getCreators
