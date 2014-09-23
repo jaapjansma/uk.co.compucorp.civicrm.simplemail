@@ -82,20 +82,8 @@
        * @param mailing
        */
       $scope.deleteMailing = function (mailing) {
-        if (!mailing.hasOwnProperty('_internal')) mailing._internal = {};
-
-        // Don't do anything if the button was pressed already and waiting for server response
-        if (mailing._internal.deleteEnabled === false) {
-          return;
-        }
-
-        mailing._internal.deleteEnabled = false;
-
-        MailingsListing.deleteMailing(mailing)
-          .finally(function () {
-            mailing._internal.deleteEnabled = true;
-          });
-      };
+       return MailingsListing.deleteMailing(mailing);
+     };
 
       /**
        * Cancel scheduled mass mailing
@@ -103,19 +91,7 @@
        * @param mailing
        */
       $scope.cancelMailing = function (mailing) {
-        if (!mailing.hasOwnProperty('_internal')) mailing._internal = {};
-
-        // Don't do anything if the button was pressed already and waiting for server response
-        if (mailing._internal.cancelEnabled === false) {
-          return;
-        }
-
-        mailing._internal.cancelEnabled = false;
-
-        MailingsListing.cancelMailing(mailing)
-          .finally(function () {
-            mailing._internal.cancelEnabled = true;
-          });
+       return MailingsListing.cancelMailing(mailing);
       };
 
       /**
@@ -124,32 +100,7 @@
        * @param mailing
        */
       $scope.duplicateMailing = function (mailing) {
-        var index = $scope.mailings.indexOf(mailing);
-
-        // TODO (robin): Ugly hack - fix this when refactoring model manipulations to services
-        $scope.duplicatedMailing = mailing;
-
-        if (index !== -1) {
-          civiApi.post('SimpleMail', mailing, 'duplicatemassemail')
-            .then(function (response) {
-              if (response.data.is_error) return $q.reject(response);
-              notification.success('Mailing duplicated');
-
-              civiApi.get('SimpleMail', {id: response.data.values[0].id})
-                .then(function (response) {
-                  if (response.data.is_error) return $q.reject(response);
-
-                  $scope.mailings.push(response.data.values[0]);
-                })
-                .catch(function (response) {
-                  return $q.reject('Failed to retrieve the newly duplicated mailing', response);
-                })
-            })
-            .catch(function (response) {
-              notification.error('Failed to duplicate the mailing', response.data.error_message);
-              console.log('Failed to duplicate the mailing', response);
-            });
-        }
+        return MailingsListing.duplicateMailing(mailing);
       }
     }
   ];

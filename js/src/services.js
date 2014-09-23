@@ -113,7 +113,7 @@
           })
           .catch(function (response) {
             notification.error('Failed to delete the mailing');
-            $log.error('Failed to delete the mailing as it was not found in the list of all mailings', response);
+            $log.error('Failed to delete the mailing:', response);
 
             return $q.reject();
           });
@@ -130,7 +130,7 @@
         var index = mailings.indexOf(mailing);
 
         if (index !== -1) {
-          civiApi.post('SimpleMail', mailing, 'cancelmassemail')
+          civiApi.post(constants.entities.MAILING_ENTITY, mailing, 'cancelmassemail')
             .then(function () {
               mailing.status = 'Canceled';
               deferred.resolve();
@@ -138,6 +138,8 @@
             .catch(function (response) {
               deferred.reject(response);
             });
+        } else {
+          deferred.reject('Mailing to be cancelled was not found in the list of all mailings');
         }
 
         return deferred.promise
@@ -146,7 +148,45 @@
           })
           .catch(function (response) {
             notification.error('Failed to cancel the mailing');
-            $log.error('Failed to cancel the mailing as it was not found in the list of all mailings', response);
+            $log.error('Failed to cancel the mailing:', response);
+
+            return $q.reject();
+          });
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingsListingFactory#duplicateMailing
+       * @param mailing
+       */
+      var duplicateMailing = function (mailing) {
+        var deferred = $q.defer();
+
+        var index = mailings.indexOf(mailing);
+
+        if (index !== -1) {
+          civiApi.post(constants.entities.MAILING_ENTITY, mailing, 'duplicatemassemail')
+            .then(function (response) {
+              return civiApi.get(constants.entities.MAILING_ENTITY, {id: response.data.values[0].id});
+            })
+            .then(function (response) {
+              mailings.push(response.data.values[0]);
+              deferred.resolve();
+            })
+            .catch(function (response) {
+              deferred.reject(response);
+            });
+        } else {
+          deferred.reject('Mailing to be duplicated was not found in the list of all mailings');
+        }
+
+        return deferred.promise
+          .then(function () {
+            notification.success('Mailing duplicated');
+          })
+          .catch(function (response) {
+            notification.error('Failed to duplicate the mailing', response.data.error_message);
+            $log.error('Failed to duplicate the mailing:', response);
 
             return $q.reject();
           });
@@ -214,6 +254,7 @@
         init: init,
         deleteMailing: deleteMailing,
         cancelMailing: cancelMailing,
+        duplicateMailing: duplicateMailing,
         getMailings: getMailings,
         getUserId: getUserId,
         getCreators: getCreators

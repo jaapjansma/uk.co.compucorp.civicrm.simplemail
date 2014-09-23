@@ -312,12 +312,44 @@
     }
   }];
 
+  /**
+   * @ngdoc directive
+   * @name smClickOnce
+   * @alias smClickOnce
+   *
+   * @type {*[]}
+   */
+  var smClickOnceDirective = ['$parse', function ($parse) {
+    var link = function (scope, element, attributes) {
+      var fn = $parse(attributes['smClickOnce']);
+      scope.submitting = false;
+
+      element.on('click', function () {
+        scope.$apply(function () {
+          if (scope.submitting) return;
+
+          scope.submitting = true;
+
+          fn(scope)
+            .finally(function () {
+              scope.submitting = false;
+            });
+        });
+      });
+    };
+
+    return {
+      link: link
+    };
+  }];
+
   angular.module('simpleMail.directives', [])
     .directive('smImageUploader', smImageUploaderDirective)
     .directive('smImageCarousel', smImageCarouselDirective)
     .directive('smCkEditor', smCkEditorDirective)
     .directive('smEmailPreviewer', smEmailPreviewerDirective)
     .directive('smMailingActionButtons', smMailingActionButtonsDirective)
+    .directive('smClickOnce', smClickOnceDirective)
   ;
 
 })();
