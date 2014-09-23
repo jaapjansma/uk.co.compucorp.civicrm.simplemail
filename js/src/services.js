@@ -361,7 +361,7 @@
          * @param {$rootScope.Scope} params.scope Scope object for binding wizard navigation buttons
          * @returns {self} Returns self for chaining
          */
-        initStep: function (params) {
+        init: function (params) {
           this.setStep(params.step)
             .setScope(params.scope);
 
@@ -1065,8 +1065,9 @@
 
         var successMessage = options.success || null;
         var errorMessage = options.error || null;
+        var cached = options.cached || false;
 
-        return _createPost(entityName, data, action)
+        return _createPost(entityName, data, action, cached)
           .then(function (response) {
             if (response.data.is_error) return $q.reject(response);
 
@@ -1099,10 +1100,11 @@
        * @param {string} entityName
        * @param {object=} data Optional data to pass in the GET/POST request
        * @param {string} action
+       * @param {boolean} cached
        * @returns {HttpPromise}
        * @private
        */
-      var _createPost = function (entityName, data, action) {
+      var _createPost = function (entityName, data, action, cached) {
         data = data || {};
 
         data.entity = entityName;
@@ -1119,7 +1121,7 @@
         // Set the headers so AngularJS POSTs the data as form data (and not request payload, which CiviCRM doesn't recognise)
         var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
 
-        return $http.post(postUrl, serialisedData, {headers: headers});
+        return $http.post(postUrl, serialisedData, {headers: headers, cached: cached});
       };
 
       return {

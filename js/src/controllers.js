@@ -115,7 +115,7 @@
     '$scope', '$http', '$routeParams', '$location', '$filter', 'CiviApiFactory', 'loggingServices', 'NotificationFactory', 'paths', 'mailingServices',
     function ($scope, $http, $routeParams, $location, $filter, civiApi, log, notification, paths, mailing) {
       // Initialise the step
-      mailing.initStep({step: 1, scope: $scope});
+      mailing.init({step: 1, scope: $scope});
 
       $scope.constants = {
         ENTITY_NAME: 'Group'
@@ -134,7 +134,7 @@
       civiApi.get($scope.constants.ENTITY_NAME)
         .then(function (response) {
           log.createLog('Groups retrieved', response);
-          $scope.groups = $filter('filter')(response.values, {is_hidden: 0});
+          $scope.groups = $filter('filter')(response.data.values, {is_hidden: 0});
         });
     }
   ]);
@@ -153,7 +153,7 @@
       $scope.headers = $scope.messages = [];
 
       // Initialise the step
-      mailing.initStep({step: 2, scope: $scope});
+      mailing.init({step: 2, scope: $scope});
 
       $scope.constants = {
         ENTITY_NAME: 'Group'
@@ -253,7 +253,7 @@
           return civiApi.get('SimpleMailMessage', {is_active: 1}).
             success(function (response) {
               log.createLog('Messages retrieved', response);
-              $scope.messages = response.values;
+              $scope.messages = response.data.values;
 
               var item = itemFromCollection($scope.messages, 'id', $scope.mailing.message_id);
               var selectedMessage = item.item;
@@ -276,7 +276,7 @@
     '$scope', '$http', '$routeParams', '$location', '$filter', 'CiviApiFactory', 'loggingServices', 'NotificationFactory', 'mailingServices',
     function ($scope, $http, $routeParams, $location, $filter, civiApi, log, notification, mailing) {
       // Initialise the step
-      mailing.initStep({step: 3, scope: $scope});
+      mailing.init({step: 3, scope: $scope});
 
       $scope.constants = {
         ENTITY_NAME: 'Group'
@@ -315,7 +315,7 @@
     '$scope', '$http', '$routeParams', '$location', 'CiviApiFactory', 'loggingServices', 'NotificationFactory', 'mailingServices',
     function ($scope, $http, $routeParams, $location, civiApi, log, notification, mailing) {
       // Initialise the step
-      mailing.initStep({step: 4, scope: $scope});
+      mailing.init({step: 4, scope: $scope});
 
       $scope.constants = {
         ENTITY_NAME: 'Group'
