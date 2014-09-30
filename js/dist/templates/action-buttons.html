@@ -11,4 +11,7 @@
   </li>
   <li><a ng-class="{disabled: submitting === true}" href sm-click-once="duplicate()">Duplicate</a></li>
   <li><a ng-class="{disabled: submitting === true}" href sm-click-once="delete()">Delete</a></li>
+  <li ng-if="mailing.start_date">
+    <a ng-href="/civicrm/mailing/report?mid={{mailing.crm_mailing_id}}&reset=1">Report</a>
+  </li>
 </ul>
