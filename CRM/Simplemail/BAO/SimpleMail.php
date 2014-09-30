@@ -593,7 +593,6 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $session = CRM_Core_Session::singleton();
     $sessionScope = CRM_Simplemail_Form_SimpleMailRecipientsFromSearch::getSessionScope();
     $smartGroupId = $session->get('smartGroupId', $sessionScope);
-    $session->resetScope($sessionScope);
 
     if ($smartGroupId) {
       $dao = new CRM_Mailing_DAO_MailingGroup();
@@ -606,6 +605,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       $dao->save();
     }
 
+    // This will make sure that we only create smart group for the mailing once - otherwise, duplicates would get created
     $session->resetScope($sessionScope);
   }
 

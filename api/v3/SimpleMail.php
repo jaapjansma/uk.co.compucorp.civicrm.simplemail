@@ -166,7 +166,7 @@ function civicrm_api3_simple_mail_duplicatemassemail($params) {
     = $params['status']
     = null;
 
-  return _civicrm_api3_basic_create(_civicrm_api3_get_BAO(__FUNCTION__), $params);
+  return civicrm_api3_simple_mail_create($params);
 }
 
 //////////////////////
