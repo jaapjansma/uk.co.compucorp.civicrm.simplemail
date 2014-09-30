@@ -1,23 +1,23 @@
-<div class="sm-container">
+<div ng-controller="ComposeMailingCtrl as compose" class="sm-container">
   <h1>Step 2 - Compose Mailing</h1>
 
-  <form class="crm-form-block">
+  <form sm-loaded="steps.isInitialised()" class="crm-form-block">
     <h2>Select header image:</h2>
 
     <div class="field-group clearfix">
-      <ui-select ng-model="models.selectedFilterId" theme="select2">
+      <ui-select ng-model="compose.models.selectedFilterId" theme="select2">
         <ui-select-match placeholder="Filter">{{$select.selected.label}}</ui-select-match>
-        <ui-select-choices repeat="filter.id as filter in filters | filter: {label: $select.search}">
+        <ui-select-choices repeat="filter.id as filter in compose.filters | filter: {label: $select.search}">
           {{filter.label}}
         </ui-select-choices>
       </ui-select>
     </div>
 
     <div data-sm-image-carousel
-         data-items="headers"
-         data-selected-filter-id="models.selectedFilterId"
-         data-selected-item-id="mailing.header_id"
-         data-items-loaded="models.headersLoaded"
+         data-items="compose.headers"
+         data-selected-filter-id="compose.models.selectedFilterId"
+         data-selected-item-id="compose.mailing.header_id"
+         data-items-loaded="compose.headersLoaded"
          class="simple-image-carousel">
     </div>
 
@@ -26,9 +26,9 @@
     <div class="cols clearfix">
       <div class="col one-half field-group left">
         <label for="">From address</label>
-        <ui-select class="full-width" ng-model="mailing.from_address" theme="select2">
+        <ui-select class="full-width" ng-model="compose.mailing.from_address" theme="select2">
           <ui-select-match placeholder="Select From Address">{{$select.selected.label}}</ui-select-match>
-          <ui-select-choices repeat="email.label as email in fromEmailOptionValues | filter: {label: $select.search}">
+          <ui-select-choices repeat="email.label as email in compose.fromEmails | filter: {label: $select.search}">
             {{email.label}}
           </ui-select-choices>
         </ui-select>
@@ -36,13 +36,13 @@
 
       <div class="col one-half field-group right">
         <label for="reply-address">Reply To</label>
-        <input class="full-width" id="reply-address" ng-model="mailing.reply_address" type="text"/>
+        <input class="full-width" id="reply-address" ng-model="compose.mailing.reply_address" type="text"/>
       </div>
     </div>
 
     <div class="field-group clearfix">
       <label for="subject">Email subject</label>
-      <input id="subject" name="subject" type="text" class="full-width" ng-model="mailing.subject"/>
+      <input id="subject" name="subject" type="text" class="full-width" ng-model="compose.mailing.subject"/>
     </div>
 
     <h2>Compose:</h2>
@@ -53,27 +53,30 @@
 
     <div class="field-group clearfix">
       <label for="title">Title/Strapline</label>
-      <input id="title" name="title" type="text" class="full-width" ng-model="mailing.title"/>
+      <input id="title" name="title" type="text" class="full-width" ng-model="compose.mailing.title"/>
     </div>
 
     <div class="field-group clearfix">
       <label for="body">Main Body</label>
-      <textarea sm-ck-editor name="body" id="body" cols="30" rows="10" class="full-width" ng-model="mailing.body"></textarea>
+      <textarea sm-ck-editor name="body" id="body" cols="30" rows="10" class="full-width"
+                ng-model="compose.mailing.body">
+      </textarea>
     </div>
 
     <div class="cols clearfix">
       <div class="field-group col left one-third">
         <label for="contact-details">Contact details</label>
         <textarea name="contact-details" id="contact-details" class="full-width" cols="10" rows="4"
-                  ng-model="mailing.contact_details"></textarea>
+                  ng-model="compose.mailing.contact_details">
+        </textarea>
       </div>
 
       <div class="field-group col right two-thirds clearfix">
         <div class="field-group clearfix">
           <label for="campaign-message">Campaign message</label>
-          <ui-select ng-model="mailing.message_id" theme="select2">
+          <ui-select ng-change="compose.updateSelectedMessage()" ng-model="compose.mailing.message_id" theme="select2">
             <ui-select-match placeholder="Select campaign message">{{$select.selected.label}}</ui-select-match>
-            <ui-select-choices repeat="message.id as message in messages | filter: {label: $select.search}">
+            <ui-select-choices repeat="message.id as message in compose.messages | filter: {label: $select.search}">
               {{message.label}}
             </ui-select-choices>
           </ui-select>
@@ -81,9 +84,7 @@
 
         <div class="field-group">
           <textarea class="full-width read-only" name="campaign-message-preview" id="campaign-message-preview"
-                    cols="10" rows="4" ng-readonly="true">
-            {{models.selectedMessage.text}}
-          </textarea>
+                    cols="10" rows="4" ng-readonly="true">{{compose.selectedMessage.text}}</textarea>
         </div>
       </div>
     </div>

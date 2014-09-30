@@ -79,7 +79,7 @@
           function (newVal) {
             console.log(newVal);
 
-            if (newVal.length) {
+            if (angular.isArray(newVal) && newVal.length) {
               scope.selectedFilterId = 'all';
 
               console.log('Selected item', scope.selectedItem);
@@ -343,6 +343,38 @@
     };
   }];
 
+  var smDisabled = [function () {
+    var link = function (scope, element, attributes) {
+      element.addClass('disabled');
+
+      scope.$watch(attributes['smDisabled'], function (newVal) {
+        if (newVal === false) {
+          element.removeClass('disabled');
+        }
+      });
+    };
+
+    return {
+      link: link
+    };
+  }];
+
+  var smLoadedDirective = [function () {
+    var link = function (scope, element, attributes) {
+      element.append('<div class="loading-panel"></div>')
+
+      scope.$watch(attributes['smLoaded'], function (newVal) {
+        if (newVal === true) {
+          element.find('.loading-panel').addClass('ng-hide');
+        }
+      });
+    };
+
+    return {
+      link: link
+    };
+  }];
+
   angular.module('simpleMail.directives', [])
     .directive('smImageUploader', smImageUploaderDirective)
     .directive('smImageCarousel', smImageCarouselDirective)
@@ -350,6 +382,8 @@
     .directive('smEmailPreviewer', smEmailPreviewerDirective)
     .directive('smMailingActionButtons', smMailingActionButtonsDirective)
     .directive('smClickOnce', smClickOnceDirective)
+    .directive('smDisabled', smDisabled)
+    .directive('smLoaded', smLoadedDirective)
   ;
 
 })();

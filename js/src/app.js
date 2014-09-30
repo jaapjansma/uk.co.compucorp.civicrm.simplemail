@@ -44,25 +44,9 @@
         .when('/mailings/:mailingId/steps', {
           redirectTo: '/mailings/:mailingId/steps/1'
         })
-        .when('/mailings/:mailingId/steps/1', {
+       .when('/mailings/:mailingId/steps/:step', {
           templateUrl: paths.PARTIALS_DIR() + '/wizard/steps/steps.html',
-          controller: 'CreateMailingController'
-        })
-        .when('/mailings/:mailingId/steps/2', {
-          templateUrl: paths.PARTIALS_DIR() + '/wizard/steps/steps.html',
-          controller: 'ComposeMailingController'
-        })
-        .when('/steps/2', {
-          templateUrl: paths.PARTIALS_DIR() + '/wizard/steps/steps.html',
-          controller: 'ComposeMailingController'
-        })
-        .when('/mailings/:mailingId/steps/3', {
-          templateUrl: paths.PARTIALS_DIR() + '/wizard/steps/steps.html',
-          controller: 'TestMailingController'
-        })
-        .when('/mailings/:mailingId/steps/4', {
-          templateUrl: paths.PARTIALS_DIR() + '/wizard/steps/steps.html',
-          controller: 'ScheduleAndSendController'
+          controller: ''
         })
         .otherwise({
           redirectTo: '/mailings'

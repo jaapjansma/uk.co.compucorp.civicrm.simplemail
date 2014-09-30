@@ -1,22 +1,23 @@
-<div class="sm-container">
+<div ng-controller="ScheduleAndSendCtrl as scheduleAndSend" class="sm-container">
   <h1>Step 4 - Schedule and Send</h1>
 
   <p>You can schedule this mailing to be sent starting at a specific data and time, OR you can request it</p>
 
-  <form class="crm-form-block">
+  <form sm-loaded="steps.isInitialised()" class="crm-form-block">
     <div class="field-group inline clearfix">
       <label for="send-immediately">Send immediately</label>
-      <input id="send-immediately" name="send-immediately" type="checkbox" ng-model="mailing.send_immediately"/>
+      <input id="send-immediately" name="send-immediately" type="checkbox" ng-model="scheduleAndSend.mailing
+      .send_immediately"/>
     </div>
 
-    <div ng-if="!mailing.send_immediately" class="field-group inline clearfix">
+    <div ng-if="!scheduleAndSend.mailing.send_immediately" class="field-group inline clearfix">
     <p class="label">OR</p>
     </div>
 
-    <div ng-if="!mailing.send_immediately" class="field-group inline clearfix">
+    <div ng-if="!scheduleAndSend.mailing.send_immediately" class="field-group inline clearfix">
       <label for="send-immediately">Schedule Mass Email</label>
 
-      <quick-datepicker ng-model="mailing.scheduled_date" data-date-format="d MMM, yyyy"
+      <quick-datepicker ng-model="scheduleAndSend.mailing.scheduled_date" data-date-format="d MMM, yyyy"
                         data-label-format="EEEE, d MMMM, yyyy 'at' h:mm a"
                         icon-class="fa fa-calendar"></quick-datepicker>
       <p>Set a data and time when you want CiviMail to start sending this mailing</p>

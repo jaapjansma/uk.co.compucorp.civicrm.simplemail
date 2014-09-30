@@ -16,6 +16,7 @@
    * @param collection An array of objects or arrays
    * @param searchKey
    * @param searchValue
+   *
    * @returns object An object consisting of the item found (or null is not found) and its associated index (or
    * null if not found) in the collection
    */

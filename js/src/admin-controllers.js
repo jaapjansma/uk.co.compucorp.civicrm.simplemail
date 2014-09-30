@@ -299,8 +299,8 @@
           return;
         }
 
-        if ($scope.header.id) {
-          civiApi.update($scope.constants.ENTITY_NAME, $scope.header)
+        //if ($scope.header.id) {
+          civiApi.create($scope.constants.ENTITY_NAME, $scope.header)
             // Save or update header
             .then(function (response) {
               log.createLog('Update header response', response);
@@ -309,6 +309,7 @@
 
               notification.success('Header updated');
 
+              $scope.header.id = response.data.values[0].id;
             })
             // Save or update filters
             .then(function (response) {
@@ -405,21 +406,21 @@
             .catch(function (response) {
               notification.error('Failed to update header', response.data.error_message);
             });
-        }
+        //}
         // TODO (robin): Save filters for new headers as well - may be refactor the logic from above into a controller method
-        else {
-          civiApi.create($scope.constants.ENTITY_NAME, $scope.header)
-            .success(function (response) {
-              log.createLog('Save header response', response);
-
-              if (response.error_message) {
-                notification.error('Failed to add header', response.error_message);
-              } else {
-                notification.success('Header added');
-                $scope.redirectToListing();
-              }
-            });
-        }
+        //else {
+        //  civiApi.create($scope.constants.ENTITY_NAME, $scope.header)
+        //    .success(function (response) {
+        //      log.createLog('Save header response', response);
+        //
+        //      if (response.error_message) {
+        //        notification.error('Failed to add header', response.error_message);
+        //      } else {
+        //        notification.success('Header added');
+        //        $scope.redirectToListing();
+        //      }
+        //    });
+        //}
       };
     }
   ]);

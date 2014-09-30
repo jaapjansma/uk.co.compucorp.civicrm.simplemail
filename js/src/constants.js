@@ -4,6 +4,7 @@
   var constants = angular.module('simpleMail.constants', []);
 
   constants.constant('paths', {
+    // TODO (robin): Make this dynamic
     EXT_DIR: '/sites/all/extensions/uk.co.compucorp.civicrm.simplemail',
 
     /**

@@ -1,22 +1,22 @@
-<div class="sm-container">
+<div ng-controller="TestMailingCtrl as test" class="sm-container">
   <h1>Step 3 - Test Mailing</h1>
 
-  <form class="crm-form-block">
+  <form sm-loaded="steps.isInitialised()" class="crm-form-block">
     <div class="field-group clearfix">
       <label for="">Send a test mailing</label>
-      <ui-select ng-model="mailing.testRecipientGroupId" theme="select2">
+      <ui-select ng-model="test.mailing.testRecipientGroupId" theme="select2">
         <ui-select-match placeholder="Select group">{{$select.selected.title}}</ui-select-match>
-        <ui-select-choices repeat="group.id as group in groups | filter: {title: $select.search}">
+        <ui-select-choices repeat="group.id as group in test.groups | filter: {title: $select.search}">
           {{group.title}}
         </ui-select-choices>
       </ui-select>
     </div>
 
-    <div class="buttons clearfix"><a href ng-click="submitTestEmail()" class="button">Send</a></div>
+    <div class="buttons clearfix"><a href ng-click="test.submitTestEmail()" class="button">Send</a></div>
 
     <div class="field-group clearfix">
       <label for="preview">Preview</label>
-      <iframe id="email-preview" sm-email-previewer data-email-content="mailing.body_html"></iframe>
+      <iframe id="email-preview" sm-email-previewer data-email-content="test.mailing.body_html"></iframe>
     </div>
   </form>
 </div>
