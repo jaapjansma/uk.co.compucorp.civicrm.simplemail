@@ -169,6 +169,16 @@ function civicrm_api3_simple_mail_duplicatemassemail($params) {
   return civicrm_api3_simple_mail_create($params);
 }
 
+function civicrm_api3_simple_mail_iscreatedfromsearch($params) {
+  try {
+    $result = CRM_Simplemail_BAO_SimpleMail::isCreatedFromSearch();
+
+    return civicrm_api3_create_success($result['values'], $params, null, 'iscreatedfromsearch');
+  } catch(CRM_Extension_Exception $e) {
+    return civicrm_api3_create_error($e->getMessage());
+  }
+}
+
 //////////////////////
 // Helper Functions //
 //////////////////////

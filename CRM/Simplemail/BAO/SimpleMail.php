@@ -590,9 +590,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @param $crmMailingId
    */
   private static function updateSmartGroups($crmMailingId) {
-    $session = CRM_Core_Session::singleton();
-    $sessionScope = CRM_Simplemail_Form_SimpleMailRecipientsFromSearch::getSessionScope();
-    $smartGroupId = $session->get('smartGroupId', $sessionScope);
+    // Clearing this from session will make sure that we only create smart group for the mailing once - otherwise, duplicates would get created
+    $smartGroupId = static::getSmartGroupIdFromSession(TRUE);
 
     if ($smartGroupId) {
       $dao = new CRM_Mailing_DAO_MailingGroup();
@@ -604,9 +603,34 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       $dao->entity_id = $smartGroupId;
       $dao->save();
     }
+  }
 
-    // This will make sure that we only create smart group for the mailing once - otherwise, duplicates would get created
-    $session->resetScope($sessionScope);
+  /**
+   * @param bool $clearFromSession
+   * TODO (robin): This is not accurate - if someone cancels the mailing from search and creates a new one (not from search), the new one will also get all the recipients from search. This would likely be a critical bug.
+   *
+   * @return mixed
+   */
+  private static function getSmartGroupIdFromSession($clearFromSession = FALSE) {
+    $session = CRM_Core_Session::singleton();
+    $sessionScope = CRM_Simplemail_Form_SimpleMailRecipientsFromSearch::getSessionScope();
+
+    $smartGroupId = $session->get('smartGroupId', $sessionScope);
+
+    if ($clearFromSession) {
+      $session->resetScope($sessionScope);
+    }
+
+    return $smartGroupId;
+  }
+
+  /**
+   * @return bool
+   */
+  public static function isCreatedFromSearch() {
+    $createdFromSearch = static::getSmartGroupIdFromSession() != NULL;
+
+    return array('values' => array(array('created_from_search' => $createdFromSearch)));
   }
 
   /**
