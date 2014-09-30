@@ -268,17 +268,18 @@
    * @alias WizardStepFactory
    * @type {*[]}
    */
-  var WizardStepProvider = ['$location', '$log', '$q', 'MailingDetailFactory', 'NotificationFactory', 'paths',
+  var WizardStepProvider = ['$location', '$log', '$q', 'CiviApiFactory', 'MailingDetailFactory', 'NotificationFactory', 'paths',
     /**
      *
      * @param $location
      * @param $log
      * @param $q
+     * @param {CiviApiFactory} CiviApi
      * @param {MailingDetailFactory} Mailing
      * @param {NotificationFactory} Notification
      * @param paths
      */
-      function ($location, $log, $q, Mailing, Notification, paths) {
+      function ($location, $log, $q, CiviApi, Mailing, Notification, paths) {
       var constants = {
         steps: {
           FIRST: 1,
@@ -412,6 +413,18 @@
         return paths.PARTIALS_DIR() + '/wizard/steps/step-' + getCurrentStep() + '.html';
       };
 
+      /**
+       * @ngdoc method
+       * @name WizardStepFactory#fromSearch
+       * @returns {boolean}
+       */
+      var fromSearch = function () {
+        return CiviApi.post('SimpleMail', {}, 'iscreatedfromsearch')
+          .then(function (response) {
+            return response.data.values[0].created_from_search;
+          })
+      };
+
       // Getters and Setters //
 
       /**
@@ -476,6 +489,7 @@
       };
 
       return {
+        fromSearch: fromSearch,
         init: init,
         isInitialised: isInitialised,
         getCurrentStep: getCurrentStep,
@@ -487,8 +501,7 @@
         cancel: cancel,
         saveAndContinueLater: saveAndContinueLater,
         submitMassEmail: submitMassEmail,
-        getPartialPath: getPartialPath,
-
+        getPartialPath: getPartialPath
       };
     }];
 
@@ -534,7 +547,7 @@
           CiviApi.get('SimpleMailHeader', {withFilters: true}, {cached: true})
             .then(function (response) {
               headers = response.data.values;
-              //initialised = true;
+              initialised = true;
               deferred.resolve();
             })
             .catch(function () {
@@ -601,7 +614,7 @@
           CiviApi.get(constants.entities.MESSAGE, {is_active: 1}, {cached: true})
             .then(function (response) {
               messages = response.data.values;
-              //initialised = true;
+              initialised = true;
               deferred.resolve();
             })
             .catch(function () {
@@ -697,7 +710,7 @@
             .then(function (response) {
               // TODO (robin): Move is_hidden filtering to API query
               mailingGroups = $filter('filter')(response.data.values, {is_hidden: 0});
-              //mailingGroupsInitialised = true;
+              mailingGroupsInitialised = true;
               deferred.resolve();
             })
             .catch(function () {
@@ -728,7 +741,7 @@
               return CiviApi.get('OptionValue', {option_group_id: groupId}, {cached: true})
                 .then(function (response) {
                   fromEmails = response.data.values;
-                  //fromEmailsInitialised = true;
+                  fromEmailsInitialised = true;
                   deferred.resolve();
                 });
             })
@@ -761,7 +774,7 @@
                 {cached: true})
                 .then(function (response) {
                   headerFilters = response.data.values;
-                  //headerFiltersInitialised = true;
+                  headerFiltersInitialised = true;
                   deferred.resolve();
                 });
             })
@@ -889,8 +902,8 @@
       var isInitialised = function () {
         if (initialised) {
           // Un-initialise the mailing in case we are opening another mailing from the listing (or directly from the URL)
-          if (shouldReinitialise()) {
-            initialised = false;
+          if (shouldReset()) {
+            resetCurrentMailing();
           }
         }
 
@@ -899,19 +912,20 @@
 
       /**
        * @ngdoc method
-       * @name MailingDetailFactory#shouldReinitialise
+       * @name MailingDetailFactory#shouldReset
        * @returns {boolean}
        */
-      var shouldReinitialise = function () {
-        return getCurrentMailingId() !== getMailingIdFromUrl();
+      var shouldReset = function () {
+        return getCurrentMailingId() && ( getCurrentMailingId() != getMailingIdFromUrl() );
       };
 
       /**
        * @ngdoc method
-       * @name MailingDetailFactory#clearCurrentMailing
+       * @name MailingDetailFactory#resetCurrentMailing
        */
-      var clearCurrentMailing = function () {
+      var resetCurrentMailing = function () {
         setCurrentMailing({}, true);
+        initialised = false;
       };
 
       /**
@@ -929,7 +943,7 @@
       var canUpdate = function () {
         var mailing = getCurrentMailing();
 
-        return mailing.crm_mailing_id && mailing.scheduled_date;
+        return !!mailing.crm_mailing_id && !!mailing.scheduled_date;
       };
 
       /**
@@ -949,8 +963,8 @@
               success: 'Mailing saved',
               error: 'Failed to save the mailing'
             })
-              .then(function () {
-                return CiviApi.get(constants.entities.MAILING, {id: getCurrentMailingId()})
+              .then(function (response) {
+                return CiviApi.get(constants.entities.MAILING, {id: response.data.values[0].id})
               })
               .then(function (response) {
                 setCurrentMailing(response.data.values[0], true);
@@ -1010,10 +1024,18 @@
 
       /**
        * @private
-       * @returns {?number}
+       * @returns {?number|string}
        */
       var getMailingIdFromUrl = function () {
-        return +$routeParams.mailingId;
+        return $routeParams.mailingId;
+      };
+
+      /**
+       * @private
+       * @returns {boolean}
+       */
+      var isNewMailing = function () {
+        return getMailingIdFromUrl() === 'new';
       };
 
       /**
@@ -1026,7 +1048,7 @@
         var mailingId = getMailingIdFromUrl();
 
        // The mailing isn't new (i.e. mailing ID exists in the URL) - populate current mailing using the API
-        if (mailingId !== 'new') {
+        if (!isNewMailing()) {
           CiviApi.get(constants.entities.MAILING, {id: mailingId})
             .then(function (response) {
               setCurrentMailing(response.data.values[0], true);
@@ -1047,7 +1069,7 @@
 
       return {
         canUpdate: canUpdate,
-        clearCurrentMailing: clearCurrentMailing,
+        clearCurrentMailing: resetCurrentMailing,
         init: init,
         saveProgress: saveProgress,
         submitMassEmail: submitMassEmail,

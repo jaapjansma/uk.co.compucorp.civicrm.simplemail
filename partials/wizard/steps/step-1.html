@@ -1,7 +1,7 @@
 <div ng-controller="CreateMailingCtrl as create" class="sm-container">
   <h1>Step 1 - Create Mailing</h1>
 
- <form sm-loaded="steps.isInitialised()" class="crm-form-block">
+  <form sm-loaded="steps.isInitialised()" class="crm-form-block">
     <div class="field-group">
       <label for="mailing-name">Name your mailing:</label>
       <input name="mailing-name" id="mailing-name" type="text" class="two-thirds" ng-model="create.mailing.name"/>
@@ -14,6 +14,9 @@
     </div>
 
     <h2>Mailing Recipients</h2>
+
+    <p ng-if="create.fromSearch" class="status">This mailing contains recipients from search results</p>
+
     <div class="field-group required">
       <label for="">Include group(s)</label>
       <ui-select multiple ng-model="create.mailing.recipient_group_entity_ids" theme="select2">

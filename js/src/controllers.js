@@ -139,7 +139,13 @@
           self.groups = Helper.getMailingGroups();
         });
 
-      promises.push(mailingPromise, mailingGroupsPromise);
+      // TODO (robin): This is not elegant - find a better solution if there is time
+      var isCreatedFromSearchPromise = Wizard.fromSearch()
+        .then(function (response) {
+          self.fromSearch = response;
+        });
+
+      promises.push(mailingPromise, mailingGroupsPromise, isCreatedFromSearchPromise);
 
       $q.all(promises)
         .catch(function () {
@@ -224,8 +230,11 @@
           Wizard.init();
         });
 
+      // TODO (robin): Could this be refactored so that the view interpolates the result of this method? This might mean invoking it is no longer needed in the above then() method
       this.updateSelectedMessage = function () {
-        this.selectedMessage = $filter('filter')(this.messages, {id: this.mailing.message_id})[0];
+        if (this.mailing.message_id) {
+          this.selectedMessage = $filter('filter')(this.messages, {id: this.mailing.message_id})[0];
+        }
       };
     }
   ];
@@ -316,7 +325,7 @@
   ];
 
   /**
-   * @type {*[]}
+   * Mailing buttons
    */
   var MailingButtonsCtrl = ['MailingDetailFactory', 'WizardStepFactory',
     /**
@@ -327,11 +336,7 @@
       this.showPrevStepLink = Wizard.prevStepAllowed();
       this.showNextStepLink = Wizard.nextStepAllowed();
       this.showSubmitMassEmailLink = !this.showNextStepLink;
-
-      //this.canUpdate = Mailing.canUpdate();
-      this.canUpdate = function() {
-        return Mailing.canUpdate();
-      };
+      this.canUpdate = Mailing.canUpdate();
 
       this.isInitialised = function () {
         return Wizard.isInitialised();

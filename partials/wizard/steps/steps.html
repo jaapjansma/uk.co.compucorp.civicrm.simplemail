@@ -13,7 +13,7 @@
       </a>
       <a sm-disabled="!buttons.isInitialised()" href ng-click="buttons.submitMassEmail()" class="button"
          ng-if="buttons.showSubmitMassEmailLink">
-        {{ buttons.canUpdate() ? 'Update' : 'Submit' }} Mass Email
+        {{ buttons.canUpdate ? 'Update' : 'Submit' }} Mass Email
       </a>
       <a href ng-click="buttons.cancel()" class="button">Cancel</a>
     </div>
