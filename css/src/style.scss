@@ -179,6 +179,16 @@ $border-radius: 3px;
     background: url('ajax-loader.gif') no-repeat;
   }
 
+  .loading-panel {
+    position: absolute;
+    background: url('ajax-loader.gif') 50% 50% no-repeat rgba(255,255,255, 0.5);
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 100;
+  }
+
   .simple-image-carousel {
     overflow: scroll;    
     min-height: 150px;
@@ -371,7 +381,7 @@ $border-radius: 3px;
       padding-left: 1rem;
 
       .select2-container {
-        margin-top: 0;
+//        margin-top: 0;
       }
     }
     .col:first-child {
@@ -395,7 +405,7 @@ $border-radius: 3px;
     -webkit-transition: linear 200ms;
     position: relative;
     top:0;
-  }  
+  }
   a {
   }
   textarea, input[type="text"] {
@@ -419,7 +429,7 @@ $border-radius: 3px;
   }
   input,
   .select2-container {
-    margin: 0.5rem 0;
+    margin: 0 0 0.5rem;
   }
   
   .field-group label {

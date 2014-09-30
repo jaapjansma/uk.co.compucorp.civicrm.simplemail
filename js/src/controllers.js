@@ -14,15 +14,25 @@
   }]);
 
   /**
-   * @ngDoc controller
+   * @ngdoc controller
    * @name MailingsController
-   *
-   * @description Listing of mailing wizards
+   * @requires MailingsListingFactory
+   * @type {*[]}
    */
-  controllers.controller('MailingsController', [
-    '$scope', '$http', '$q', 'civiApiServices', 'loggingServices', 'notificationServices', '$filter',
-    function ($scope, $http, $q, civiApi, log, notification, $filter) {
+  var MailingsController = ['$scope', '$http', '$q', 'CiviApiFactory', 'loggingServices', 'NotificationFactory', '$filter', 'MailingsListingFactory', '$log',
 
+    /**
+     *
+     * @param $scope
+     * @param $http
+     * @param $q
+     * @param civiApi
+     * @param log
+     * @param notification
+     * @param $filter
+     * @param {MailingsListingFactory} MailingsListing
+     */
+      function ($scope, $http, $q, civiApi, log, notification, $filter, MailingsListing, $log) {
       $scope.constants = {
         ENTITY_NAME: 'SimpleMail',
         DRAFT: 'Not Scheduled',
@@ -48,25 +58,21 @@
       $scope.mailingFilters.status[$scope.constants.SENT] = true;
       $scope.mailingFilters.status[$scope.constants.CANCELLED] = true;
 
-      civiApi.get($scope.constants.ENTITY_NAME)
-        .then(function (response) {
-          log.createLog('Mailings retrieved', response);
-          $scope.mailings = response.data.values;
+      MailingsListing.init()
+        .then(function () {
+          $scope.mailings = MailingsListing.getMailings();
+          $scope.userId = MailingsListing.getUserId();
 
-          var creators = $filter('extractColumn')($scope.mailings, {id: 'created_id', name: 'sort_name'});
-          $scope.models.creators = $filter('unique')(creators, 'id');
+          $scope.models.creators = MailingsListing.getCreators();
           $scope.models.creators.unshift({id: 'all', 'name': 'All'});
 
           // The below will cause to show mailings for all users if the current user never created any mailing;
           // otherwise nothing would be shown, potentially confusing the user that mailings are missing/lost
-          var currentUserInCreators = $filter('filter')($scope.models.creators, {id: response.data.userId});
-          $scope.mailingFilters.creator = currentUserInCreators.length ? response.data.userId : 'all';
+          var currentUserInCreators = $filter('filter')($scope.models.creators, {id: $scope.userId});
+          $scope.mailingFilters.creator = currentUserInCreators.length ? $scope.userId : 'all';
         })
-        .finally(function() {
+        .finally(function () {
           $scope.models.mailingsLoaded = true;
-        })
-        .catch(function (response) {
-          console.log('Failed to retrieve mailing', response);
         });
 
       /**
@@ -76,33 +82,8 @@
        * @param mailing
        */
       $scope.deleteMailing = function (mailing) {
-        if (!mailing.hasOwnProperty('_internal')) mailing._internal = {};
-
-        // Don't do anything if the button was pressed already and waiting for server response
-        if (mailing._internal.deleteEnabled === false) {
-          return;
-        }
-
-        mailing._internal.deleteEnabled = false;
-
-        var index = $scope.mailings.indexOf(mailing);
-
-        if (index !== -1) {
-          civiApi.remove('SimpleMail', mailing)
-            .then(function (response) {
-              if (response.data.is_error) return $q.reject(response);
-
-              notification.success('Mailing deleted');
-              $scope.mailings.splice(index, 1);
-              mailing._internal.deleteEnabled = true;
-            })
-            .catch(function (response) {
-              notification.error('Failed to delete the mailing', response.data.error_message);
-              console.log('Failed to delete the mailing', response);
-              mailing._internal.deleteEnabled = true;
-            });
-        }
-      };
+       return MailingsListing.deleteMailing(mailing);
+     };
 
       /**
        * Cancel scheduled mass mailing
@@ -110,32 +91,7 @@
        * @param mailing
        */
       $scope.cancelMailing = function (mailing) {
-        if (!mailing.hasOwnProperty('_internal')) mailing._internal = {};
-
-        // Don't do anything if the button was pressed already and waiting for server response
-        if (mailing._internal.cancelEnabled === false) {
-          return;
-        }
-
-        mailing._internal.cancelEnabled = false;
-
-        var index = $scope.mailings.indexOf(mailing);
-
-        if (index !== -1) {
-          civiApi.post('SimpleMail', mailing, 'cancelmassemail')
-            .then(function (response) {
-              if (response.data.is_error) return $q.reject(response);
-
-              notification.success('Mailing cancelled');
-              mailing.status = 'Canceled';
-              mailing._internal.cancelEnabled = true;
-            })
-            .catch(function (response) {
-              notification.error('Failed to cancel the mailing');
-              console.log('Failed to cancel the mailing', response);
-              mailing._internal.cancelEnabled = true;
-            })
-        }
+       return MailingsListing.cancelMailing(mailing);
       };
 
       /**
@@ -144,266 +100,273 @@
        * @param mailing
        */
       $scope.duplicateMailing = function (mailing) {
-        var index = $scope.mailings.indexOf(mailing);
-
-        // TODO (robin): Ugly hack - fix this when refactoring model manipulations to services
-        $scope.duplicatedMailing = mailing;
-
-        if (index !== -1) {
-          civiApi.post('SimpleMail', mailing, 'duplicatemassemail')
-            .then(function (response) {
-              if (response.data.is_error) return $q.reject(response);
-              notification.success('Mailing duplicated');
-
-              civiApi.get('SimpleMail', {id: response.data.values[0].id})
-                .then(function (response) {
-                  if (response.data.is_error) return $q.reject(response);
-
-                  $scope.mailings.push(response.data.values[0]);
-                })
-                .catch(function (response) {
-                  return $q.reject('Failed to retrieve the newly duplicated mailing', response);
-                })
-            })
-           .catch(function (response) {
-              notification.error('Failed to duplicate the mailing', response.data.error_message);
-              console.log('Failed to duplicate the mailing', response);
-            });
-        }
+        return MailingsListing.duplicateMailing(mailing);
       }
     }
-  ]);
+  ];
 
   /**
    * Step 1 of the wizard
+   *
+   * @ngdoc controller
+   * @name CreateMailingCtrl
+   * @type {*[]}
    */
-  controllers.controller('CreateMailingController', [
-    '$scope', '$http', '$routeParams', '$location', '$filter', 'civiApiServices', 'loggingServices', 'notificationServices', 'paths', 'mailingServices',
-    function ($scope, $http, $routeParams, $location, $filter, civiApi, log, notification, paths, mailing) {
-      // Initialise the step
-      mailing.initStep({step: 1, scope: $scope});
+  var CreateMailingCtrl = ['$q', 'MailingDetailFactory', 'NotificationFactory', 'MailingHelperFactory', 'WizardStepFactory',
+    /**
+     *
+     * @param $q
+     * @param {MailingDetailFactory} Mailing
+     * @param {NotificationFactory} Notification
+     * @param {MailingHelperFactory} Helper
+     * @param {WizardStepFactory} Wizard
+     */
+      function ($q, Mailing, Notification, Helper, Wizard) {
+      var self = this;
 
-      $scope.constants = {
-        ENTITY_NAME: 'Group'
-      };
+      this.mailing = Mailing.getCurrentMailing();
+      this.groups = Helper.getMailingGroups();
 
-      // Initialise empty mailing
-      $scope.mailing = {};
-      $scope.groups = [];
+      var promises = [];
 
-      mailing.getMailing()
-        .then(function (response) {
-          $scope.mailing = response;
+      var mailingPromise = Mailing.init()
+        .then(function () {
+          self.mailing = Mailing.getCurrentMailing();
         });
 
-      // Get the list of mailing recipient groups
-      civiApi.get($scope.constants.ENTITY_NAME)
-        .success(function (response) {
-          log.createLog('Groups retrieved', response);
-          $scope.groups = $filter('filter')(response.values, {is_hidden: 0});
+      var mailingGroupsPromise = Helper.initMailingGroups()
+        .then(function () {
+          self.groups = Helper.getMailingGroups();
+        });
+
+      promises.push(mailingPromise, mailingGroupsPromise);
+
+      $q.all(promises)
+        .catch(function () {
+          Notification.genericError();
+        })
+        .finally(function () {
+          self.initialised = true;
+          Wizard.init();
         });
     }
-  ]);
+  ];
 
   /**
    * Step 2 of the wizard
+   *
+   * @ngdoc controller
+   * @name ComposeMailingCtrl
+   * @type {*[]}
    */
-  controllers.controller('ComposeMailingController', [
-    '$scope', '$timeout', '$http', '$routeParams', '$location', '$q', 'civiApiServices', 'loggingServices', 'notificationServices', 'paths', 'mailingServices', 'itemFromCollectionFilter',
-    function ($scope, $timeout, $http, $routeParams, $location, $q, civiApi, log, notification, paths, mailing, itemFromCollection) {
-      $scope.models = {
-        selectedMessage: {},
-        headersLoaded: false
-      };
+  var ComposeMailingCtrl = ['$filter', '$q', '$scope', 'CampaignMessageFactory', 'HeaderFactory', 'MailingHelperFactory', 'MailingDetailFactory', 'NotificationFactory', 'WizardStepFactory',
+    /**
+     * @param $filter
+     * @param $q
+     * @param $scope
+     * @param {CampaignMessageFactory} CampaignMessage
+     * @param {HeaderFactory} Header
+     * @param {MailingHelperFactory} Helper
+     * @param {MailingDetailFactory} Mailing
+     * @param {NotificationFactory} Notification
+     * @param {WizardStepFactory} Wizard
+     */
+      function ($filter, $q, $scope, CampaignMessage, Header, Helper, Mailing, Notification, Wizard) {
+      var self = this;
 
-      $scope.headers = $scope.messages = [];
+      this.headersLoaded = false;
 
-      // Initialise the step
-      mailing.initStep({step: 2, scope: $scope});
+      this.mailing = Mailing.getCurrentMailing();
+      this.filters = Helper.getHeaderFilters();
+      this.headers = Header.getHeaders();
+      this.fromEmails = Helper.getFromEmails();
+      this.messages = CampaignMessage.getMessages();
 
-      $scope.constants = {
-        ENTITY_NAME: 'Group'
-      };
+      var promises = [];
 
-      // Initialise empty mailing
-      $scope.mailing = {};
+      var mailingPromise = Mailing.init()
+        .then(function () {
+          self.mailing = Mailing.getCurrentMailing();
+        });
 
-      $scope.$watch('mailing.message_id', function (newVal, oldVal) {
-        if (oldVal !== newVal) {
-          $scope.mailing.message_id = newVal;
+      var headerFiltersPromise = Helper.initHeaderFilters()
+        .then(function () {
+          self.filters = Helper.getHeaderFilters();
+          self.filters.unshift({id: "all", label: "All"});
+        });
 
-          var item = itemFromCollection($scope.messages, 'id', $scope.mailing.message_id);
-          var selectedMessage = item.item;
+      var headersPromise = Header.init()
+        .then(function () {
+          self.headers = Header.getHeaders();
+          self.headersLoaded = true;
+        });
 
-          if (selectedMessage !== null && selectedMessage.hasOwnProperty('text')) {
-            $scope.models.selectedMessage.text = selectedMessage.text;
-          }
-        }
-      });
+      var fromEmailsPromise = Helper.initFromEmails()
+        .then(function () {
+          self.fromEmails = Helper.getFromEmails();
+        });
 
-      // Get from emails
-      civiApi.getValue('OptionGroup', {name: 'from_email_address', return: 'id'})
-        .then(function (response) {
-          log.createLog('From-email address option response', response);
+      var campaignMessagesPromise = CampaignMessage.init()
+        .then(function () {
+          self.messages = CampaignMessage.getMessages();
+        });
 
-          if (response.data.is_error) return $q.reject(response);
+      promises.push(mailingPromise, headerFiltersPromise, headersPromise, fromEmailsPromise, campaignMessagesPromise);
 
-          return response.data.result;
-        })
-        // Get the option values
-        .then(function (groupId) {
-          return civiApi.get('OptionValue', {option_group_id: groupId})
-            .then(function (response) {
-              log.createLog('From-email address group options response', response);
-              $scope.fromEmailOptionValues = response.data.values;
-            })
+      $q.all(promises)
+        .then(function () {
+          self.updateSelectedMessage();
         })
         .catch(function () {
-          notification.error('Failed to retrieve from-email addresses');
+          Notification.genericError();
+        })
+        .finally(function () {
+          Wizard.init();
         });
 
-      // Get the headers
-      civiApi.get('SimpleMailHeader', {withFilters: true}, 'get')
-        .then(function (response) {
-          /*
-           * Get the list of filters from option value table
-           * Selecting a filter from the drop down would retrieve headers that have this filter applied
-           * Show images in each header for the selected filter
-           * Selecting an image would set the header's ID on $scope.mailing.header_id
-           */
-          console.log('Headers retrieved', response);
+      this.updateSelectedMessage = function () {
+        this.selectedMessage = $filter('filter')(this.messages, {id: this.mailing.message_id})[0];
+      };
+    }
+  ];
 
-          if (response.data.is_error) return $q.reject(response);
+  /**
+   * Step 3 of the wizard
+   *
+   * @ngdoc controller
+   * @name TestMailingCtrl
+   */
+  var TestMailingCtrl = ['$q', 'MailingHelperFactory', 'MailingDetailFactory', 'NotificationFactory', 'WizardStepFactory',
+    function ($q, Helper, Mailing, Notification, Wizard) {
+      var self = this;
 
-          $scope.headers = response.data.values;
-        })
+      this.mailing = Mailing.getCurrentMailing();
+      this.groups = Helper.getMailingGroups();
+
+      var promises = [];
+
+      var mailingPromise = Mailing.init()
         .then(function () {
-          $scope.models.headersLoaded = true;
-        })
-        .catch(function (response) {
-          console.log('Failed to retrieve headers', response);
+          self.mailing = Mailing.getCurrentMailing();
         });
 
-      // Get the filter options
-      civiApi.getValue('OptionGroup', {name: 'sm_header_filter_options', return: 'id'})
-        .then(function (response) {
-          if (response.data.is_error) return $q.reject(response);
-
-          console.log('Option group for filters retrieved', response);
-          return +response.data.result;
-        })
-        .then(function (groupId) {
-          civiApi.get('OptionValue', {option_group_id: groupId, is_active: '1'})
-            .then(function (response) {
-              if (response.data.is_error) return $q.reject(response);
-
-              console.log('Filter values retrieved', response);
-              $scope.filters = response.data.values;
-              $scope.filters.unshift({id: "all", label: "All"});
-
-              return true;
-            });
-        })
-        .catch(function (response) {
-          console.log('Failed to retrieve filter values', response);
+      var mailingGroupsPromise = Helper.initMailingGroups()
+        .then(function () {
+          self.groups = Helper.getMailingGroups();
         });
 
-      // Get the current mailing
-      mailing.getMailing()
-        .then(function (response) {
-          $scope.mailing = response;
-        })
-        .then(function (response) {
-          // Get the messages - note: this is within 'then' as otherwise it is possible that messages are not retrieved
-          // the mailing is, thereby making the selectedMessageText filter fail to populate the message text reliably
-          return civiApi.get('SimpleMailMessage', {is_active: 1}).
-            success(function (response) {
-              log.createLog('Messages retrieved', response);
-              $scope.messages = response.values;
+      promises.push(mailingPromise, mailingGroupsPromise);
 
-              var item = itemFromCollection($scope.messages, 'id', $scope.mailing.message_id);
-              var selectedMessage = item.item;
-
-              if (selectedMessage !== null && selectedMessage.hasOwnProperty('text')) {
-                $scope.models.selectedMessage.text = selectedMessage.text;
-              }
-            })
+      $q.all(promises)
+        .catch(function () {
+          Notification.genericError();
         })
-        .catch(function (response) {
-          console.log('Failed to retrieve the mailing', response);
+        .finally(function () {
+          Wizard.init();
         });
     }
-  ]);
+  ];
+
+  var ScheduleAndSendCtrl = ['$q', 'MailingDetailFactory', 'NotificationFactory', 'WizardStepFactory',
+    function ($q, Mailing, Notification, Wizard) {
+      var self = this;
+
+      this.mailing = Mailing.getCurrentMailing();
+
+      var promises = [];
+
+      var mailingPromise = Mailing.init()
+        .then(function () {
+          self.mailing = Mailing.getCurrentMailing();
+        });
+
+      promises.push(mailingPromise);
+
+      $q.all(promises)
+        .catch(function () {
+          Notification.genericError();
+        })
+        .finally(function () {
+          Wizard.init();
+        });
+    }
+  ];
 
   /**
-   * Step 3
+   * @ngdoc controller
+   * @name WizardStepsCtrl
    */
-  controllers.controller('TestMailingController', [
-    '$scope', '$http', '$routeParams', '$location', '$filter', 'civiApiServices', 'loggingServices', 'notificationServices', 'mailingServices',
-    function ($scope, $http, $routeParams, $location, $filter, civiApi, log, notification, mailing) {
-      // Initialise the step
-      mailing.initStep({step: 3, scope: $scope});
+  var WizardStepsCtrl = ['$routeParams', 'WizardStepFactory',
+    /**
+     *
+     * @param $routeParams
+     * @param {WizardStepFactory} Wizard
+     */
+      function ($routeParams, Wizard) {
+      var currentStep = +$routeParams.step;
 
-      $scope.constants = {
-        ENTITY_NAME: 'Group'
+      Wizard.setCurrentStep(currentStep);
+
+      this.partial = Wizard.getPartialPath();
+
+      this.isInitialised = function () {
+        return Wizard.isInitialised();
       };
-
-      // Initialise empty mailing
-      $scope.mailing = {};
-      $scope.groups = [];
-
-      $scope.constants = {
-        ENTITY_NAME: 'Group'
-      };
-
-      $scope.models = {
-        emailHtml: ''
-      };
-
-      // Get the current mailing
-      mailing.getMailing()
-        .then(function (response) {
-          $scope.mailing = response;
-        });
-
-      civiApi.get($scope.constants.ENTITY_NAME)
-        .success(function (response) {
-          log.createLog('Groups retrieved', response);
-          $scope.groups = $filter('filter')(response.values, {is_hidden: 0});
-        });
     }
-  ]);
+  ];
 
   /**
-   * Step 4 of the wizard
+   * @type {*[]}
    */
-  controllers.controller('ScheduleAndSendController', [
-    '$scope', '$http', '$routeParams', '$location', 'civiApiServices', 'loggingServices', 'notificationServices', 'mailingServices',
-    function ($scope, $http, $routeParams, $location, civiApi, log, notification, mailing) {
-      // Initialise the step
-      mailing.initStep({step: 4, scope: $scope});
+  var MailingButtonsCtrl = ['MailingDetailFactory', 'WizardStepFactory',
+    /**
+     *
+     * @param {WizardStepFactory} Wizard
+     */
+      function (Mailing, Wizard) {
+      this.showPrevStepLink = Wizard.prevStepAllowed();
+      this.showNextStepLink = Wizard.nextStepAllowed();
+      this.showSubmitMassEmailLink = !this.showNextStepLink;
 
-      $scope.constants = {
-        ENTITY_NAME: 'Group'
+      //this.canUpdate = Mailing.canUpdate();
+      this.canUpdate = function() {
+        return Mailing.canUpdate();
       };
 
-      // Initialise empty mailing
-      $scope.mailing = {};
-
-      // Get the current mailing
-      mailing.getMailing()
-        .then(function (response) {
-          $scope.mailing = response;
-        });
-
-      // Activate the jQuery datepicker plugin once the partial has been included
-      $scope.$on('$includeContentLoaded', function (e) {
-        cj("#datepicker").datepicker();
-      });
-
-      $scope.constants = {
-        ENTITY_NAME: 'Group'
+      this.isInitialised = function () {
+        return Wizard.isInitialised();
       };
-    }
-  ]);
+
+      this.prevStep = function () {
+        if (Wizard.isInitialised()) Wizard.prevStep();
+      };
+
+      this.nextStep = function () {
+        if (Wizard.isInitialised()) Wizard.nextStep();
+      };
+
+      this.saveAndContinueLater = function () {
+        if (Wizard.isInitialised()) Wizard.saveAndContinueLater();
+      };
+
+      this.submitMassEmail = function () {
+        if (Wizard.isInitialised()) Wizard.submitMassEmail();
+      };
+
+      this.cancel = function () {
+        Wizard.cancel();
+      };
+    }];
+
+
+  angular.module('simpleMail.app.controllers')
+    .controller('MailingsController', MailingsController)
+    .controller('WizardStepsCtrl', WizardStepsCtrl)
+    .controller('CreateMailingCtrl', CreateMailingCtrl)
+    .controller('ComposeMailingCtrl', ComposeMailingCtrl)
+    .controller('TestMailingCtrl', TestMailingCtrl)
+    .controller('ScheduleAndSendCtrl', ScheduleAndSendCtrl)
+    .controller('MailingButtonsCtrl', MailingButtonsCtrl)
+  ;
+
 })();

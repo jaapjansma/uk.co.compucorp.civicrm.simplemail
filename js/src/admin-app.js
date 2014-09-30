@@ -15,6 +15,7 @@
     'simpleMail.services',
     'simpleMail.directives',
     'simpleMail.constants',
+    'simpleMail.filters',
     'angularFileUpload'
   ]);
 

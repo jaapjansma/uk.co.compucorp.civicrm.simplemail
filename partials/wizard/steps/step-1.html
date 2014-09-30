@@ -1,24 +1,24 @@
-<div class="sm-container">
+<div ng-controller="CreateMailingCtrl as create" class="sm-container">
   <h1>Step 1 - Create Mailing</h1>
 
- <form class="crm-form-block">
+ <form sm-loaded="steps.isInitialised()" class="crm-form-block">
     <div class="field-group">
       <label for="mailing-name">Name your mailing:</label>
-      <input name="mailing-name" id="mailing-name" type="text" class="two-thirds" ng-model="mailing.name"/>
+      <input name="mailing-name" id="mailing-name" type="text" class="two-thirds" ng-model="create.mailing.name"/>
     </div>
 
     <div class="field-group inline clearfix">
       <label for="remove-duplicates" class="auto-width">Remove duplicate emails?</label>
-      <input name="remove-duplicates" id="remove-duplicates" type="checkbox" ng-model="mailing.dedupe_email"
+      <input name="remove-duplicates" id="remove-duplicates" type="checkbox" ng-model="create.mailing.dedupe_email"
              ng-true-value="1" ng-false-value="0"/>
     </div>
 
     <h2>Mailing Recipients</h2>
     <div class="field-group required">
       <label for="">Include group(s)</label>
-      <ui-select multiple ng-model="mailing.recipient_group_entity_ids" theme="select2">
+      <ui-select multiple ng-model="create.mailing.recipient_group_entity_ids" theme="select2">
         <ui-select-match placeholder="Select group(s)">{{$item.title}}</ui-select-match>
-        <ui-select-choices repeat="group.id as group in groups | filter: {title: $select.search}">
+        <ui-select-choices repeat="group.id as group in create.groups | filter: {title: $select.search}">
           {{group.title}}
         </ui-select-choices>
       </ui-select>

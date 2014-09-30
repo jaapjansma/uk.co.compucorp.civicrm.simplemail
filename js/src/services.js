@@ -11,499 +11,1065 @@
    */
   var services = angular.module('simpleMail.services', []);
 
-  services.factory('utilityServices', [
-    function () {
-      return {
-        /**
-         * Get elements in array 1 that are not in array 2
-         *
-         * @param array1
-         * @param array2
-         */
-        arrayDiff: function (array1, array2) {
-          var diff = [];
+  /**
+   * @ngdoc service
+   * @name MailingsListingFactory
+   * @return {object}
+   */
+  var MailingsListingProvider = ['$q', '$filter', 'CiviApiFactory', 'NotificationFactory',
 
-          for (var i = 0, end = array1.length; i < end; i++) {
-            if (-1 === array2.indexOf(array1[i])) {
-              diff.push(array1[i]);
-            }
-          }
-
-          return diff;
+    /**
+     *
+     * @param {$q} $q
+     * @param $filter
+     * @param {CiviApiFactory} CiviApi
+     * @param {NotificationFactory} Notification
+     * @returns {object}
+     */
+      function ($q, $filter, CiviApi, Notification) {
+      var constants = {
+        entities: {
+          MAILING: 'SimpleMail'
         }
-      }
+      };
+
+      /**
+       * An array containing mailings
+       *
+       * @ngdoc property
+       * @name MailingsListingFactory#mailings
+       * @type {Array}
+       */
+      var mailings = [];
+
+      /**
+       * The user ID of the current user
+       *
+       * @ngdoc property
+       * @name MailingsListingFactory#userId
+       * @type {null}
+       */
+      var userId = null;
+
+      /**
+       * @ngdoc property
+       * @name MailingsListingFactory#creators
+       * @type {Array}
+       */
+      var creators = [];
+
+      ////////////////////
+      // Public Methods //
+      ////////////////////
+
+      /**
+       * Initialise the factory
+       *
+       * @ngdoc method
+       * @name MailingsListingFactory#init
+       */
+      var init = function () {
+        var deferred = $q.defer();
+
+        initMailings()
+          .then(initCreators)
+          .then(function () {
+            deferred.resolve();
+          })
+          .catch(function (response) {
+            deferred.reject();
+            $log.error('Failed to initialise mailings', response);
+          });
+
+        return deferred.promise;
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingsListingFactory#deleteMailing
+       * @param mailing
+       */
+      var deleteMailing = function (mailing) {
+        var deferred = $q.defer();
+
+        var index = mailings.indexOf(mailing);
+
+        if (index !== -1) {
+          CiviApi.remove(constants.entities.MAILING, mailing)
+            .then(function () {
+              mailings.splice(index, 1);
+              deferred.resolve();
+            })
+            .catch(function (response) {
+              deferred.reject(response);
+            });
+        } else {
+          deferred.reject('Mailing to be deleted was not found in the list of all mailings');
+        }
+
+        return deferred.promise
+          .then(function () {
+            Notification.success('Mailing deleted');
+          })
+          .catch(function (response) {
+            Notification.error('Failed to delete the mailing');
+            $log.error('Failed to delete the mailing:', response);
+
+            return $q.reject();
+          });
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingsListingFactory#cancelMailing
+       * @param mailing
+       */
+      var cancelMailing = function (mailing) {
+        var deferred = $q.defer();
+
+        var index = mailings.indexOf(mailing);
+
+        if (index !== -1) {
+          CiviApi.post(constants.entities.MAILING, mailing, 'cancelmassemail')
+            .then(function () {
+              mailing.status = 'Canceled';
+              deferred.resolve();
+            })
+            .catch(function (response) {
+              deferred.reject(response);
+            });
+        } else {
+          deferred.reject('Mailing to be cancelled was not found in the list of all mailings');
+        }
+
+        return deferred.promise
+          .then(function () {
+            Notification.success('Mailing cancelled');
+          })
+          .catch(function (response) {
+            Notification.error('Failed to cancel the mailing');
+            $log.error('Failed to cancel the mailing:', response);
+
+            return $q.reject();
+          });
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingsListingFactory#duplicateMailing
+       * @param mailing
+       */
+      var duplicateMailing = function (mailing) {
+        var deferred = $q.defer();
+
+        var index = mailings.indexOf(mailing);
+
+        if (index !== -1) {
+          CiviApi.post(constants.entities.MAILING, mailing, 'duplicatemassemail')
+            .then(function (response) {
+              return CiviApi.get(constants.entities.MAILING, {id: response.data.values[0].id});
+            })
+            .then(function (response) {
+              mailings.push(response.data.values[0]);
+              deferred.resolve();
+            })
+            .catch(function (response) {
+              deferred.reject(response);
+            });
+        } else {
+          deferred.reject('Mailing to be duplicated was not found in the list of all mailings');
+        }
+
+        return deferred.promise
+          .then(function () {
+            Notification.success('Mailing duplicated');
+          })
+          .catch(function (response) {
+            Notification.error('Failed to duplicate the mailing', response.data.error_message);
+            $log.error('Failed to duplicate the mailing:', response);
+
+            return $q.reject();
+          });
+      };
+
+      // Getters //
+
+      /**
+       * @ngdoc method
+       * @name MailingsListingFactory#getMailings
+       * @returns {Array}
+       */
+      var getMailings = function () {
+        return mailings;
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingsListingFactory#getUserId
+       * @returns {Array}
+       */
+      var getUserId = function () {
+        return userId;
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingsListingFactory#getCreators
+       * @returns {Array}
+       */
+      var getCreators = function () {
+        return creators;
+      };
+
+      /////////////////////
+      // Private Methods //
+      /////////////////////
+
+      /**
+       * @name initMailings
+       * @private
+       * @returns {ng.IPromise<TResult>}
+       */
+      var initMailings = function () {
+        return CiviApi.get(constants.entities.MAILING, {}, {error: 'Failed to retrieve mailings'})
+          .then(function (response) {
+            mailings = response.data.values;
+            userId = response.data.userId;
+          })
+          .catch(function (response) {
+            Notification.error(response);
+          })
+      };
+
+      /**
+       * @name initCreators
+       * @private
+       */
+      var initCreators = function () {
+        creators = $filter('extractColumn')(mailings, {id: 'created_id', name: 'sort_name'});
+        creators = $filter('unique')(creators, 'id');
+      };
+
+      return {
+        init: init,
+        deleteMailing: deleteMailing,
+        cancelMailing: cancelMailing,
+        duplicateMailing: duplicateMailing,
+        getMailings: getMailings,
+        getUserId: getUserId,
+        getCreators: getCreators
+      };
     }
-  ]);
+  ];
 
   /**
-   * @ngdoc factory
+   * @ngdoc service
+   * @name WizardStepFactory
+   * @alias WizardStepFactory
+   * @type {*[]}
    */
-  services.factory('mailingServices', ['$location', '$routeParams', '$q', 'civiApiServices', 'paths', 'utilityServices', 'notificationServices',
-    function ($location, $routeParams, $q, civiApi, paths, utility, notification) {
+  var WizardStepProvider = ['$location', '$log', '$q', 'MailingDetailFactory', 'NotificationFactory', 'paths',
+    /**
+     *
+     * @param $location
+     * @param $log
+     * @param $q
+     * @param {MailingDetailFactory} Mailing
+     * @param {NotificationFactory} Notification
+     * @param paths
+     */
+      function ($location, $log, $q, Mailing, Notification, paths) {
       var constants = {
-        ENTITY: 'SimpleMail'
+        steps: {
+          FIRST: 1,
+          LAST: 4
+        },
+        paths: {
+          WIZARD_ROOT: '/mailings'
+        }
+      };
+
+      var currentStep = constants.steps.FIRST;
+
+      var showPrevStepLink = false;
+      var showNextStepLink = false;
+
+      ////////////////////
+      // Public Methods //
+      ////////////////////
+
+      ///**
+      //* @ngdoc method
+      //* @name WizardStepFactory#init
+      //* @returns {IPromise}
+      //*/
+      //var init = function () {
+      //  var deferred = $q.defer();
+      //};
+
+      /**
+       * @type {boolean}
+       */
+      var initialised = false;
+
+      /**
+       * @ngdoc method
+       * @name WizardStepFactory#isInitialised
+       * @returns {boolean}
+       */
+      var isInitialised = function () {
+        return initialised;
       };
 
       /**
-       * Steps for the mailing wizard
-       *
-       * @readonly
-       * @enum {number}
+       * @ngdoc method
+       * @name WizardStepFactory#init
        */
-      var Steps = {
-        /**
-         * First step of the wizard
-         */
-        FIRST: 1,
-
-        /**
-         * Last step of the wizard
-         */
-        LAST: 4
+      var init = function () {
+        initialised = true;
       };
 
       /**
-       * Root path of mailings
-       *
-       * @type {string}
+       * @ngdoc method
+       * @name WizardStepFactory#nextStepAllowed
+       * @returns {boolean}
        */
-      var pathRoot = '/mailings';
+      var nextStepAllowed = function () {
+        return getCurrentStep() < constants.steps.LAST;
+      };
 
       /**
-       * Get the URL corresponding to the current step
-       *
-       * @param {object} params
-       * @param {number} params.mailingId
-       * @param {number} params.step
+       * @ngdoc method
+       * @name WizardStepFactory#prevStepAllowed
+       * @returns {boolean}
+       */
+      var prevStepAllowed = function () {
+        return getCurrentStep() > constants.steps.FIRST;
+      };
+
+      /**
+       * @ngdoc method
+       * @name WizardStepFactory#nextStep
+       * @returns {IPromise}
+       */
+      var nextStep = function () {
+        if (!nextStepAllowed()) return $q.reject('Next step now allowed!');
+
+        return proceedToStep(currentStep + 1);
+      };
+
+      /**
+       * @ngdoc method
+       * @name WizardStepFactory#prevStep
+       * @returns {IPromise}
+       */
+      var prevStep = function () {
+        if (!prevStepAllowed()) return $q.reject('Prev step not allowed!');
+
+        return proceedToStep(currentStep - 1);
+      };
+
+      /**
+       * @ngdoc method
+       * @name WizardStepFactory#saveAndContinueLater
+       * @returns {ng.IPromise<TResult>|*}
+       */
+      var saveAndContinueLater = function () {
+        return Mailing.saveProgress()
+          .then(function () {
+            Mailing.clearCurrentMailing();
+            redirectToListing();
+          });
+      };
+
+      /**
+       * @ngdoc method
+       * @name WizardStepFactory#submitMassEmail
+       * @returns {IPromise}
+       */
+      var submitMassEmail = function () {
+        return Mailing.submitMassEmail()
+          .then(function () {
+            redirectToListing();
+          });
+      };
+
+      /**
+       * @ngdoc method
+       * @name WizardStepFactory#cancel
+       */
+      var cancel = function () {
+        Mailing.clearCurrentMailing();
+        redirectToListing();
+      };
+
+      /**
+       * @ngdoc method
+       * @name WizardStepFactory#getPartialPath
        * @returns {string}
        */
-      var getStepUrl = function (params) {
-        return pathRoot + '/' + params.mailingId + '/steps/' + params.step;
+      var getPartialPath = function () {
+        return paths.PARTIALS_DIR() + '/wizard/steps/step-' + getCurrentStep() + '.html';
       };
 
+      // Getters and Setters //
+
       /**
-       * Get the partial path for the current step
-       *
-       * @param {number} step
-       * @returns {string}
+       * @ngdoc method
+       * @name WizardStepFactory#getCurrentStep
+       * @returns {number}
        */
-      var getStepPartialPath = function (step) {
-        return paths.PARTIALS_DIR() + '/wizard/steps/step-' + step + '.html';
+      var getCurrentStep = function () {
+        return currentStep;
       };
 
       /**
-       * Redirect to the listing of headers
+       * @ngdoc method
+       * @name WizardStepFactory#setCurrentStep
+       * @param step
+       */
+      var setCurrentStep = function (step) {
+        currentStep = step;
+      };
+
+      /////////////////////
+      // Private Methods //
+      /////////////////////
+
+      /**
+       * @private
+       * @returns {ng.IPromise<TResult>|*}
+       */
+      var proceedToStep = function (step) {
+        return Mailing.saveProgress()
+          .then(function () {
+            redirectToStep(step);
+          })
+          .catch(function (response) {
+            Notification.error('Failed to proceed to next step');
+            $log.error('Failed to proceed to next step', response);
+          });
+      };
+
+      /**
+       * @private
+       */
+      var redirectToStep = function (step) {
+        setCurrentStep(step);
+        initialised = false;
+        $location.path(getStepUrl(step));
+      };
+
+      /**
+       * @private
        */
       var redirectToListing = function () {
-        $location.path(pathRoot);
+        $location.path(constants.paths.WIZARD_ROOT);
+      };
+
+      /**
+       * @private
+       * @returns {string}
+       */
+      var getStepUrl = function (step) {
+        return constants.paths.WIZARD_ROOT + '/' + Mailing.getCurrentMailing().id + '/steps/' + step;
       };
 
       return {
-        /**
-         * Mailing configuration and settings
-         */
-        config: {
-          /**
-           * The ID of the current mailing
-           *
-           * @type {?number}
-           */
-          mailingId: null,
+        init: init,
+        isInitialised: isInitialised,
+        getCurrentStep: getCurrentStep,
+        setCurrentStep: setCurrentStep,
+        nextStep: nextStep,
+        prevStep: prevStep,
+        nextStepAllowed: nextStepAllowed,
+        prevStepAllowed: prevStepAllowed,
+        cancel: cancel,
+        saveAndContinueLater: saveAndContinueLater,
+        submitMassEmail: submitMassEmail,
+        getPartialPath: getPartialPath,
 
-          /**
-           * The current mailing object
-           *
-           * @type {?object}
-           */
-          mailing: null,
-
-          /**
-           * Current step of the wizard, initialised to first step
-           *
-           * @type {number}
-           */
-          step: Steps.FIRST
-        },
-
-        /**
-         * Initialise a step
-         *
-         * @param {object} params
-         * @param {number} params.step Current step of the mailing
-         * @param {$rootScope.Scope} params.scope Scope object for binding wizard navigation buttons
-         * @returns {self} Returns self for chaining
-         */
-        initStep: function (params) {
-          this.setStep(params.step)
-            .setScope(params.scope);
-
-          this.setupMailing()
-            .setupButtons()
-            .setupPartials();
-
-          return this;
-        },
-
-        /**
-         * Setup and initialise the current mailing
-         *
-         * @returns {self} Returns self for chaining
-         */
-        setupMailing: function () {
-          var mailingId = $routeParams.mailingId;
-
-          var mailing = mailingId === "new"
-            ? {}
-            : this.get(mailingId)
-            .then(function (response) {
-              return response;
-            })
-            .catch(function (response) {
-              console.log('Failed to retrieve mailing', response);
-              return {};
-            });
-
-          this.setMailingId(mailingId);
-          this.setMailing(mailing);
-
-          return this;
-        },
-
-        /**
-         * Set the scope for the mailing
-         *
-         * @param {$rootScope.Scope} scope
-         * @returns {self} Returns self for chaining
-         */
-        setScope: function (scope) {
-          this.config.scope = scope;
-
-          return this;
-        },
-
-        /**
-         * Get the scope for the mailing
-         *
-         * @returns {*}
-         */
-        getScope: function () {
-          return this.config.scope;
-        },
-
-        /**
-         * Set the partial path for the current step
-         */
-        setupPartials: function () {
-          this.getScope().partial = getStepPartialPath(this.getStep());
-
-          return this;
-        },
-
-        /**
-         * Get the current mailing ID
-         *
-         * @returns {?number}
-         */
-        getMailingId: function () {
-          return this.config.mailingId;
-        },
-
-        /**
-         * Set the current mailing ID
-         *
-         * @param {number} id
-         */
-        setMailingId: function (id) {
-          this.config.mailingId = +id;
-        },
-
-        getMailing: function () {
-          return $q.when(this.config.mailing);
-        },
-
-        /**
-         * Set mailing
-         *
-         * @param {object} mailing
-         */
-        setMailing: function (mailing) {
-          this.config.mailing = mailing;
-        },
-
-        /**
-         * Get mailing by ID as a promise object
-         *
-         * @param {int} id
-         * @returns {IPromise}
-         */
-        get: function (id) {
-          // TODO (robin): Returning HTTP Promises throughout the services could be replaced with returning a generic promise and performing various validation and repetitive tasks in the service, rather that duplicating it in the controllers (e.g. generic implementation of success() and error() could be done within the service to improve re-usability, and a generic promise could be returned back so that every call to an HTTP service doesn't require boilerplate implementation of success() and error() repetitively
-          return civiApi.get(constants.ENTITY, {id: id})
-            .then(function (response) {
-              if (response.data.is_error) return $q.reject(response);
-
-              console.log('Mailing retrieved', response);
-              return response.data.values[0];
-            });
-        },
-
-        // TODO (robin): Validation before submitting request
-        submitMassEmail: function () {
-          this.getMailing()
-            .then(function (mailing) {
-              if (mailing.send_immediately) {
-                mailing.scheduled_date = Date.create().format('{yyyy}-{{MM}}-{{dd}} {{HH}}:{{mm}}:{{ss}}');
-              }
-
-              return mailing;
-            })
-            .then(function (mailing) {
-              return civiApi.post(constants.ENTITY, mailing, 'submitmassemail');
-              //return self.saveProgress();
-            })
-            .then(function () {
-              notification.success('Mailing submitted for mass emailing');
-              redirectToListing();
-            })
-            .catch(function (response) {
-              notification.error('Oops! Failed to submit the mailing for mass emailing');
-              console.log('Something went wrong when trying to submit for mass emailing', response);
-
-              return $q.reject(response);
-            });
-          this.saveProgress().then()
-        },
-
-        /**
-         * Save progress of the mailing
-         *
-         * @returns {ng.IPromise<TResult>|*}
-         */
-        saveProgress: function () {
-          var self = this;
-
-          return this.getMailing()
-            .then(function (mailing) {
-              return civiApi.create(constants.ENTITY, mailing);
-            })
-            .then(function (response) {
-              if (response.data.is_error) return $q.reject(response);
-
-              console.log('Mailing saved', response);
-              notification.success('Mailing saved');
-
-              // This is to set the mailing ID when a new mailing is created, as the ID would be 'new' otherwise.
-              // Setting the ID here would automatically ensure that clicking on the navigation buttons (e.g. 'next')
-              // would redirect to the correct URL (i.e. with correct mailing ID and step in the URL), as the
-              // navigation logic in this service uses mailing ID to figure out redirections.
-              if (isNaN(self.getMailingId())) {
-                self.setMailingId(+response.data.values[0].id);
-              }
-            })
-            .catch(function (response) {
-              notification.error('Failed to save the mailing');
-              console.log('Failed to save the mailing', response);
-
-              return $q.reject(response);
-            });
-        },
-
-        /**
-         * Send a request to send test email
-         */
-        submitTestEmail: function () {
-          this.getMailing()
-            .then(function (mailing) {
-              if (!mailing.crm_mailing_id) {
-                notification.error('Cannot send test email as CiviCRM mailing does not exist for this');
-                return;
-              }
-
-              notification.info('Sending test email');
-
-              var data = {crmMailingId: mailing.crm_mailing_id, groupId: mailing.testRecipientGroupId};
-              return civiApi.post('SimpleMail', data, 'sendtestemail');
-            })
-            .then(function (response) {
-              console.log(response);
-              notification.success('Test email send');
-            })
-            .catch(function (response) {
-              notification.error('Failed to send test email');
-              console.log('Failed to send test email', response);
-            });
-        },
-
-        /**
-         * Set the current step. This should be defined at each step in order for next/prev step buttons to work correctly.
-         *
-         * @param {number} step
-         * @returns {*}
-         */
-        setStep: function (step) {
-          this.config.step = step;
-
-          return this;
-        },
-
-        /**
-         * Go back to the previous step of the mailing wizard
-         */
-        prevStep: function () {
-          this.proceedToStep(this.config.step - 1);
-        },
-
-        /**
-         * Proceed to the next step of the mailing wizard
-         */
-        nextStep: function () {
-          this.proceedToStep(this.config.step + 1);
-        },
-
-        /**
-         * Proceed to a given step number
-         *
-         * @param {number} step
-         */
-        proceedToStep: function (step) {
-          var self = this;
-
-          this.saveProgress()
-            .then(function () {
-              self.redirectToStep(step);
-            })
-            .catch(function (response) {
-              console.log('Failed to save progress', response);
-            });
-        },
-
-        /**
-         * Redirect to a given step number. This doesn't save anything - simply redirects using AngularJS $location
-         * service
-         *
-         * @param {number} step
-         */
-        redirectToStep: function (step) {
-          $location.path(getStepUrl({
-            mailingId: this.getMailingId(),
-            step: step
-          }));
-        },
-
-        /**
-         * Cancel all modifications on the current step of a mailing. This simply redirects using AngularJS $location
-         * service back to the listing
-         */
-        cancel: function () {
-          $location.path(pathRoot);
-        },
-
-        /**
-         * Get the current step number of the mailing
-         *
-         * @returns {number}
-         */
-        getStep: function () {
-          return this.config.step;
-        },
-
-        /**
-         * Whether the link to previous step be shown
-         *
-         * @returns {boolean}
-         */
-        showPrevStepLink: function () {
-          return this.getStep() !== Steps.FIRST;
-        },
-
-        /**
-         * Whether the link to next step be shown
-         *
-         * @returns {boolean}
-         */
-        showNextStepLink: function () {
-          return this.getStep() !== Steps.LAST;
-        },
-
-        /**
-         * Setup various buttons on the mailing
-         *
-         * @returns {self} Returns self for chaining
-         */
-        setupButtons: function () {
-          var self = this;
-          var scope = this.getScope();
+      };
+    }];
 
 
-          // Set whether links to previous/next step be shown
-          scope.showPrevStepLink = this.showPrevStepLink();
-          scope.showNextStepLink = this.showNextStepLink();
-
-          if (this.getStep() === Steps.LAST) {
-            scope.showSubmitMassEmailLink = true;
-
-            this.getMailing().then(function (response) {
-              if (response.crm_mailing_id && response.send_on) scope.canUpdate = true;
-            })
-          }
-
-          // Proceed to next step
-          scope.nextStep = function () {
-            self.setMailing(scope.mailing);
-            self.nextStep();
-          };
-
-          // Go back to previous step
-          scope.prevStep = function () {
-            self.setMailing(scope.mailing);
-            self.prevStep();
-          };
-
-          scope.submitMassEmail = function () {
-            self.setMailing(scope.mailing);
-            self.submitMassEmail();
-          };
-
-          scope.submitTestEmail = function () {
-            self.submitTestEmail();
-          };
-
-          scope.saveAndContinueLater = function () {
-            self.setMailing(scope.mailing);
-            self.saveProgress()
-              .then(function () {
-                notification.success('Mailing saved');
-                redirectToListing();
-              })
-              .catch(function (response) {
-                notification.error('Failed to save mailing');
-                console.log('Failed to save progress', response);
-              });
-          };
-
-          scope.cancel = function () {
-            self.cancel();
-          };
-
-          return this;
-        }
-      }
-    }
-  ]);
-
-  // TODO (robin): use the builtin log service of AngularJS and decorate it with custom behavior rather than this below
   /**
-   * @ngdoc factory
-   * @name notificationServices
+   * @ngdoc service
+   * @name HeaderFactory
    */
-  services.factory("notificationServices", ['loggingServices',
+  var HeaderProvider = ['$q', 'CiviApiFactory',
+    /**
+     *
+     * @param $q
+     * @param {CiviApiFactory} CiviApi
+     */
+      function ($q, CiviApi) {
+      var constants = {
+        entities: {
+          HEADER: 'SimpleMailHeader'
+        }
+      };
+
+      /**
+       * @type {Array}
+       */
+      var headers = [];
+
+      /**
+       * @type {boolean}
+       */
+      var initialised = false;
+
+      /**
+       * @ngdoc method
+       * @name HeaderFactory#init
+       * @returns {*}
+       */
+      var init = function () {
+        var deferred = $q.defer();
+
+        if (initialised) {
+          deferred.resolve()
+        } else {
+          CiviApi.get('SimpleMailHeader', {withFilters: true}, {cached: true})
+            .then(function (response) {
+              headers = response.data.values;
+              //initialised = true;
+              deferred.resolve();
+            })
+            .catch(function () {
+              deferred.reject();
+            });
+        }
+
+        return deferred.promise;
+      };
+
+      /**
+       * @ngdoc method
+       * @name HeaderFactory#getHeaders
+       * @returns {Array}
+       */
+      var getHeaders = function () {
+        return headers;
+      };
+
+      return {
+        init: init,
+        getHeaders: getHeaders
+      };
+    }
+  ];
+
+  /**
+   * @ngdoc service
+   * @name CampaignMessageFactory
+   */
+  var CampaignMessageProvider = ['$q', 'CiviApiFactory',
+    /**
+     * @param $q
+     * @param {CiviApiFactory} CiviApi
+     */
+      function ($q, CiviApi) {
+      var constants = {
+        entities: {
+          MESSAGE: 'SimpleMailMessage'
+        }
+      };
+
+      /**
+       * @type {Array}
+       */
+      var messages = [];
+
+      /**
+       * @type {boolean}
+       */
+      var initialised = false;
+
+      /**
+       * @ngdoc method
+       * @name CampaignMessageFactory#init
+       * @returns {IPromise}
+       */
+      var init = function () {
+        var deferred = $q.defer();
+
+        if (initialised) {
+          deferred.resolve();
+        } else {
+          CiviApi.get(constants.entities.MESSAGE, {is_active: 1}, {cached: true})
+            .then(function (response) {
+              messages = response.data.values;
+              //initialised = true;
+              deferred.resolve();
+            })
+            .catch(function () {
+              deferred.reject();
+            });
+        }
+
+        return deferred.promise;
+      };
+
+      /**
+       * @ngdoc method
+       * @name CampaignMessageFactory#getMessages
+       * @returns {Array}
+       */
+      var getMessages = function () {
+        return messages;
+      };
+
+      return {
+        init: init,
+        getMessages: getMessages
+      };
+    }
+  ];
+
+  /**
+   * @ngdoc service
+   * @name MailingHelperFactory
+   */
+  var MailingHelperProvider = ['$filter', '$q', 'CiviApiFactory',
+    /**
+     * @param $filter
+     * @param {CiviApiFactory} CiviApi
+     */
+      function ($filter, $q, CiviApi) {
+      var constants = {
+        entities: {
+          OPTION_GROUP: 'OptionGroup',
+          OPTION_VALUE: 'OptionValue',
+          MAILING_GROUP: 'Group'
+        }
+      };
+
+      /**
+       *
+       * @type {Array}
+       */
+      var mailingGroups = [];
+
+      /**
+       *
+       * @type {Array}
+       */
+      var fromEmails = [];
+
+      /**
+       * @type {Array}
+       */
+      var headerFilters = [];
+
+      /**
+       * @type {boolean}
+       */
+      var mailingGroupsInitialised = false;
+
+      /**
+       * @type {boolean}
+       */
+      var fromEmailsInitialised = false;
+
+      /**
+       * @type {boolean}
+       */
+      var headerFiltersInitialised = false;
+
+      ////////////////////
+      // Public Methods //
+      ////////////////////
+
+      /**
+       * @ngdoc method
+       * @name MailingHelperFactory#initMailingGroups
+       * @returns {IPromise}
+       */
+      var initMailingGroups = function () {
+        var deferred = $q.defer();
+
+        if (mailingGroupsInitialised) {
+          deferred.resolve();
+        } else {
+          CiviApi.get(constants.entities.MAILING_GROUP)
+            .then(function (response) {
+              // TODO (robin): Move is_hidden filtering to API query
+              mailingGroups = $filter('filter')(response.data.values, {is_hidden: 0});
+              //mailingGroupsInitialised = true;
+              deferred.resolve();
+            })
+            .catch(function () {
+              deferred.reject();
+            });
+        }
+
+        return deferred.promise;
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingHelperFactory#initFromEmails
+       * @returns {*}
+       */
+      var initFromEmails = function () {
+        var deferred = $q.defer();
+
+        if (fromEmailsInitialised) {
+          deferred.resolve();
+        } else {
+          CiviApi.getValue(constants.entities.OPTION_GROUP, {name: 'from_email_address', return: 'id'}, {cached: true})
+            .then(function (response) {
+              return +response.data.result;
+            })
+            // Get the option values
+            .then(function (groupId) {
+              return CiviApi.get('OptionValue', {option_group_id: groupId}, {cached: true})
+                .then(function (response) {
+                  fromEmails = response.data.values;
+                  //fromEmailsInitialised = true;
+                  deferred.resolve();
+                });
+            })
+            .catch(function () {
+              deferred.reject();
+            });
+        }
+
+        return deferred.promise;
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingHelperFactory#initHeaderFilters
+       * @returns {IPromise}
+       */
+      var initHeaderFilters = function () {
+        var deferred = $q.defer();
+
+        if (headerFiltersInitialised) {
+          deferred.resolve();
+        } else {
+          CiviApi.getValue(constants.entities.OPTION_GROUP, {name: 'sm_header_filter_options', return: 'id'},
+            {cached: true})
+            .then(function (response) {
+              return +response.data.result;
+            })
+            .then(function (groupId) {
+              return CiviApi.get(constants.entities.OPTION_VALUE, {option_group_id: groupId, is_active: '1'},
+                {cached: true})
+                .then(function (response) {
+                  headerFilters = response.data.values;
+                  //headerFiltersInitialised = true;
+                  deferred.resolve();
+                });
+            })
+            .catch(function () {
+              deferred.reject();
+            });
+        }
+
+        return deferred.promise;
+      };
+
+      // Getters and Setters //
+
+      /**
+       * @ngdoc method
+       * @name MailingHelperFactory#getMailingGroups
+       * @returns {Array}
+       */
+      var getMailingGroups = function () {
+        return mailingGroups;
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingHelperFactory#getFromEmails
+       * @returns {Array}
+       */
+      var getFromEmails = function () {
+        return fromEmails;
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingHelperFactory#getHeaderFilters
+       * @returns {Array}
+       */
+      var getHeaderFilters = function () {
+        return headerFilters;
+      };
+
+      return {
+        initMailingGroups: initMailingGroups,
+        initFromEmails: initFromEmails,
+        initHeaderFilters: initHeaderFilters,
+        getMailingGroups: getMailingGroups,
+        getFromEmails: getFromEmails,
+        getHeaderFilters: getHeaderFilters
+      };
+    }
+  ];
+
+  /**
+   * @ngdoc service
+   * @name MailingDetailFactory
+   * @return {object}
+   */
+  var MailingDetailProvider = ['$log', '$q', '$routeParams', 'CiviApiFactory',
+    /**
+     *
+     * @param $log
+     * @param $q
+     * @param $routeParams
+     * @param {CiviApiFactory} CiviApi
+     */
+      function ($log, $q, $routeParams, CiviApi) {
+      var constants = {
+        entities: {
+          MAILING: 'SimpleMail'
+        }
+      };
+
+      //var mailingId = null;
+
+      /**
+       * @type {object}
+       */
+      var currentMailing = {};
+
+      /**
+       * @type {object}
+       */
+      var originalCurrentMailing = {};
+
+      /**
+       *
+       * @type {boolean}
+       */
+      var initialised = false;
+
+      ////////////////////
+      // Public Methods //
+      ////////////////////
+
+      /**
+       * @ngdoc method
+       * @name MailingDetailFactory#init
+       * @returns {IPromise}
+       */
+      var init = function () {
+        var deferred = $q.defer();
+
+        if (isInitialised()) {
+          deferred.resolve();
+        } else {
+          initMailing()
+            .then(function () {
+              initialised = true;
+              deferred.resolve();
+            })
+            .catch(function () {
+              deferred.reject();
+            });
+        }
+
+        return deferred.promise;
+
+        //return initMailing();
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingDetailFactory#isInitialised
+       * @returns {boolean}
+       */
+      var isInitialised = function () {
+        if (initialised) {
+          // Un-initialise the mailing in case we are opening another mailing from the listing (or directly from the URL)
+          if (shouldReinitialise()) {
+            initialised = false;
+          }
+        }
+
+        return initialised;
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingDetailFactory#shouldReinitialise
+       * @returns {boolean}
+       */
+      var shouldReinitialise = function () {
+        return getCurrentMailingId() !== getMailingIdFromUrl();
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingDetailFactory#clearCurrentMailing
+       */
+      var clearCurrentMailing = function () {
+        setCurrentMailing({}, true);
+      };
+
+      /**
+       * @returns {?number}
+       */
+      var getCurrentMailingId = function () {
+        return +getCurrentMailing().id;
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingDetailFactory#canUpdate
+       * @returns {boolean}
+       */
+      var canUpdate = function () {
+        var mailing = getCurrentMailing();
+
+        return mailing.crm_mailing_id && mailing.scheduled_date;
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingDetailFactory#saveProgress
+       * @returns {IPromise}
+       */
+      var saveProgress = function () {
+        // Avoid non-initialisation due to race conditions
+        return init()
+          .then(function () {
+            // If nothing changed, just return a resolved promise
+            if (!isCurrentMailingDirty()) return;
+
+            // Else, save the changes
+            return CiviApi.create(constants.entities.MAILING, getCurrentMailing(), {
+              success: 'Mailing saved',
+              error: 'Failed to save the mailing'
+            })
+              .then(function () {
+                return CiviApi.get(constants.entities.MAILING, {id: getCurrentMailingId()})
+              })
+              .then(function (response) {
+                setCurrentMailing(response.data.values[0], true);
+              });
+          });
+      };
+
+      /**
+       * @returns {boolean}
+       */
+      var isCurrentMailingDirty = function () {
+        return !angular.equals(getCurrentMailing(), getCurrentMailing(true));
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingDetailFactory#submitMassEmail
+       * @returns {IPromise}
+       */
+      var submitMassEmail = function () {
+        if (currentMailing.send_immediately) {
+          currentMailing.scheduled_date = Date.create().format('{yyyy}-{{MM}}-{{dd}} {{HH}}:{{mm}}:{{ss}}');
+        }
+
+        return CiviApi.post(constants.entities.MAILING, getCurrentMailing(), 'submitmassemail', {
+          success: 'Mailing submitted for mass emailing',
+          error: 'Oops! Failed to submit the mailing for mass emailing!'
+        });
+      };
+
+      // Getters and Setters
+
+      /**
+       * @ngdoc method
+       * @name MailingDetailFactory#getCurrentMailing
+       * @param {boolean=} original
+       * @returns {object}
+       */
+      var getCurrentMailing = function (original) {
+        return original ? originalCurrentMailing : currentMailing;
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingDetailFactory#setCurrentMailing
+       * @param {object} mailing
+       * @param {boolean=} updateOriginal
+       */
+      var setCurrentMailing = function (mailing, updateOriginal) {
+        currentMailing = mailing;
+        if (updateOriginal) originalCurrentMailing = angular.copy(mailing);
+      };
+
+      /////////////////////
+      // Private Methods //
+      /////////////////////
+
+      /**
+       * @private
+       * @returns {?number}
+       */
+      var getMailingIdFromUrl = function () {
+        return +$routeParams.mailingId;
+      };
+
+      /**
+       * @private
+       * @returns {IPromise}
+       */
+      var initMailing = function () {
+        var deferred = $q.defer();
+
+        var mailingId = getMailingIdFromUrl();
+
+       // The mailing isn't new (i.e. mailing ID exists in the URL) - populate current mailing using the API
+        if (mailingId !== 'new') {
+          CiviApi.get(constants.entities.MAILING, {id: mailingId})
+            .then(function (response) {
+              setCurrentMailing(response.data.values[0], true);
+              $log.debug('Mailing initialised');
+
+              deferred.resolve();
+            })
+            .catch(function () {
+              deferred.reject();
+            });
+        } else {
+          deferred.resolve();
+          $log.debug('Mailing initialised a new');
+        }
+
+       return deferred.promise;
+      };
+
+      return {
+        canUpdate: canUpdate,
+        clearCurrentMailing: clearCurrentMailing,
+        init: init,
+        saveProgress: saveProgress,
+        submitMassEmail: submitMassEmail,
+        //getCurrentMailingId: getCurrentMailingId,
+        getCurrentMailing: getCurrentMailing,
+        setCurrentMailing: setCurrentMailing,
+        isInitialised: isInitialised
+      };
+    }];
+
+  /**
+   * @ngdoc service
+   * @name NotificationFactory
+   * @return {object}
+   */
+  var NotificationProvider = ['$log',
     /**
      * Create a notification
      *
-     * @param log
-     * @returns {{alert: Function, success: Function, info: Function, error: Function, _createCrmNotication: Function}}
+     * @param $log
      */
-    function (log) {
+      function ($log) {
       /**
        * Enable or disable all notifications
        *
@@ -524,77 +1090,105 @@
        * @readonly
        * @enum {string}
        */
-      var notificationTypes = {
-        SUCCESS: 'success',
-        ERROR: 'error',
-        INFO: 'info',
-        ALERT: 'alert'
+      var constants = {
+        notificationTypes: {
+          SUCCESS: 'success',
+          ERROR: 'error',
+          INFO: 'info',
+          ALERT: 'alert'
+        }
+      };
+
+      /**
+       * Create an alert message
+       *
+       * @ngdoc method
+       * @name NotificationFactory#alert
+       * @param subject
+       * @param description
+       */
+      var alert = function (subject, description) {
+        _createCrmNotification(subject, description, constants.notificationTypes.ALERT);
+      };
+
+      /**
+       * Create a success message
+       *
+       * @ngdoc method
+       * @name NotificationFactory#success
+       * @param subject
+       * @param description
+       */
+      var success = function (subject, description) {
+        _createCrmNotification(subject, description, constants.notificationTypes.SUCCESS);
+      };
+
+      /**
+       * Create an informative message
+       *
+       * @ngdoc method
+       * @name NotificationFactory#info
+       * @param subject
+       * @param description
+       */
+      var info = function (subject, description) {
+        _createCrmNotification(subject, description, constants.notificationTypes.INFO);
+      };
+
+      /**
+       * Create an error message
+       *
+       * @ngdoc method
+       * @name NotificationFactory#error
+       * @param subject
+       * @param description
+       */
+      var error = function (subject, description) {
+        _createCrmNotification(subject, description, constants.notificationTypes.ERROR);
+      };
+
+      /**
+       * Create a generic error message
+       *
+       * @ngdoc method
+       * @name NotificationFactory#genericError
+       */
+      var genericError = function () {
+        _createCrmNotification('Oops! Something went wrong.', 'Please refresh the page', constants.notificationTypes.ERROR);
+      };
+
+      /**
+       * Wrapper for creating CiviCRM notifications, and optionally logging them
+       *
+       * @ngdoc function
+       * @param subject
+       * @param description
+       * @param type
+       * @private
+       */
+      var _createCrmNotification = function (subject, description, type) {
+        if (notificationEnabled) {
+          description = description || '';
+          CRM.alert(description, subject, type);
+
+          if (logNotifications) $log.debug('(' + type.toUpperCase() + ') ' + subject, description);
+        }
       };
 
       return {
-        /**
-         * Create an alert message
-         *
-         * @param subject
-         * @param description
-         */
-        alert: function (subject, description) {
-          this._createCrmNotication(subject, description, notificationTypes.ALERT);
-        },
-
-        /**
-         * Create a success message
-         *
-         * @param subject
-         * @param description
-         */
-        success: function (subject, description) {
-          this._createCrmNotication(subject, description, notificationTypes.SUCCESS);
-        },
-
-        /**
-         * Create an informative message
-         *
-         * @param subject
-         * @param description
-         */
-        info: function (subject, description) {
-          this._createCrmNotication(subject, description, notificationTypes.INFO);
-        },
-
-        /**
-         * Create an error message
-         *
-         * @param subject
-         * @param description
-         */
-        error: function (subject, description) {
-          this._createCrmNotication(subject, description, notificationTypes.ERROR);
-        },
-
-        /**
-         * Wrapper for creating CiviCRM notifications, and optionally logging them
-         *
-         * @param subject
-         * @param description
-         * @param type
-         * @private
-         */
-        _createCrmNotication: function (subject, description, type) {
-          if (notificationEnabled) {
-            description = description || '';
-            CRM.alert(description, subject, type);
-
-            if (logNotifications) log.createLog('(' + type.toUpperCase() + ') ' + subject, description);
-          }
-        }
+        alert: alert,
+        success: success,
+        info: info,
+        error: error,
+        genericError: genericError
       };
     }
-  ]);
+  ];
 
   /**
    * @ngdoc factory
    * @name loggingServices
+   * @deprecate TODO (robin): Use the $log everywhere and remove this
    */
   services.factory("loggingServices",
     function () {
@@ -624,91 +1218,179 @@
       };
     });
 
-  services.factory("civiApiServices", ['$http',
-    function ($http) {
-      return {
-        /**
-         * Return a list of records for the given entity
-         *
-         * @param {string} entityName
-         * @param {object=} config Optional configuration
-         * @returns {*}
-         */
-        get: function (entityName, config) {
-          var data = config || {};
-          return this.post(entityName, data, 'get');
-        },
+  /**
+   * @ngdoc service
+   * @name CiviApiFactory
+   * @alias CiviApiFactory
+   */
+  var CiviApiProvider = ['$http', '$q', '$log', 'NotificationFactory',
+    /**
+     * @param {$http} $http
+     * @param {$q} $q
+     * @param {$log} $log
+     * @param {NotificationFactory} Notification
+     */
+      function ($http, $q, $log, Notification) {
+      /**
+       * Return a list of records for the given entity
+       *
+       * @name CiviApiFactory#get
+       * @param {string} entityName
+       * @param {object=} data Optional data to pass in the GET/POST request
+       * @param {{success: string=, error: string=}=} options
+       * @returns {IPromise}
+       */
+      var get = function (entityName, data, options) {
+        return post(entityName, data, 'get', options);
+      };
 
-        /**
-         * Return value corresponding to the given name for the entity
-         *
-         * @param {string} entityName
-         * @param {object=} config Optional configuration
-         * @returns {*}
-         */
-        getValue: function (entityName, config) {
-          var data = config || {};
-          return this.post(entityName, data, 'getValue');
-        },
+      /**
+       * Return value corresponding to the given name for the entity
+       *
+       * @name CiviApiFactory#getValue
+       * @param {string} entityName
+       * @param {object=} data Optional data to pass in the GET/POST request
+       * @param {{success: string=, error: string=}=} options
+       * @returns {IPromise}
+       */
+      var getValue = function (entityName, data, options) {
+        return post(entityName, data, 'getValue', options);
+      };
 
-        /**
-         * Create a new record for the given entity
-         *
-         * @param entityName
-         * @param data
-         * @returns {*}
-         */
-        create: function (entityName, data) {
-          return this.post(entityName, data, 'create');
-        },
+      /**
+       * Create a new record for the given entity
+       *
+       * @name CiviApiFactory#create
+       * @param entityName
+       * @param {object=} data Optional data to pass in the GET/POST request
+       * @param {{success: string=, error: string=}=} options
+       * @returns {IPromise}
+       */
+      var create = function (entityName, data, options) {
+        return post(entityName, data, 'create', options);
+      };
 
-        /**
-         * Update an existing record for the given entity
-         *
-         * @param entityName
-         * @param data
-         * @returns {*}
-         */
-        update: function (entityName, data) {
-          return this.post(entityName, data, 'create');
-        },
+      /**
+       * Update an existing record for the given entity
+       *
+       * @name CiviApiFactory#update
+       * @param entityName
+       * @param {object=} data Optional data to pass in the GET/POST request
+       * @param {{success: string=, error: string=}=} options
+       * @returns {IPromise}
+       */
+      var update = function (entityName, data, options) {
+        return post(entityName, data, 'create', options);
+      };
 
-        /**
-         * Delete a record for the given entity
-         *
-         * @param entityName
-         * @param data
-         * @returns {*}
-         */
-        remove: function (entityName, data) {
-          return this.post(entityName, data, 'delete')
-        },
+      /**
+       * Delete a record for the given entity
+       *
+       * @name CiviApiFactory#remove
+       * @param {string} entityName
+       * @param {object=} data Optional data to pass in the GET/POST request
+       * @param {{success: string=, error: string=}=} options
+       * @returns {IPromise}
+       */
+      var remove = function (entityName, data, options) {
+        return post(entityName, data, 'delete', options)
+      };
 
-        /**
-         * Wrapper to configure HTTP post request and send it to the CiviCRM API for various actions
-         *
-         * @param entityName
-         * @param data
-         * @param action
-         * @returns {*}
-         */
-        post: function (entityName, data, action) {
-          data.entity = entityName;
-          data.action = action;
-          data.sequential = 1;
-          data.json = 1;
+      /**
+       * Send a POST request to the CiviCRM API. This will also create logs and, optionally, notifications.
+       *
+       * @name CiviApiFactory#post
+       * @param {string} entityName
+       * @param {object=} data Optional data to pass in the GET/POST request
+       * @param {string} action
+       * @param {{success: string=, error: string=}=} options
+       * @returns {IPromise}
+       */
+      var post = function (entityName, data, action, options) {
+        data = data || {};
+        options = options || {};
 
-          // Because data needs to be sent as string for CiviCRM to accept
-          var serialisedData = jQuery.param(data);
+        var successMessage = options.success || null;
+        var errorMessage = options.error || null;
+        var cached = options.cached || false;
 
-          return $http({
-            method: 'POST',
-            url: '/civicrm/ajax/rest',
-            data: serialisedData,  // pass in data as strings
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'}  // set the headers so AngularJS POSTs the data as form data (and not request payload, which CiviCRM doesn't recognise)
+        return _createPost(entityName, data, action, cached)
+          .then(function (response) {
+            if (response.data.is_error) return $q.reject(response);
+
+            if (successMessage) {
+              Notification.success(successMessage);
+              $log.info(successMessage + ':', response);
+            } else {
+              $log.info('Successfully performed \'' + action + '\' on \'' + entityName + '\' with response:', response);
+            }
+
+            return response;
+          })
+          .catch(function (response) {
+            if (errorMessage) {
+              if (response.data.error_message) errorMessage += ': ' + response.data.error_message;
+
+              Notification.error(errorMessage);
+              $log.error(errorMessage + ':', response);
+            } else {
+              $log.error('Failed to perform ' + action + ' on ' + entityName + ' with response:', response);
+            }
+
+            return $q.reject(response);
           });
-        }
-      }
+      };
+
+      /**
+       * Wrapper to configure HTTP post request and send it to the CiviCRM API for various actions
+       *
+       * @param {string} entityName
+       * @param {object=} data Optional data to pass in the GET/POST request
+       * @param {string} action
+       * @param {boolean} cached
+       * @returns {IHttpPromise}
+       * @private
+       */
+      var _createPost = function (entityName, data, action, cached) {
+        data = data || {};
+
+        data.entity = entityName;
+        data.action = action;
+        data.sequential = 1;
+        data.json = 1;
+
+        // Because data needs to be sent as string for CiviCRM to accept
+        var serialisedData = jQuery.param(data);
+
+        // TODO (robin): Move this to config
+        var postUrl = '/civicrm/ajax/rest';
+
+        // Set the headers so AngularJS POSTs the data as form data (and not request payload, which CiviCRM doesn't recognise)
+        var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
+
+        return $http.post(postUrl, serialisedData, {headers: headers, cached: cached});
+      };
+
+      return {
+        // Methods
+        get: get,
+        getValue: getValue,
+        create: create,
+        update: update,
+        remove: remove,
+        post: post
+      };
     }
-  ]);
+  ];
+
+  angular.module('simpleMail.services')
+    .factory('MailingsListingFactory', MailingsListingProvider)
+    .factory('MailingDetailFactory', MailingDetailProvider)
+    .factory('HeaderFactory', HeaderProvider)
+    .factory('CampaignMessageFactory', CampaignMessageProvider)
+    .factory('MailingHelperFactory', MailingHelperProvider)
+    .factory('WizardStepFactory', WizardStepProvider)
+    .factory('NotificationFactory', NotificationProvider)
+    .factory('CiviApiFactory', CiviApiProvider)
+  ;
 })();

@@ -5,6 +5,7 @@
    * Directive to create an image uploader, with drag-n-drop support
    *
    * @ngdoc directive
+   * @name smImageUploader
    * @alias smImageUploader
    *
    * @restrict AE
@@ -51,6 +52,7 @@
    * A directive to create a simple horizontal image carousel
    *
    * @ngdoc directive
+   * @name smImageCarousel
    * @alias smImageCarousel
    *
    * @restrict AE
@@ -73,11 +75,11 @@
         // Setup the index of saved selected image once all headers have been retrieved
         scope.$watchCollection(function () {
             return scope.items;
-        },
+          },
           function (newVal) {
             console.log(newVal);
 
-            if (newVal.length) {
+            if (angular.isArray(newVal) && newVal.length) {
               scope.selectedFilterId = 'all';
 
               console.log('Selected item', scope.selectedItem);
@@ -180,8 +182,8 @@
           console.log('Total length', totalLength);
 
           element.find('ul').width(totalLength);
+        }
       }
-    }
 
       return {
         restrict: 'AE',
@@ -200,6 +202,7 @@
    * A directive to make the CK Editor work in AngularJS app
    *
    * @ngdoc directive
+   * @name smCkEditor
    * @alias smCkEditor
    *
    * @restrict A
@@ -240,6 +243,7 @@
    * A directive to embed a preview of email HTML
    *
    * @ngdoc directive
+   * @name smEmailPreviewer
    * @alias smEmailPreviewer
    *
    * @restrict A
@@ -281,6 +285,7 @@
    * A directive to create action buttons next to each mailing on the listing of mailings
    *
    * @ngdoc directive
+   * @name smMailingActionButtons
    * @alias smMailingActionButtons
    *
    * @restrict AE
@@ -307,12 +312,78 @@
     }
   }];
 
+  /**
+   * @ngdoc directive
+   * @name smClickOnce
+   * @alias smClickOnce
+   *
+   * @type {*[]}
+   */
+  var smClickOnceDirective = ['$parse', function ($parse) {
+    var link = function (scope, element, attributes) {
+      var fn = $parse(attributes['smClickOnce']);
+      scope.submitting = false;
+
+      element.on('click', function () {
+        scope.$apply(function () {
+          if (scope.submitting) return;
+
+          scope.submitting = true;
+
+          fn(scope)
+            .finally(function () {
+              scope.submitting = false;
+            });
+        });
+      });
+    };
+
+    return {
+      link: link
+    };
+  }];
+
+  var smDisabled = [function () {
+    var link = function (scope, element, attributes) {
+      element.addClass('disabled');
+
+      scope.$watch(attributes['smDisabled'], function (newVal) {
+        if (newVal === false) {
+          element.removeClass('disabled');
+        }
+      });
+    };
+
+    return {
+      link: link
+    };
+  }];
+
+  var smLoadedDirective = [function () {
+    var link = function (scope, element, attributes) {
+      element.append('<div class="loading-panel"></div>')
+
+      scope.$watch(attributes['smLoaded'], function (newVal) {
+        if (newVal === true) {
+          element.find('.loading-panel').addClass('ng-hide');
+        }
+      });
+    };
+
+    return {
+      link: link
+    };
+  }];
+
   angular.module('simpleMail.directives', [])
     .directive('smImageUploader', smImageUploaderDirective)
     .directive('smImageCarousel', smImageCarouselDirective)
     .directive('smCkEditor', smCkEditorDirective)
     .directive('smEmailPreviewer', smEmailPreviewerDirective)
     .directive('smMailingActionButtons', smMailingActionButtonsDirective)
+    .directive('smClickOnce', smClickOnceDirective)
+    .directive('smDisabled', smDisabled)
+    .directive('smLoaded', smLoadedDirective)
   ;
 
 })();

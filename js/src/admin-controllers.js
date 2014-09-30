@@ -17,7 +17,7 @@
    * Admin listing of headers
    */
   controllers.controller('HeadersAdminController', [
-    '$scope', '$http', '$q', 'civiApiServices', 'loggingServices', 'notificationServices',
+    '$scope', '$http', '$q', 'CiviApiFactory', 'loggingServices', 'NotificationFactory',
     function ($scope, $http, $q, civiApi, log, notification) {
       $scope.constants = {
         ENTITY_NAME: 'SimpleMailHeader'
@@ -74,8 +74,8 @@
    * Detail page of a header
    */
   controllers.controller('HeaderAdminController', [
-    '$scope', '$http', '$q', '$fileUploader', 'civiApiServices', 'loggingServices', 'notificationServices', '$routeParams', '$location', 'utilityServices',
-    function ($scope, $http, $q, $fileUploader, civiApi, log, notification, $routeParams, $location, utils) {
+    '$scope', '$http', '$q', '$fileUploader', 'CiviApiFactory', 'loggingServices', 'NotificationFactory', '$routeParams', '$location', '$filter',
+    function ($scope, $http, $q, $fileUploader, civiApi, log, notification, $routeParams, $location, $filter) {
       $scope.header = {};
       $scope.models = {};
       $scope.filters = [];
@@ -299,8 +299,8 @@
           return;
         }
 
-        if ($scope.header.id) {
-          civiApi.update($scope.constants.ENTITY_NAME, $scope.header)
+        //if ($scope.header.id) {
+          civiApi.create($scope.constants.ENTITY_NAME, $scope.header)
             // Save or update header
             .then(function (response) {
               log.createLog('Update header response', response);
@@ -309,6 +309,7 @@
 
               notification.success('Header updated');
 
+              $scope.header.id = response.data.values[0].id;
             })
             // Save or update filters
             .then(function (response) {
@@ -328,8 +329,8 @@
                   console.log('Old filters', oldFilterIds);
                   console.log('New filters', newFilterIds);
 
-                  var removed = utils.arrayDiff(oldFilterIds, newFilterIds);
-                  var added = utils.arrayDiff(newFilterIds, oldFilterIds);
+                  var removed = $filter('arrayDiff')(oldFilterIds, newFilterIds);
+                  var added = $filter('arrayDiff')(newFilterIds, oldFilterIds);
 
                   console.log('Removed filters', removed);
                   console.log('Added filters', added);
@@ -405,21 +406,21 @@
             .catch(function (response) {
               notification.error('Failed to update header', response.data.error_message);
             });
-        }
+        //}
         // TODO (robin): Save filters for new headers as well - may be refactor the logic from above into a controller method
-        else {
-          civiApi.create($scope.constants.ENTITY_NAME, $scope.header)
-            .success(function (response) {
-              log.createLog('Save header response', response);
-
-              if (response.error_message) {
-                notification.error('Failed to add header', response.error_message);
-              } else {
-                notification.success('Header added');
-                $scope.redirectToListing();
-              }
-            });
-        }
+        //else {
+        //  civiApi.create($scope.constants.ENTITY_NAME, $scope.header)
+        //    .success(function (response) {
+        //      log.createLog('Save header response', response);
+        //
+        //      if (response.error_message) {
+        //        notification.error('Failed to add header', response.error_message);
+        //      } else {
+        //        notification.success('Header added');
+        //        $scope.redirectToListing();
+        //      }
+        //    });
+        //}
       };
     }
   ]);
@@ -428,7 +429,7 @@
    * Admin list and inline editing of messages
    */
   controllers.controller('MessagesAdminController', [
-    '$scope', '$http', '$q', 'civiApiServices', 'loggingServices', 'notificationServices',
+    '$scope', '$http', '$q', 'CiviApiFactory', 'loggingServices', 'NotificationFactory',
     function ($scope, $http, $q, civiApi, log, notification) {
 
       $scope.$on('$viewContentLoaded', function () {

@@ -16,6 +16,7 @@
    * @param collection An array of objects or arrays
    * @param searchKey
    * @param searchValue
+   *
    * @returns object An object consisting of the item found (or null is not found) and its associated index (or
    * null if not found) in the collection
    */
@@ -208,5 +209,33 @@
       }
     }
   ]);
+
+
+  /**
+   * Get elements in array 1 that are not in array 2
+   *
+   * @ngdoc filter
+   * @name arrayDiff
+   *
+   * @param {array} array1
+   * @param {array} array2
+   * @return {array}
+   */
+  var arrayDiff = [function () {
+    return function (array1, array2) {
+      var diff = [];
+
+      for (var i = 0, end = array1.length; i < end; i++) {
+        if (-1 === array2.indexOf(array1[i])) {
+          diff.push(array1[i]);
+        }
+      }
+
+      return diff;
+    }
+  }];
+
+  angular.module('simpleMail.filters')
+    .filter('arrayDiff', arrayDiff);
 })();
 

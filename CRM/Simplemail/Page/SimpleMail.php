@@ -21,7 +21,8 @@ class CRM_Simplemail_Page_SimpleMail extends CRM_Core_Page {
       ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/vendors/select2.css')
       ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/dist/style.css')
       ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/vendors/ng-quick-date-plus-default-theme.css')
-      ->addStyleUrl('//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css');
+      ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/vendors/font-awesome-4.2.0/css/font-awesome.min.css')
+    ;
 
     parent::run();
   }
