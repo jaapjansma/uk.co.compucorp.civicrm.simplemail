@@ -203,12 +203,13 @@
 
         if (fileName) {
           civiApi.post('SimpleMailHeader', {field: field, fileName: fileName}, 'deleteimage')
-            .success(function (response) {
-              if (response.is_error) {
-                notification.error('Failed to delete the image', response.error_message);
-              } else {
+            .then(function (response) {
+              if (response.is_error) return $q.reject(response);
+
                 notification.success('Image deleted successfully');
-              }
+            })
+            .catch(function (response) {
+              notification.error('Failed to delete the image', response.error_message);
             });
         }
 
