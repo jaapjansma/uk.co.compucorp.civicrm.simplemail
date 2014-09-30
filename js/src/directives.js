@@ -215,8 +215,16 @@
   var smCkEditorDirective = [function () {
     function link(scope, element, attributes, ngModel) {
       var ck = CKEDITOR.replace(element[0], {
-        enterMode: CKEDITOR.ENTER_BR
+        enterMode: CKEDITOR.ENTER_BR,
+        //removeButtons: "Source,Blockquote,Font,Indent,Outdent,Superscript,Subscript"
+        toolbarGroups: [
+          ['Bold', 'Italic', 'Strike', 'RemoveFormat'],
+          ['NumberedList', 'BulletedList'],
+          ['Link', 'Unlink'],
+          ['Maximize']
+        ]
       });
+
 
       if (!ngModel) return;
 
