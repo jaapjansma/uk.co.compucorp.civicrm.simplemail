@@ -12,7 +12,9 @@
       </ui-select>
     </div>
 
-    <div class="buttons clearfix"><a href ng-click="test.submitTestEmail()" class="button">Send</a></div>
+    <div ng-controller="MailingButtonsCtrl as buttons" class="buttons clearfix">
+      <a href ng-click="buttons.sendTestEmail()" class="button">Send</a>
+    </div>
 
     <div class="field-group clearfix">
       <label for="preview">Preview</label>

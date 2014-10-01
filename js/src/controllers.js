@@ -361,6 +361,10 @@
       this.cancel = function () {
         Wizard.cancel();
       };
+
+      this.sendTestEmail = function() {
+        Wizard.sendTestEmail();
+      }
     }];
 
 

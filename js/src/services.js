@@ -397,6 +397,15 @@
 
       /**
        * @ngdoc method
+       * @name WizardStepFactory#sendTestEmail
+       * @returns {IPromise}
+       */
+      var sendTestEmail = function () {
+        return Mailing.sendTestEmail();
+      };
+
+      /**
+       * @ngdoc method
        * @name WizardStepFactory#cancel
        */
       var cancel = function () {
@@ -500,6 +509,7 @@
         prevStepAllowed: prevStepAllowed,
         cancel: cancel,
         saveAndContinueLater: saveAndContinueLater,
+        sendTestEmail: sendTestEmail,
         submitMassEmail: submitMassEmail,
         getPartialPath: getPartialPath
       };
@@ -831,15 +841,16 @@
    * @name MailingDetailFactory
    * @return {object}
    */
-  var MailingDetailProvider = ['$log', '$q', '$routeParams', 'CiviApiFactory',
+  var MailingDetailProvider = ['$log', '$q', '$routeParams', 'CiviApiFactory', 'NotificationFactory',
     /**
      *
      * @param $log
      * @param $q
      * @param $routeParams
      * @param {CiviApiFactory} CiviApi
+     * @param {NotificationFactory} Notification
      */
-      function ($log, $q, $routeParams, CiviApi) {
+      function ($log, $q, $routeParams, CiviApi, Notification) {
       var constants = {
         entities: {
           MAILING: 'SimpleMail'
@@ -995,6 +1006,29 @@
         });
       };
 
+      /**
+       * @ngdoc method
+       * @name MailingDetailFactory#sendTestEmail
+       *
+       * @returns {IPromise}
+       */
+      var sendTestEmail = function () {
+        var mailing = getCurrentMailing();
+
+        Notification.info('Sending test email');
+
+        return CiviApi.post('SimpleMail', {
+          crmMailingId: mailing.crm_mailing_id,
+          groupId: mailing.testRecipientGroupId
+        }, 'sendtestemail')
+          .then(function (response) {
+            Notification.success('Test email send');
+          })
+          .catch(function () {
+            Notification.error('Failed to send test email');
+          });
+      };
+
       // Getters and Setters
 
       /**
@@ -1072,6 +1106,7 @@
         clearCurrentMailing: resetCurrentMailing,
         init: init,
         saveProgress: saveProgress,
+        sendTestEmail: sendTestEmail,
         submitMassEmail: submitMassEmail,
         //getCurrentMailingId: getCurrentMailingId,
         getCurrentMailing: getCurrentMailing,
