@@ -1081,7 +1081,7 @@
 
         var mailingId = getMailingIdFromUrl();
 
-       // The mailing isn't new (i.e. mailing ID exists in the URL) - populate current mailing using the API
+        // The mailing isn't new (i.e. mailing ID exists in the URL) - populate current mailing using the API
         if (!isNewMailing()) {
           CiviApi.get(constants.entities.MAILING, {id: mailingId})
             .then(function (response) {
@@ -1098,7 +1098,7 @@
           $log.debug('Mailing initialised a new');
         }
 
-       return deferred.promise;
+        return deferred.promise;
       };
 
       return {
