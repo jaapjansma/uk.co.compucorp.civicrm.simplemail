@@ -109,7 +109,9 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     // instead of the BAO!
     static::createRecipients((int) $params['crm_mailing_id'], static::shouldRemoveDuplicateEmails($params));
 
-    return static::create($params);
+    $dao = static::create($params);
+
+    return array('values' => $dao->toArray(), 'dao' => $dao);
   }
 
   /**
