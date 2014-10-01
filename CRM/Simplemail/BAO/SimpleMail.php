@@ -530,6 +530,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
     if (!empty($params['body'])) {
       $params['body'] = html_entity_decode($params['body']);
+      $params['body'] = str_replace("\xA0", ' ', $params['body']);
     }
 
     if (!empty($params['from_address'])) {
