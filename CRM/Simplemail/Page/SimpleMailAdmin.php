@@ -23,7 +23,8 @@ class CRM_Simplemail_Page_SimpleMailAdmin extends CRM_Core_Page {
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/dist/script.js', 120, 'page-footer')
       ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/vendors/select.min.css')
       ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/vendors/select2.css')
-      ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/dist/style.css');
+      ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/dist/style.css')
+      ->addSetting(array('resourceUrls' => CRM_Simplemail_Page_SimpleMail::getActiveModuleUrls()));
 
     parent::run();
   }

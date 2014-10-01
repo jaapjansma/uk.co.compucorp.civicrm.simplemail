@@ -4,8 +4,7 @@
   var constants = angular.module('simpleMail.constants', []);
 
   constants.constant('paths', {
-    // TODO (robin): Make this dynamic
-    EXT_DIR: '/sites/all/extensions/uk.co.compucorp.civicrm.simplemail',
+    EXT_DIR: CRM.resourceUrls['uk.co.compucorp.civicrm.simplemail'],
 
     /**
      * TODO (robin): This could potentially be refactor so that the interface for using this could become more consistent and be like constants.TEMPLATE_DIR, instead of constants.TEMPLATE_DIR() - this can be achieved by returning a reference to a function. e.g. TEMPLATE_DIR: _getTemplatesDir()
