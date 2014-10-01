@@ -1405,7 +1405,7 @@
        * @param {object=} data Optional data to pass in the GET/POST request
        * @param {string} action
        * @param {boolean} cached
-       * @returns {IHttpPromise}
+       * @returns {IHttpPromise|HttpPromise}
        * @private
        */
       var _createPost = function (entityName, data, action, cached) {
@@ -1415,6 +1415,7 @@
         data.action = action;
         data.sequential = 1;
         data.json = 1;
+        data.rowCount = 0;
 
         // Because data needs to be sent as string for CiviCRM to accept
         var serialisedData = jQuery.param(data);
