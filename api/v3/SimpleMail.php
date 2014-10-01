@@ -5,6 +5,7 @@
  * This is used for documentation and validation.
  *
  * @param array $spec description of fields supported by this API call
+ *
  * @return void
  * @see http://wiki.civicrm.org/confluence/display/CRM/API+Architecture+Standards
  */
@@ -16,6 +17,7 @@ function _civicrm_api3_simple_mail_create_spec(&$spec) {
  * SimpleMail.create API
  *
  * @param array $params
+ *
  * @return array API result descriptor
  * @throws API_Exception
  */
@@ -27,6 +29,7 @@ function civicrm_api3_simple_mail_create($params) {
  * SimpleMail.delete API
  *
  * @param array $params
+ *
  * @return array API result descriptor
  * @throws API_Exception
  */
@@ -38,6 +41,7 @@ function civicrm_api3_simple_mail_delete($params) {
  * SimpleMail.get API
  *
  * @param array $params
+ *
  * @return array API result descriptor
  * @throws API_Exception
  */
@@ -45,9 +49,10 @@ function civicrm_api3_simple_mail_get($params) {
   try {
     $result = CRM_Simplemail_BAO_SimpleMail::getMailing($params);
 
-    return civicrm_api3_create_success($result['values'], $params, null, 'get', $result['dao'], $result['extraValues']);
+    return civicrm_api3_create_success($result['values'], $params, NULL, 'get', $result['dao'], $result['extraValues']);
   } catch (CRM_Extension_Exception $e) {
     $errorData = $e->getErrorData();
+
     return civicrm_api3_create_error($e->getMessage(), array(), $errorData['dao']);
   }
 }
@@ -136,7 +141,7 @@ function civicrm_api3_simple_mail_sendtestemail($params) {
   try {
     $result = CRM_Simplemail_BAO_SimpleMail::sendTestEmail($params);
 
-    return civicrm_api3_create_success($result['values'], $params, null, 'senttestemail', $result['dao']);
+    return civicrm_api3_create_success($result['values'], $params, NULL, 'senttestemail', $result['dao']);
   } catch (CRM_Extension_Exception $e) {
     $errorData = $e->getErrorData();
 
@@ -164,7 +169,7 @@ function civicrm_api3_simple_mail_duplicatemassemail($params) {
     = $params['scheduled_date']
     = $params['scheduled_id']
     = $params['status']
-    = null;
+    = NULL;
 
   return civicrm_api3_simple_mail_create($params);
 }
@@ -173,8 +178,8 @@ function civicrm_api3_simple_mail_iscreatedfromsearch($params) {
   try {
     $result = CRM_Simplemail_BAO_SimpleMail::isCreatedFromSearch();
 
-    return civicrm_api3_create_success($result['values'], $params, null, 'iscreatedfromsearch');
-  } catch(CRM_Extension_Exception $e) {
+    return civicrm_api3_create_success($result['values'], $params, NULL, 'iscreatedfromsearch');
+  } catch (CRM_Extension_Exception $e) {
     return civicrm_api3_create_error($e->getMessage());
   }
 }

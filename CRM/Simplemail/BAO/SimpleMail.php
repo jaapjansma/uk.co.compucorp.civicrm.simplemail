@@ -220,6 +220,60 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     return array('values' => array(array('jobId' => $job->id)), 'dao' => $job);
   }
 
+  /**
+   * @param $crmMailingId
+   *
+   * @return array
+   */
+  public static function getRecipientGroups($crmMailingId) {
+    $sql
+      = "SELECT
+    	  mg.*,
+    	  g.is_hidden, g.saved_search_id
+        FROM civicrm_mailing_group mg
+        LEFT JOIN civicrm_group g
+        ON mg.entity_id = g.id
+        WHERE mg.mailing_id = $crmMailingId";
+
+    /** @var CRM_Core_DAO|CRM_Mailing_DAO_MailingGroup|CRM_Contact_BAO_Group $dao */
+    $dao = CRM_Core_DAO::executeQuery($sql);
+
+    $groups = $smartGroups = array();
+
+    while ($dao->fetch()) {
+      if ($dao->is_hidden) {
+        $smartGroups[] = $dao->toArray();
+      }
+      else {
+        $groups[] = $dao->toArray();
+      }
+    }
+
+    return array($groups, $smartGroups);
+  }
+
+  /**
+   * Update recipient groups for the mailing - add new groups, and delete removed groups
+   *
+   * @param $params
+   *
+   * @return void
+   */
+  public static function updateRecipientGroups($params) {
+    if (!empty($params['recipient_group_entity_ids'])) {
+      static::updateGroups((int) $params['crm_mailing_id'], $params['recipient_group_entity_ids']);
+    }
+
+    static::updateSmartGroups((int) $params['crm_mailing_id']);
+  }
+
+  public static function getConfig($params) {
+    $config = CRM_Core_Config::singleton();
+
+    return array('values' => $config);
+  }
+
+
   ///////////////////////
   // Protected Methods //
   ///////////////////////
@@ -292,52 +346,9 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     CRM_Mailing_BAO_MailingJob::cancel($crmMailingId);
   }
 
-  /**
-   * @param $crmMailingId
-   *
-   * @return array
-   */
-  public static function getRecipientGroups($crmMailingId) {
-    $sql
-      = "SELECT
-    	  mg.*,
-    	  g.is_hidden, g.saved_search_id
-        FROM civicrm_mailing_group mg
-        LEFT JOIN civicrm_group g
-        ON mg.entity_id = g.id
-        WHERE mg.mailing_id = $crmMailingId";
-
-    /** @var CRM_Core_DAO|CRM_Mailing_DAO_MailingGroup|CRM_Contact_BAO_Group $dao */
-    $dao = CRM_Core_DAO::executeQuery($sql);
-
-    $groups = $smartGroups = array();
-
-    while ($dao->fetch()) {
-      if ($dao->is_hidden) {
-        $smartGroups[] = $dao->toArray();
-      }
-      else {
-        $groups[] = $dao->toArray();
-      }
-    }
-
-    return array($groups, $smartGroups);
-  }
-
-  /**
-   * Update recipient groups for the mailing - add new groups, and delete removed groups
-   *
-   * @param $params
-   *
-   * @return void
-   */
-  public static function updateRecipientGroups($params) {
-    if (!empty($params['recipient_group_entity_ids'])) {
-      static::updateGroups((int) $params['crm_mailing_id'], $params['recipient_group_entity_ids']);
-    }
-
-    static::updateSmartGroups((int) $params['crm_mailing_id']);
-  }
+  /////////////////////////
+  // Protected Functions //
+  /////////////////////////
 
   /**
    * Get the path of the email template to be used for rendering the email HTML body
@@ -537,7 +548,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       $params['from_address'] = html_entity_decode($params['from_address']);
     }
 
-     // Reformat the scheduled date for a format required by CivCRM
+    // Reformat the scheduled date for a format required by CivCRM
     if (!empty($params['scheduled_date'])) {
       $dateTime = new DateTime($params['scheduled_date']);
       $params['scheduled_date'] = $dateTime->format('YmdHis');
