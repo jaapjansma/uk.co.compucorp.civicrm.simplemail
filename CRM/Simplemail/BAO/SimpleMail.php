@@ -288,6 +288,9 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     return $extDir;
   }
 
+  /**
+   * @return array
+   */
   public static function getActiveModuleFiles() {
     return CRM_Extension_System::singleton()->getMapper()->getActiveModuleFiles();
   }

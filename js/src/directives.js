@@ -214,19 +214,33 @@
    */
   var smCkEditorDirective = [function () {
     function link(scope, element, attributes, ngModel) {
-      var ck = CKEDITOR.replace(element[0], {
-        enterMode: CKEDITOR.ENTER_BR,
-        //removeButtons: "Source,Blockquote,Font,Indent,Outdent,Superscript,Subscript"
-        toolbarGroups: [
-          ['Bold', 'Italic', 'Strike', 'RemoveFormat'],
-          ['NumberedList', 'BulletedList'],
-          ['Link', 'Unlink'],
-          ['Maximize']
-        ]
-      });
-
-
       if (!ngModel) return;
+
+      var config = {
+        enterMode: CKEDITOR.ENTER_BR,
+        toolbarGroups: []
+      };
+
+      switch (attributes['smCkEditor']) {
+        case 'minimal':
+          config.toolbarGroups.push([]);
+          break;
+        default:
+        // break omitted intentionally
+        case 'normal':
+          config.toolbarGroups.push(
+            ['Bold', 'Italic', 'Strike', 'RemoveFormat'],
+            ['NumberedList', 'BulletedList'],
+            ['Link', 'Unlink'],
+            ['Maximize']
+          );
+      }
+
+      if (attributes.height) {
+        config.height = attributes.height
+      }
+
+      var ck = CKEDITOR.replace(element[0], config);
 
       ck.on('pasteState', function () {
         scope.$apply(function () {
