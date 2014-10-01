@@ -1022,7 +1022,7 @@
           groupId: mailing.testRecipientGroupId
         }, 'sendtestemail')
           .then(function (response) {
-            Notification.success('Test email send');
+            Notification.success('Test email sent');
           })
           .catch(function () {
             Notification.error('Failed to send test email');
