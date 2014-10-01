@@ -267,12 +267,47 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     static::updateSmartGroups((int) $params['crm_mailing_id']);
   }
 
-  public static function getConfig($params) {
-    $config = CRM_Core_Config::singleton();
+  /**
+   * Get the absolute path of the extension directory
+   *
+   * @return string
+   */
+  public static function getExtensionDir() {
+    $files = static::getActiveModuleFiles();
 
-    return array('values' => $config);
+    $extFile = '';
+    foreach ($files as $file) {
+      if ($file['prefix'] === 'simplemail') {
+        $extFile = $file['filePath'];
+        break;
+      }
+    }
+
+    $extDir = str_replace('simplemail.php', '', $extFile);
+
+    return $extDir;
   }
 
+  public static function getActiveModuleFiles() {
+    return CRM_Extension_System::singleton()->getMapper()->getActiveModuleFiles();
+  }
+
+  /**
+   * @return array
+   */
+  public static function getActiveModuleUrls() {
+    $mapper = CRM_Extension_System::singleton()->getMapper();
+    $urls = array();
+    $urls['civicrm'] = $mapper->keyToUrl('civicrm');
+    foreach ($mapper->getModules() as $module) {
+      /** @var $module CRM_Core_Module */
+      if ($module->is_active) {
+        $urls[$module->name] = $mapper->keyToUrl($module->name);
+      }
+    }
+
+    return $urls;
+  }
 
   ///////////////////////
   // Protected Methods //
@@ -671,12 +706,4 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $group->delete();
   }
 
-  /**
-   * Get the absolute path of the extension directory
-   *
-   * @return string
-   */
-  private static function getExtensionDir() {
-    return CRM_Core_Config::singleton()->extensionsDir . DIRECTORY_SEPARATOR . static::EXT_NAME . DIRECTORY_SEPARATOR;
-  }
 }

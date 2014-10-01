@@ -22,25 +22,9 @@ class CRM_Simplemail_Page_SimpleMail extends CRM_Core_Page {
       ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/dist/style.css')
       ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/vendors/ng-quick-date-plus-default-theme.css')
       ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/vendors/font-awesome-4.2.0/css/font-awesome.min.css')
-      ->addSetting(array('resourceUrls' => static::getActiveModuleUrls()));
+      ->addSetting(array('resourceUrls' => CRM_Simplemail_BAO_SimpleMail::getActiveModuleUrls()));
 
     parent::run();
   }
 
-  /**
-   * @return array
-   */
-  static public function getActiveModuleUrls() {
-    $mapper = CRM_Extension_System::singleton()->getMapper();
-    $urls = array();
-    $urls['civicrm'] = $mapper->keyToUrl('civicrm');
-    foreach ($mapper->getModules() as $module) {
-      /** @var $module CRM_Core_Module */
-      if ($module->is_active) {
-        $urls[$module->name] = $mapper->keyToUrl($module->name);
-      }
-    }
-
-    return $urls;
-  }
 }
