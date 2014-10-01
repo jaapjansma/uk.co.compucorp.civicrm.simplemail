@@ -584,6 +584,11 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       $params['body'] = str_replace("\xA0", ' ', $params['body']);
     }
 
+    if (!empty($params['contact_details'])) {
+      $params['contact_details'] = html_entity_decode($params['contact_details']);
+      $params['contact_details'] = str_replace("\xA0", ' ', $params['contact_details']);
+    }
+
     if (!empty($params['from_address'])) {
       $params['from_address'] = html_entity_decode($params['from_address']);
     }
