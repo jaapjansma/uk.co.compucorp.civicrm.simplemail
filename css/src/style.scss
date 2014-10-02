@@ -422,13 +422,6 @@ $border-radius: 3px;
   textarea {
     resize: none;    
   }
-  .field-group {
-    margin: 0.5rem 0;
-  }
-  .field-group label,
-  .field-group .label {
-    margin: 0.5rem 0;
-  }
   input {
     border-radius: 3px;
   }
@@ -436,24 +429,46 @@ $border-radius: 3px;
   .select2-container {
     margin: 0 0 0.5rem;
   }
-  
-  .field-group label {
-    display: block;    
+
+  .field-group {
+    margin: 0.5rem 0;
+
+    label,
+    .label {
+      margin: 0.5rem 0;
+    }
+
+    label {
+      display: block;
+    }
   }
-  .field-group.inline label,
-  .field-group.inline .label {
-    width: 20%;
-    float: left;
-    text-align: right;
-    margin-right: 1rem;
+
+  .field-group.inline {
+    label,
+    .label {
+      width: 20%;
+      float: left;
+      text-align: right;
+      margin-right: 1rem;
+    }
+    input {
+      margin: 0.5rem 0;
+    }
   }
-  .form-layout .field-group > input,
-  .form-layout .field-group .field {
-    float: left;
+
+  .form-layout {
+    .field-group {
+      input,
+      .field {
+        float: left;
+      }
+    }
+
+    .form-field {
+      clear: both;
+    }
   }
-  .form-layout .form-field {
-    clear: both;
-  }
+
   .resizable-textarea {
     width: 75%;
     float: left;
