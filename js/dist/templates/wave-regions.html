@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js"></script>
+  <style>
+    .editable {
+      border: 2px dashed #ccc;
+      margin: 1rem 0;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+    .non-editable {
+      border: 1px solid #ddd;
+      margin: 1rem 0;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+    .centered {
+      text-align: center;
+    }
+    .centered span {
+      position: relative;
+      top: 45%;
+    }
+    .button {
+      text-decoration: none;
+      text-transform: uppercase;
+      color: inherit;
+      display: block;
+      line-height: 1.25;
+    }
+    body {
+      width: 600px;
+      margin: 0 auto;
+      font-family: sans-serif;
+      color: rgb(139, 135, 135);
+    }
+    h1 {
+      font-size: 1rem;
+      font-weight: normal;
+    }
+    #header-image {
+      height: 150px;
+    }
+    #content {
+      width: 58%;
+      float: left;
+    }
+    #sidebar {
+      width: 38%;
+      float: right;
+    }
+    footer {
+      clear: both;
+      text-align: center;
+    }
+    #reply {
+      text-align: center;
+      width: 50%;
+      margin: 0 auto;
+    }
+    #main-body {
+      height: 165px;
+    }
+    #campaign-message,
+    #contact-details {
+      height: 180px;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div id="header-image" class="centered editable"><span>Header Image</span>
+    </div>
+  </header>
+  <article id="content">
+    <h1 class="editable">Title/Strapline</h1>
+    <div class="editable">
+      <p id="main-body">Main Body</p>
+
+      <p id="reply" class="editable">
+        <a class="button" href>Reply</a>
+        <small class="caption">(Mailto: 'Reply To')</small>
+      </p>
+    </div>
+  </article>
+  <aside id="sidebar">
+    <p id="contact-details" class="centered editable">
+      <span>Contact Details</span>
+    </p>
+    <p id="campaign-message" class="centered editable">
+      <span>Campaign Message</span>
+    </p>
+  </aside>
+  <footer class="non-editable">
+    <p>Footer</p>
+  </footer>
+</body>
+
+</html>

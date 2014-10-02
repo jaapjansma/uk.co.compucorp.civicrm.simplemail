@@ -189,6 +189,8 @@
       this.fromEmails = Helper.getFromEmails();
       this.messages = CampaignMessage.getMessages();
 
+      this.regionsTemplatePath = Wizard.getRegionsTemplatePath();
+
       var promises = [];
 
       var mailingPromise = Mailing.init()

@@ -424,6 +424,15 @@
 
       /**
        * @ngdoc method
+       * @name WizardStepFactory#getRegionsTemplatePath
+       * @returns {string}
+       */
+      var getRegionsTemplatePath = function() {
+        return paths.TEMPLATES_DIR() + '/wave-regions.html';
+      };
+
+      /**
+       * @ngdoc method
        * @name WizardStepFactory#fromSearch
        * @returns {boolean}
        */
@@ -502,6 +511,7 @@
         init: init,
         isInitialised: isInitialised,
         getCurrentStep: getCurrentStep,
+        getRegionsTemplatePath: getRegionsTemplatePath,
         setCurrentStep: setCurrentStep,
         nextStep: nextStep,
         prevStep: prevStep,
