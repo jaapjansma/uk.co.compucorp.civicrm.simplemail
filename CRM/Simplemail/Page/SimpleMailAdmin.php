@@ -15,6 +15,7 @@ class CRM_Simplemail_Page_SimpleMailAdmin extends CRM_Core_Page {
         'uk.co.compucorp.civicrm.simplemail', 'js/vendors/es5-shim.min.js', 50, 'page-footer'
       )// needed by angular-file-upload
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/jquery.min.js', 60, 'page-footer')
+      ->addScriptUrl('/sites/all/modules/civicrm/packages/ckeditor/ckeditor.js', 70, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular.min.js', 80, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular-route.min.js', 90, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular-animate.min.js', 90, 'page-footer')
