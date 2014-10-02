@@ -51,8 +51,8 @@
         <!-- Text -->
         <td class="text">
           <span ng-hide="message.editing">{{message.text}}</span>
-          <textarea ng-show="message.editing" name="text-{{message.id}}" id="text-{{message.id}}" cols="50" rows="3"
-                    ng-model="message.text"></textarea>
+          <textarea sm-ck-editor="normal" ng-show="message.editing" name="text-{{message.id}}" id="text-{{message.id}}"
+                    cols="50" rows="3" ng-model="message.text"></textarea>
         </td>
         <td class="boolean">
           <span ng-hide="message.editing">{{message.is_active === '1' ? 'Yes' : 'No'}}</span>

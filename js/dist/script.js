@@ -891,6 +891,7 @@
       var mailingPromise = Mailing.init()
         .then(function () {
           self.mailing = Mailing.getCurrentMailing();
+          if (angular.isUndefined(self.mailing.dedupe_email)) self.mailing.dedupe_email = '1';
         });
 
       var mailingGroupsPromise = Helper.initMailingGroups()

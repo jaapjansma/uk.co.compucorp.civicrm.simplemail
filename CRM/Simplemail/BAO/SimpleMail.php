@@ -131,7 +131,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       = "
     SELECT
       sm.id, sm.crm_mailing_id, sm.from_address, sm.header_id, sm.title, sm.body, sm.contact_details, sm.message_id, sm.reply_address,
-      cm.name, cm.subject, cm.body_html, cm.created_id, cm.created_date, cm.scheduled_id, cm.scheduled_date,
+      cm.name, cm.subject, cm.body_html, cm.created_id, cm.created_date, cm.scheduled_id, cm.scheduled_date, cm.dedupe_email,
       MIN(j.start_date) start_date, MAX(j.end_date) end_date, j.status,
       c.sort_name, c.external_identifier,
       GROUP_CONCAT(DISTINCT g.id) recipient_group_entity_ids
