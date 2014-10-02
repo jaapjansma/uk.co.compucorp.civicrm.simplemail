@@ -559,6 +559,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       $crmMailingParams['dedupe_email'] = 0;
     }
 
+    $crmMailingParams['approval_status_id'] = 1;
+
     return $crmMailingParams;
   }
 
