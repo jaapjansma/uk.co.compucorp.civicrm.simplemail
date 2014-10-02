@@ -174,7 +174,7 @@ function simplemail_civicrm_navigationMenu(&$params) {
       'label'      => 'Simple Mail',
       'name'       => 'Simple Mail',
       'url'        => NULL,
-      'permission' => NULL,
+      'permission' => 'access CiviSimpleMail',
       'operator'   => NULL,
       'separator'  => NULL,
       'parentID'   => NULL,
