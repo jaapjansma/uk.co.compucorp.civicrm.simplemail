@@ -580,18 +580,24 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @param $params
    */
   protected static function sanitiseParams(&$params) {
-    // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
     if (!empty($params['body'])) {
+      // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
       $params['body'] = html_entity_decode($params['body']);
+
+      // Replace nbsp; with space as otherwise it will make MySQL save fail
       $params['body'] = str_replace("\xA0", ' ', $params['body']);
     }
 
     if (!empty($params['contact_details'])) {
+      // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
       $params['contact_details'] = html_entity_decode($params['contact_details']);
+
+      // Replace nbsp; with space as otherwise it will make MySQL save fail
       $params['contact_details'] = str_replace("\xA0", ' ', $params['contact_details']);
     }
 
     if (!empty($params['from_address'])) {
+      // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
       $params['from_address'] = html_entity_decode($params['from_address']);
     }
 

@@ -46,10 +46,17 @@ function civicrm_api3_simple_mail_message_get($params) {
   return _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params);
 }
 
+/**
+ * Helper function to sanitise received POST data before working on it
+ *
+ * @param $params
+ */
 function _sanitiseParams(&$params) {
-  // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
   if (!empty($params['text'])) {
+    // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
     $params['text'] = html_entity_decode($params['text']);
+
+    // Replace nbsp; with space as otherwise it will make MySQL save fail
     $params['text'] = str_replace("\xA0", ' ', $params['text']);
   }
 }
