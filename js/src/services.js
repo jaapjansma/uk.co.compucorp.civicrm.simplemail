@@ -982,7 +982,8 @@
             // Else, save the changes
             return CiviApi.create(constants.entities.MAILING, getCurrentMailing(), {
               success: 'Mailing saved',
-              error: 'Failed to save the mailing'
+              error: 'Failed to save the mailing',
+              progress: 'Saving...'
             })
               .then(function (response) {
                 return CiviApi.get(constants.entities.MAILING, {id: response.data.values[0].id})
@@ -1162,7 +1163,8 @@
           SUCCESS: 'success',
           ERROR: 'error',
           INFO: 'info',
-          ALERT: 'alert'
+          ALERT: 'alert',
+          LOADING: 'crm-msg-loading'
         }
       };
 
@@ -1175,7 +1177,7 @@
        * @param description
        */
       var alert = function (subject, description) {
-        _createCrmNotification(subject, description, constants.notificationTypes.ALERT);
+        return _createCrmNotification(subject, description, constants.notificationTypes.ALERT);
       };
 
       /**
@@ -1187,7 +1189,7 @@
        * @param description
        */
       var success = function (subject, description) {
-        _createCrmNotification(subject, description, constants.notificationTypes.SUCCESS);
+        return _createCrmNotification(subject, description, constants.notificationTypes.SUCCESS);
       };
 
       /**
@@ -1199,7 +1201,7 @@
        * @param description
        */
       var info = function (subject, description) {
-        _createCrmNotification(subject, description, constants.notificationTypes.INFO);
+        return _createCrmNotification(subject, description, constants.notificationTypes.INFO);
       };
 
       /**
@@ -1211,7 +1213,19 @@
        * @param description
        */
       var error = function (subject, description) {
-        _createCrmNotification(subject, description, constants.notificationTypes.ERROR);
+        return _createCrmNotification(subject, description, constants.notificationTypes.ERROR);
+      };
+
+      /**
+       * Create a loading message
+       *
+       * @ngdoc method
+       * @name NotificationFactory#loading
+       * @param subject
+       * @param description
+       */
+      var loading = function (subject, description) {
+        return _createCrmNotification(subject, description, constants.notificationTypes.LOADING, {expires: 0});
       };
 
       /**
@@ -1221,7 +1235,18 @@
        * @name NotificationFactory#genericError
        */
       var genericError = function () {
-        _createCrmNotification('Oops! Something went wrong.', 'Please refresh the page', constants.notificationTypes.ERROR);
+        return _createCrmNotification('Oops! Something went wrong.', 'Please refresh the page', constants.notificationTypes.ERROR);
+      };
+
+      /**
+       * Close a notification given by its instance
+       *
+       * @ngdoc method
+       * @name NotificationFactory#clear
+       * @param instance Notification instance
+       */
+      var clear = function (instance) {
+        instance.close();
       };
 
       /**
@@ -1231,22 +1256,27 @@
        * @param subject
        * @param description
        * @param type
+       * @param {object=} options
        * @private
        */
-      var _createCrmNotification = function (subject, description, type) {
+      var _createCrmNotification = function (subject, description, type, options) {
         if (notificationEnabled) {
           description = description || '';
-          CRM.alert(description, subject, type);
+          options = options || {};
 
           if (logNotifications) $log.debug('(' + type.toUpperCase() + ') ' + subject, description);
+
+          return CRM.alert(description, subject, type, options);
         }
       };
 
       return {
         alert: alert,
+        clear: clear,
         success: success,
         info: info,
         error: error,
+        loading: loading,
         genericError: genericError
       };
     }
@@ -1304,7 +1334,7 @@
        * @name CiviApiFactory#get
        * @param {string} entityName
        * @param {object=} data Optional data to pass in the GET/POST request
-       * @param {{success: string=, error: string=}=} options
+       * @param {{success: string=, error: string=, progress: string=}=} options
        * @returns {IPromise}
        */
       var get = function (entityName, data, options) {
@@ -1317,7 +1347,7 @@
        * @name CiviApiFactory#getValue
        * @param {string} entityName
        * @param {object=} data Optional data to pass in the GET/POST request
-       * @param {{success: string=, error: string=}=} options
+       * @param {{success: string=, error: string=, progress: string=}=} options
        * @returns {IPromise}
        */
       var getValue = function (entityName, data, options) {
@@ -1330,7 +1360,7 @@
        * @name CiviApiFactory#create
        * @param entityName
        * @param {object=} data Optional data to pass in the GET/POST request
-       * @param {{success: string=, error: string=}=} options
+       * @param {{success: string=, error: string=, progress: string=}=} options
        * @returns {IPromise}
        */
       var create = function (entityName, data, options) {
@@ -1343,7 +1373,7 @@
        * @name CiviApiFactory#update
        * @param entityName
        * @param {object=} data Optional data to pass in the GET/POST request
-       * @param {{success: string=, error: string=}=} options
+       * @param {{success: string=, error: string=, progress: string=}=} options
        * @returns {IPromise}
        */
       var update = function (entityName, data, options) {
@@ -1356,7 +1386,7 @@
        * @name CiviApiFactory#remove
        * @param {string} entityName
        * @param {object=} data Optional data to pass in the GET/POST request
-       * @param {{success: string=, error: string=}=} options
+       * @param {{success: string=, error: string=, progress: string=}=} options
        * @returns {IPromise}
        */
       var remove = function (entityName, data, options) {
@@ -1370,7 +1400,7 @@
        * @param {string} entityName
        * @param {object=} data Optional data to pass in the GET/POST request
        * @param {string} action
-       * @param {{success: string=, error: string=}=} options
+       * @param {{success: string=, error: string=, progress: string=}=} options
        * @returns {IPromise}
        */
       var post = function (entityName, data, action, options) {
@@ -1379,11 +1409,21 @@
 
         var successMessage = options.success || null;
         var errorMessage = options.error || null;
+        var progressMessage = options.progress || null;
+
         var cached = options.cached || false;
+
+        if (progressMessage) {
+          var notificationInstance = Notification.loading(progressMessage);
+        }
 
         return _createPost(entityName, data, action, cached)
           .then(function (response) {
             if (response.data.is_error) return $q.reject(response);
+
+            if (progressMessage) {
+              Notification.clear(notificationInstance);
+            }
 
             if (successMessage) {
               Notification.success(successMessage);
