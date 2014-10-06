@@ -89,9 +89,12 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @throws CRM_Extension_Exception
    */
   public static function submitMassEmail($params) {
+    static::sanitiseParams($params);
+
     $params['scheduled_id'] = CRM_Core_Session::singleton()->get('userID');
 
-    static::sanitiseParams($params);
+    $params['approval_date'] = date('YmdHis');
+    $params['approval_status_id'] = 1;
 
     /* Scheduled mailing jobs are being updated first here as it will help in two ways:
      *
@@ -541,14 +544,23 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     // Body HTML
     $crmMailingParams['body_html'] = static::generateEmailHtml($params);
 
-    // Scheduler ID
+    // Scheduler ID - this is only set when submitting for mass emailing (last page of the wizard)
     if (!empty($params['scheduled_id'])) {
       $crmMailingParams['scheduled_id'] = $params['scheduled_id'];
     }
 
-    // Scheduled date
-    if (!empty($params['scheduled_date'])) {
-      $crmMailingParams['scheduled_date'] = $params['scheduled_date'];
+    // Scheduled date - this is being defaulted to empty string so as to disallow the core mailing BAO from scheduling
+    // the mailing with default date (current)
+    $crmMailingParams['scheduled_date'] = empty($params['scheduled_date']) ? '' : $params['scheduled_date'];
+
+    // Approval date - this is being defaulted to empty string so as to disallow the core mailing BAO from setting
+    // it with default date (current) which is incorrect for SimpleMail's setup, as the mailing is not scheduled until
+    // the last step of the wizard at which point it is set
+    $crmMailingParams['approval_date'] = empty($params['approval_date']) ? '' : $params['approval_date'];
+
+    // Approval status ID - this is only set when submitting for mass emailing (last page of the wizard)
+    if (!empty($params['approval_status_id'])) {
+      $crmMailingParams['approval_status_id'] = $params['approval_status_id'];
     }
 
     // De-duplicate emails
@@ -558,8 +570,6 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     else {
       $crmMailingParams['dedupe_email'] = 0;
     }
-
-    $crmMailingParams['approval_status_id'] = 1;
 
     return $crmMailingParams;
   }
@@ -587,7 +597,6 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       // Replace nbsp; with space as otherwise it will make MySQL save fail
       $params['body'] = str_replace("\xA0", ' ', $params['body']);
     }
-
     if (!empty($params['contact_details'])) {
       // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
       $params['contact_details'] = html_entity_decode($params['contact_details']);
@@ -595,16 +604,23 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       // Replace nbsp; with space as otherwise it will make MySQL save fail
       $params['contact_details'] = str_replace("\xA0", ' ', $params['contact_details']);
     }
-
     if (!empty($params['from_address'])) {
       // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
       $params['from_address'] = html_entity_decode($params['from_address']);
     }
 
     // Reformat the scheduled date for a format required by CivCRM
+    if (!empty($params['created_date'])) {
+      $dateTime = new DateTime($params['created_date']);
+      $params['created_date'] = $dateTime->format('YmdHis');
+    }
     if (!empty($params['scheduled_date'])) {
       $dateTime = new DateTime($params['scheduled_date']);
       $params['scheduled_date'] = $dateTime->format('YmdHis');
+    }
+    if (!empty($params['approval_date'])) {
+      $dateTime = new DateTime($params['approval_date']);
+      $params['approval_date'] = $dateTime->format('YmdHis');
     }
   }
 
