@@ -1891,6 +1891,8 @@
 
         var index = mailings.indexOf(mailing);
 
+        var notificationInstance = Notification.loading('Deleting mailing...');
+
         if (index !== -1) {
           CiviApi.remove(constants.entities.MAILING, mailing)
             .then(function () {
@@ -1913,6 +1915,9 @@
             $log.error('Failed to delete the mailing:', response);
 
             return $q.reject();
+          })
+          .finally(function() {
+            Notification.clear(notificationInstance);
           });
       };
 
@@ -1925,6 +1930,8 @@
         var deferred = $q.defer();
 
         var index = mailings.indexOf(mailing);
+
+        var notificationInstance = Notification.loading('Cancelling mailing...');
 
         if (index !== -1) {
           CiviApi.post(constants.entities.MAILING, mailing, 'cancelmassemail')
@@ -1948,6 +1955,9 @@
             $log.error('Failed to cancel the mailing:', response);
 
             return $q.reject();
+          })
+          .finally(function() {
+            Notification.clear(notificationInstance);
           });
       };
 
@@ -1960,6 +1970,8 @@
         var deferred = $q.defer();
 
         var index = mailings.indexOf(mailing);
+
+        var notificationInstance = Notification.loading('Duplicating mailing...');
 
         if (index !== -1) {
           CiviApi.post(constants.entities.MAILING, mailing, 'duplicatemassemail')
@@ -1986,6 +1998,9 @@
             $log.error('Failed to duplicate the mailing:', response);
 
             return $q.reject();
+          })
+          .finally(function() {
+            Notification.clear(notificationInstance);
           });
       };
 
