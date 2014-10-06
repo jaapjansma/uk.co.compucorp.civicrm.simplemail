@@ -549,14 +549,13 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       $crmMailingParams['scheduled_id'] = $params['scheduled_id'];
     }
 
-    // Scheduled date - this is being defaulted to empty string so as to disallow the core mailing BAO from scheduling
-    // the mailing with default date (current)
-    $crmMailingParams['scheduled_date'] = empty($params['scheduled_date']) ? '' : $params['scheduled_date'];
+    // Scheduled date - this is being defaulted to null so as to disallow the core mailing BAO from scheduling the
+    // mailing with default date (in v4.4.6), which is incorrect for SimpleMail's setup as the mailing isn't scheduled
+    // until the last step of the wizard at which point it is set
+    $crmMailingParams['scheduled_date'] = empty($params['scheduled_date']) ? NULL : $params['scheduled_date'];
 
-    // Approval date - this is being defaulted to empty string so as to disallow the core mailing BAO from setting
-    // it with default date (current) which is incorrect for SimpleMail's setup, as the mailing is not scheduled until
-    // the last step of the wizard at which point it is set
-    $crmMailingParams['approval_date'] = empty($params['approval_date']) ? '' : $params['approval_date'];
+    // Approval date - this is being defaulted to null because of the same reason above
+    $crmMailingParams['approval_date'] = empty($params['approval_date']) ? NULL : $params['approval_date'];
 
     // Approval status ID - this is only set when submitting for mass emailing (last page of the wizard)
     if (!empty($params['approval_status_id'])) {

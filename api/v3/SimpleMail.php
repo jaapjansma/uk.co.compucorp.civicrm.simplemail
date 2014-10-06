@@ -164,6 +164,7 @@ function civicrm_api3_simple_mail_duplicatemassemail($params) {
     = $params['crm_mailing_id']
     = $params['created_date']
     = $params['created_id']
+    = $params['approver_id']
     = $params['external_identifier']
     = $params['sort_name']
     = $params['scheduled_date']
