@@ -275,3 +275,41 @@ function _getMenuKeyMax($menuArray) {
 
   return max($max);
 }
+
+/**
+ *  alterAPIPermissions() hook allows you to change the permissions checked when doing API 3 calls.
+ */
+function simplemail_civicrm_alterAPIPermissions($entity, $action, &$params, &$permissions) {
+  if (CRM_Core_Permission::check('access CiviSimpleMail')) {
+    $permissionKeys = array('access CiviSimpleMail');
+
+    $standardActions = array(
+      'create' => $permissionKeys,
+      'delete' => $permissionKeys,
+      'get'    => $permissionKeys,
+      'update' => $permissionKeys,
+    );
+
+    $permissions['simple_mail'] = array(
+        'submitmassemail'     => $permissionKeys,
+        'cancelmassemail'     => $permissionKeys,
+        'sendtestemail'       => $permissionKeys,
+        'duplicatemassemail'  => $permissionKeys,
+        'iscreatedfromsearch' => $permissionKeys
+      ) + $standardActions;
+
+    $permissions['simple_mail_header'] = array(
+        'uploadimage' => $permissionKeys,
+        'deleteimage' => $permissionKeys
+      ) + $standardActions;
+
+    $permissions['simple_mail_message'] = array(
+      'create' => $permissionKeys,
+      'delete' => $permissionKeys,
+      'get'    => $permissionKeys,
+      'update' => $permissionKeys
+    );
+
+    $permissions['option_group'] = $permissions['option_value'] = array('get' => $permissionKeys);
+  }
+}
