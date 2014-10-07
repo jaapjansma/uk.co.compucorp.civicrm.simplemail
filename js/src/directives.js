@@ -232,7 +232,8 @@
             ['Bold', 'Italic', 'Strike', 'RemoveFormat'],
             ['NumberedList', 'BulletedList'],
             ['Link', 'Unlink'],
-            ['Maximize']
+            ['Maximize'],
+            ['About']
           );
       }
 
