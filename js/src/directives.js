@@ -218,21 +218,23 @@
 
       var config = {
         enterMode: CKEDITOR.ENTER_BR,
-        toolbarGroups: []
+        allowedContent: 'em;strong;u;s;a[!href,target];ul;ol;li',
+        toolbar: []
       };
 
       switch (attributes['smCkEditor']) {
         case 'minimal':
-          config.toolbarGroups.push([]);
+          config.toolbar.push([]);
           break;
+
         default:
         // break omitted intentionally
         case 'normal':
-          config.toolbarGroups.push(
+          config.toolbar.push(
             ['Bold', 'Italic', 'Strike', 'RemoveFormat'],
             ['NumberedList', 'BulletedList'],
             ['Link', 'Unlink'],
-            ['Maximize'],
+            ['Maximize', 'Source'],
             ['About']
           );
       }
