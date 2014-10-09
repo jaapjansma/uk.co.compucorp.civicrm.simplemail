@@ -1,6 +1,7 @@
 # Ignore
 build
 .sass-cache
+.DS_Store
 bower_components
 coverage
 node_modules
