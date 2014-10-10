@@ -891,6 +891,7 @@
       var mailingPromise = Mailing.init()
         .then(function () {
           self.mailing = Mailing.getCurrentMailing();
+          self.fromSearch = Mailing.isCreatedFromSearch();
           if (angular.isUndefined(self.mailing.dedupe_email)) self.mailing.dedupe_email = '1';
         });
 
@@ -899,13 +900,7 @@
           self.groups = Helper.getMailingGroups();
         });
 
-      // TODO (robin): This is not elegant - find a better solution if there is time
-      var isCreatedFromSearchPromise = Wizard.fromSearch()
-        .then(function (response) {
-          self.fromSearch = response;
-        });
-
-      promises.push(mailingPromise, mailingGroupsPromise, isCreatedFromSearchPromise);
+      promises.push(mailingPromise, mailingGroupsPromise);
 
       $q.all(promises)
         .catch(function () {
@@ -2051,6 +2046,7 @@
             mailings = response.data.values;
             userId = response.data.userId;
           })
+          .then(clearSearchResultsFromSession)
           .catch(function (response) {
             Notification.error(response);
           })
@@ -2064,6 +2060,15 @@
         creators = $filter('extractColumn')(mailings, {id: 'created_id', name: 'sort_name'});
         creators = $filter('unique')(creators, 'id');
       };
+
+      /**
+       * @name clearSearchResultsFromSession
+       * @private
+       * @returns {IPromise}
+       */
+      var clearSearchResultsFromSession = function () {
+        return CiviApi.post(constants.entities.MAILING, {}, 'clearsearchcontacts');
+     };
 
       return {
         init: init,
@@ -2246,18 +2251,6 @@
         return paths.TEMPLATES_DIR() + '/wave-regions.html';
       };
 
-      /**
-       * @ngdoc method
-       * @name WizardStepFactory#fromSearch
-       * @returns {boolean}
-       */
-      var fromSearch = function () {
-        return CiviApi.post('SimpleMail', {}, 'iscreatedfromsearch')
-          .then(function (response) {
-            return response.data.values[0].created_from_search;
-          })
-      };
-
       // Getters and Setters //
 
       /**
@@ -2322,7 +2315,6 @@
       };
 
       return {
-        fromSearch: fromSearch,
         init: init,
         isInitialised: isInitialised,
         getCurrentStep: getCurrentStep,
@@ -2695,7 +2687,11 @@
       var originalCurrentMailing = {};
 
       /**
-       *
+       * @type {boolean}
+       */
+      var createdFromSearch;
+
+      /**
        * @type {boolean}
        */
       var initialised = false;
@@ -2855,6 +2851,15 @@
           });
       };
 
+      /**
+       * @ngdoc method
+       * @name MailingDetailFactory#isCreatedFromSearch
+       * @returns {boolean}
+       */
+      var isCreatedFromSearch = function () {
+        return createdFromSearch;
+      };
+
       // Getters and Setters
 
       /**
@@ -2878,17 +2883,17 @@
         if (updateOriginal) originalCurrentMailing = angular.copy(mailing);
       };
 
+      /**
+       * @param boolean
+       * @private
+       */
+      var setCreatedFromSearch = function (boolean) {
+        createdFromSearch = boolean;
+      };
+
       /////////////////////
       // Private Methods //
       /////////////////////
-
-      /**
-       * @private
-       * @returns {?number|string}
-       */
-      var getMailingIdFromUrl = function () {
-        return $routeParams.mailingId;
-      };
 
       /**
        * @private
@@ -2905,14 +2910,13 @@
       var initMailing = function () {
         var deferred = $q.defer();
 
-        var mailingId = getMailingIdFromUrl();
-
         // The mailing isn't new (i.e. mailing ID exists in the URL) - populate current mailing using the API
         if (!isNewMailing()) {
-          CiviApi.get(constants.entities.MAILING, {id: mailingId})
+          CiviApi.get(constants.entities.MAILING, {id: getMailingIdFromUrl()})
             .then(function (response) {
               setCurrentMailing(response.data.values[0], true);
-              $log.debug('Mailing initialised');
+              var createdFromSearch = response.data.values[0].hidden_recipient_group_entity_ids.length ? true : false;
+              setCreatedFromSearch(createdFromSearch);
 
               deferred.resolve();
             })
@@ -2920,11 +2924,23 @@
               deferred.reject();
             });
         } else {
-          deferred.resolve();
-          $log.debug('Mailing initialised a new');
+          CiviApi.post('SimpleMail', getCurrentMailing(), 'iscreatedfromsearch')
+            .then(function (response) {
+              setCreatedFromSearch(response.data.values[0].answer);
+
+              deferred.resolve();
+            });
         }
 
         return deferred.promise;
+      };
+
+      /**
+       * @private
+       * @returns {?number|string}
+       */
+      var getMailingIdFromUrl = function () {
+        return $routeParams.mailingId;
       };
 
       return {
@@ -2937,7 +2953,8 @@
         //getCurrentMailingId: getCurrentMailingId,
         getCurrentMailing: getCurrentMailing,
         setCurrentMailing: setCurrentMailing,
-        isInitialised: isInitialised
+        isInitialised: isInitialised,
+        isCreatedFromSearch: isCreatedFromSearch
       };
     }];
 

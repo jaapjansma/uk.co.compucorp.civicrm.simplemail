@@ -175,11 +175,41 @@ function civicrm_api3_simple_mail_duplicatemassemail($params) {
   return civicrm_api3_simple_mail_create($params);
 }
 
+/**
+ * SimpleMail.IsCreatedFromSearch API
+ *
+ * @param $params
+ *
+ * @return array API result descriptor
+ * @see civicrm_api3_create_success
+ * @see civicrm_api3_create_error
+ * @throws API_Exception
+ */
 function civicrm_api3_simple_mail_iscreatedfromsearch($params) {
   try {
     $result = CRM_Simplemail_BAO_SimpleMail::isCreatedFromSearch();
 
     return civicrm_api3_create_success($result['values'], $params, NULL, 'iscreatedfromsearch');
+  } catch (CRM_Extension_Exception $e) {
+    return civicrm_api3_create_error($e->getMessage());
+  }
+}
+
+/**
+ * SimpleMail.ClearSearchContacts API
+ *
+ * @param $params
+ *
+ * @return array API result descriptor
+ * @see civicrm_api3_create_success
+ * @see civicrm_api3_create_error
+ * @throws API_Exception
+ */
+function civicrm_api3_simple_mail_clearsearchcontacts($params) {
+  try {
+    CRM_Simplemail_BAO_SimpleMail::clearSessionScope();
+
+    return civicrm_api3_create_success(1, $params, NULL, 'clearsearchresultsfromsession');
   } catch (CRM_Extension_Exception $e) {
     return civicrm_api3_create_error($e->getMessage());
   }

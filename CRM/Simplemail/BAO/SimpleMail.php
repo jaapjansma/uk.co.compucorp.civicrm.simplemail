@@ -10,9 +10,15 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    */
   const EXT_NAME = 'uk.co.compucorp.civicrm.simplemail';
 
+  const SESSION_SCOPE_PREFIX = 'SimpleMail_';
+
   const PERMISSION_ACCESS = 'access CiviSimpleMail';
   const PERMISSION_EDIT = 'edit CiviSimpleMail';
   const PERMISSION_DELETE = 'delete CiviSimpleMail';
+
+  /////////////////
+  // API Methods //
+  /////////////////
 
   /**
    * Create or update a SimpleMail mailing and the corresponding CiviCRM mailing, along with other related tasks, such
@@ -23,6 +29,10 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @return CRM_Simplemail_DAO_SimpleMail|NULL
    */
   public static function create($params) {
+    if (static::getFromSessionScope('createdFromSearch')) {
+      static::createSmartContactGroupForSearchContacts();
+    }
+
     static::sanitiseParams($params);
 
     $civiMailing = static::createCiviMailing($params);
@@ -137,7 +147,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       cm.name, cm.subject, cm.body_html, cm.created_id, cm.created_date, cm.scheduled_id, cm.scheduled_date, cm.dedupe_email,
       MIN(j.start_date) start_date, MAX(j.end_date) end_date, j.status,
       c.sort_name, c.external_identifier,
-      GROUP_CONCAT(DISTINCT g.id) recipient_group_entity_ids
+      GROUP_CONCAT(DISTINCT CONCAT(g.id, ':', g.is_hidden)) recipient_group_entities
 
     FROM civicrm_simplemail sm
 
@@ -154,7 +164,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     ON cm.id = mg.mailing_id
 
     LEFT JOIN civicrm_group g
-    ON (mg.entity_id = g.id AND g.is_hidden = 0)
+    ON mg.entity_id = g.id
 
     WHERE $whereClause
 
@@ -171,7 +181,23 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
         $mailing = $dao->toArray();
 
         $mailing['status'] = $mailing['status'] ?: 'Not Scheduled';
-        $mailing['recipient_group_entity_ids'] = explode(',', $mailing['recipient_group_entity_ids']);
+
+        $groups = explode(',', $mailing['recipient_group_entities']);
+        $groupIds = $hiddenGroupIds = array();
+        foreach ($groups as $group) {
+          $id = strtok($group, ':');
+          $isHidden = strtok(':');
+
+          if ($isHidden) {
+            $hiddenGroupIds[] = $id;
+          }
+          else {
+            $groupIds[] = $id;
+          }
+        }
+
+        $mailing['recipient_group_entity_ids'] = $groupIds;
+        $mailing['hidden_recipient_group_entity_ids'] = $hiddenGroupIds;
 
         $mailings[] = $mailing;
       }
@@ -226,51 +252,26 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   }
 
   /**
-   * @param $crmMailingId
-   *
    * @return array
    */
-  public static function getRecipientGroups($crmMailingId) {
-    $sql
-      = "SELECT
-    	  mg.*,
-    	  g.is_hidden, g.saved_search_id
-        FROM civicrm_mailing_group mg
-        LEFT JOIN civicrm_group g
-        ON mg.entity_id = g.id
-        WHERE mg.mailing_id = $crmMailingId";
+  public static function isCreatedFromSearch() {
+    $createdFromSearch = static::getFromSessionScope('createdFromSearch');
 
-    /** @var CRM_Core_DAO|CRM_Mailing_DAO_MailingGroup|CRM_Contact_BAO_Group $dao */
-    $dao = CRM_Core_DAO::executeQuery($sql);
-
-    $groups = $smartGroups = array();
-
-    while ($dao->fetch()) {
-      if ($dao->is_hidden) {
-        $smartGroups[] = $dao->toArray();
-      }
-      else {
-        $groups[] = $dao->toArray();
-      }
-    }
-
-    return array($groups, $smartGroups);
+    return array('values' => array(array('answer' => $createdFromSearch)));
   }
 
   /**
-   * Update recipient groups for the mailing - add new groups, and delete removed groups
-   *
-   * @param $params
-   *
-   * @return void
+   * Clear the session scope used by Simple Mail
    */
-  public static function updateRecipientGroups($params) {
-    if (!empty($params['recipient_group_entity_ids'])) {
-      static::updateGroups((int) $params['crm_mailing_id'], $params['recipient_group_entity_ids']);
-    }
-
-    static::updateSmartGroups((int) $params['crm_mailing_id']);
+  public static function clearSessionScope() {
+    $session = CRM_Core_Session::singleton();
+    $sessionScope = static::getSessionScopeName();
+    $session->resetScope($sessionScope);
   }
+
+  /////////////
+  // Helpers //
+  /////////////
 
   /**
    * Get the absolute path of the extension directory
@@ -317,6 +318,34 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     return $urls;
   }
 
+  /**
+   * @param $key
+   * @param $value
+   *
+   * @return $this
+   */
+  public static function addToSessionScope($key, $value) {
+    CRM_Core_Session::singleton()
+      ->set($key, $value, static::getSessionScopeName());
+  }
+
+  /**
+   * @param $key
+   *
+   * @return mixed
+   */
+  public static function getFromSessionScope($key) {
+    return CRM_Core_Session::singleton()
+      ->get($key, static::getSessionScopeName());
+  }
+
+  /**
+   * @return string
+   */
+  public static function getSessionScopeName() {
+    return static::SESSION_SCOPE_PREFIX . CRM_Core_Session::singleton()->get('userID');
+  }
+
   ///////////////////////
   // Protected Methods //
   ///////////////////////
@@ -330,6 +359,62 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    */
   protected static function authorised($permission) {
     return CRM_Core_Permission::check($permission);
+  }
+
+  /**
+   * Update recipient groups for the mailing - add new groups, and delete removed groups
+   *
+   * @param $params
+   *
+   * @return void
+   */
+  protected static function updateRecipientGroups($params) {
+    if (!empty($params['recipient_group_entity_ids'])) {
+      static::updateMailingGroups((int) $params['crm_mailing_id'], $params['recipient_group_entity_ids']);
+    }
+
+    if ($smartContactGroupId = static::getFromSessionScope('smartGroupId')) {
+      static::createMailingGroupForSmartContactGroup((int) $params['crm_mailing_id'], $smartContactGroupId);
+
+      // Clearing the session scope will essentially clear the smart contact group ID from the session, which will make
+      // sure that we only create mailing group for the smart contact group only once, as otherwise duplicates would get
+      // created
+      static::clearSessionScope();
+    }
+  }
+
+  /**
+   * TODO (robin): This might no longer require retrieving groups from the DB as now everything is retrieved from getMailing
+   *
+   * @param $crmMailingId
+   *
+   * @return array
+   */
+  protected static function getRecipientGroups($crmMailingId) {
+    $sql
+      = "SELECT
+    	  mg.*,
+    	  g.is_hidden, g.saved_search_id
+        FROM civicrm_mailing_group mg
+        LEFT JOIN civicrm_group g
+        ON mg.entity_id = g.id
+        WHERE mg.mailing_id = $crmMailingId";
+
+    /** @var CRM_Core_DAO|CRM_Mailing_DAO_MailingGroup|CRM_Contact_BAO_Group $dao */
+    $dao = CRM_Core_DAO::executeQuery($sql);
+
+    $groups = $smartGroups = array();
+
+    while ($dao->fetch()) {
+      if ($dao->is_hidden) {
+        $smartGroups[] = $dao->toArray();
+      }
+      else {
+        $groups[] = $dao->toArray();
+      }
+    }
+
+    return array($groups, $smartGroups);
   }
 
   /**
@@ -389,10 +474,6 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     CRM_Mailing_BAO_MailingJob::cancel($crmMailingId);
   }
 
-  /////////////////////////
-  // Protected Functions //
-  /////////////////////////
-
   /**
    * Get the path of the email template to be used for rendering the email HTML body
    *
@@ -429,6 +510,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     if (isset($params['header_id'])) {
       $header = new CRM_Simplemail_BAO_SimpleMailHeader();
       $header->id = (int) $params['header_id'];
+
+      // TODO (robin): Change this to the form if ($header->find(TRUE) { ... } and test
       $header->find();
 
       if ($header->fetch()) {
@@ -446,6 +529,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     if (isset($params['message_id'])) {
       $message = new CRM_Simplemail_BAO_SimpleMailMessage();
       $message->id = (int) $params['message_id'];
+
+      // TODO (robin): Change this to the form if ($header->find(TRUE) { ... } and test
       $message->find();
 
       if ($message->fetch()) {
@@ -633,14 +718,14 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   }
 
   /////////////////////
-  // Private methods //
+  // Private Methods //
   /////////////////////
 
   /**
    * @param int   $crmMailingId
    * @param array $newGroupEntityIds
    */
-  private static function updateGroups($crmMailingId, $newGroupEntityIds) {
+  private static function updateMailingGroups($crmMailingId, $newGroupEntityIds) {
     list($existingGroups) = static::getRecipientGroups($crmMailingId);
 
     $existingGroupsWithEntityIdAsKeys = array();
@@ -668,53 +753,6 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
   /**
    * @param $crmMailingId
-   */
-  private static function updateSmartGroups($crmMailingId) {
-    // Clearing this from session will make sure that we only create smart group for the mailing once - otherwise, duplicates would get created
-    $smartGroupId = static::getSmartGroupIdFromSession(TRUE);
-
-    if ($smartGroupId) {
-      $dao = new CRM_Mailing_DAO_MailingGroup();
-
-      $dao->reset();
-      $dao->mailing_id = $crmMailingId;
-      $dao->group_type = 'Include';
-      $dao->entity_table = 'civicrm_group';
-      $dao->entity_id = $smartGroupId;
-      $dao->save();
-    }
-  }
-
-  /**
-   * @param bool $clearFromSession
-   * TODO (robin): This is not accurate - if someone cancels the mailing from search and creates a new one (not from search), the new one will also get all the recipients from search. This would likely be a critical bug.
-   *
-   * @return mixed
-   */
-  private static function getSmartGroupIdFromSession($clearFromSession = FALSE) {
-    $session = CRM_Core_Session::singleton();
-    $sessionScope = CRM_Simplemail_Form_SimpleMailRecipientsFromSearch::getSessionScope();
-
-    $smartGroupId = $session->get('smartGroupId', $sessionScope);
-
-    if ($clearFromSession) {
-      $session->resetScope($sessionScope);
-    }
-
-    return $smartGroupId;
-  }
-
-  /**
-   * @return bool
-   */
-  public static function isCreatedFromSearch() {
-    $createdFromSearch = static::getSmartGroupIdFromSession() != NULL;
-
-    return array('values' => array(array('created_from_search' => $createdFromSearch)));
-  }
-
-  /**
-   * @param $crmMailingId
    * @param $entityId
    */
   private static function createMailingGroup($crmMailingId, $entityId) {
@@ -729,6 +767,21 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   }
 
   /**
+   * @param $crmMailingId
+   * @param $smartContactGroupId
+   */
+  private static function createMailingGroupForSmartContactGroup($crmMailingId, $smartContactGroupId) {
+    $dao = new CRM_Mailing_DAO_MailingGroup();
+
+    $dao->reset();
+    $dao->mailing_id = $crmMailingId;
+    $dao->group_type = 'Include';
+    $dao->entity_table = 'civicrm_group';
+    $dao->entity_id = $smartContactGroupId;
+    $dao->save();
+  }
+
+  /**
    * @param $mailingGroupId
    */
   private static function deleteMailingGroup($mailingGroupId) {
@@ -739,4 +792,87 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $group->delete();
   }
 
+  // ---------- //
+
+  /**
+   * Note: A lot of the logic in this method (for creating hidden and smart groups) is taken from
+   * CRM_Mailing_Form_Group::postProcess()
+   *
+   * @return null|string
+   * @throws Exception
+   */
+  private static function createSmartContactGroupForSearchContacts() {
+    $searchParams = static::getFromSessionScope('searchParams');
+    $contactIds = static::getFromSessionScope('contactIds');
+
+    $smartGroupId = NULL;
+
+    if ($contactIds) {
+      $resultSelectOption = $searchParams['radio_ts'];
+
+      // Only the ticked contacts in the search result need to be sent mailing - create a hidden group for them
+      if ($resultSelectOption == 'ts_sel') {
+        // create a static grp if only a subset of result set was selected:
+        $randID = md5(time());
+        $grpTitle = "Hidden Group {$randID}";
+        $grpID = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Group', $grpTitle, 'id', 'title');
+
+        if (!$grpID) {
+          $groupParams = array(
+            'title'      => $grpTitle,
+            'is_active'  => 1,
+            'is_hidden'  => 1,
+            'group_type' => array('2' => 1),
+          );
+
+          $group = CRM_Contact_BAO_Group::create($groupParams);
+          $grpID = $group->id;
+
+          CRM_Contact_BAO_GroupContact::addContactsToGroup($contactIds, $group->id);
+
+          $newGroupTitle = "Hidden Group {$grpID}";
+          $groupParams = array(
+            'id'         => $grpID,
+            'name'       => CRM_Utils_String::titleToVar($newGroupTitle),
+            'title'      => $newGroupTitle,
+            'group_type' => array('2' => 1),
+          );
+          $group = CRM_Contact_BAO_Group::create($groupParams);
+        }
+
+        // note at this point its a static group
+        $smartGroupId = $grpID;
+      }
+      // All the contacts in the search result need to be sent mailing - create a dynamic smart group for the search
+      else {
+        // Get the saved search ID
+        $ssId = static::getFromSessionScope('ssId');
+        $formValues = static::getFromSessionScope('formValues');
+        $customSearchId = static::getFromSessionScope('customSearchId');
+        $context = static::getFromSessionScope('context');
+
+        $hiddenSmartParams = array(
+          'group_type'       => array('2' => 1),
+          'form_values'      => $formValues,
+          'saved_search_id'  => $ssId,
+          'search_custom_id' => $customSearchId,
+          'search_context'   => $context,
+        );
+
+        list($smartGroupId, $savedSearchId) = CRM_Contact_BAO_Group::createHiddenSmartGroup($hiddenSmartParams);
+
+        // Set the saved search ID
+        if (!$ssId) {
+          if ($savedSearchId) {
+            static::addToSessionScope('ssId', $savedSearchId);
+          }
+          else {
+            CRM_Core_Error::fatal();
+          }
+        }
+      }
+    }
+
+    static::addToSessionScope('smartGroupId', $smartGroupId);
+  }
 }

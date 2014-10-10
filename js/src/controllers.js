@@ -132,6 +132,7 @@
       var mailingPromise = Mailing.init()
         .then(function () {
           self.mailing = Mailing.getCurrentMailing();
+          self.fromSearch = Mailing.isCreatedFromSearch();
           if (angular.isUndefined(self.mailing.dedupe_email)) self.mailing.dedupe_email = '1';
         });
 
@@ -140,13 +141,7 @@
           self.groups = Helper.getMailingGroups();
         });
 
-      // TODO (robin): This is not elegant - find a better solution if there is time
-      var isCreatedFromSearchPromise = Wizard.fromSearch()
-        .then(function (response) {
-          self.fromSearch = response;
-        });
-
-      promises.push(mailingPromise, mailingGroupsPromise, isCreatedFromSearchPromise);
+      promises.push(mailingPromise, mailingGroupsPromise);
 
       $q.all(promises)
         .catch(function () {
