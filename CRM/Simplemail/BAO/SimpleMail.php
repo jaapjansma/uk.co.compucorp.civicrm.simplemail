@@ -505,6 +505,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $template->contactDetails = isset($params['contact_details']) && $params['contact_details']
       ? $params['contact_details']
       : NULL;
+    $template->unsubscribeLink = 'https://member.atl.org.uk/node/5?cid1={contact.contact_id}&{contact.checksum}';
 
     // Retrieve header if the mailing has one, and assign header and logo images in the template accordingly
     if (isset($params['header_id'])) {
