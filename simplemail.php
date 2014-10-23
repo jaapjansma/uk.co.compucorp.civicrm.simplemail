@@ -251,11 +251,9 @@ function simplemail_civicrm_permission(&$permissions) {
   // Name of extension
   $prefix = ts('CiviSimpleMail') . ': ';
 
-  $permissions = array(
-    'access CiviSimpleMail'       => $prefix . ts('access CiviSimpleMail'),
-    'delete CiviSimpleMail'       => $prefix . ts('delete CiviSimpleMail'),
-    'access admin CiviSimpleMail' => $prefix . ts('access admin CiviSimpleMail')
-  );
+  $permissions['access CiviSimpleMail'] = $prefix . ts('access CiviSimpleMail');
+  $permissions['delete CiviSimpleMail'] = $prefix . ts('delete CiviSimpleMail');
+  $permissions['access admin CiviSimpleMail'] = $prefix . ts('access admin CiviSimpleMail');
 }
 
 /**
