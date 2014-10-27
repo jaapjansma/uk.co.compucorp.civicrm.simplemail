@@ -295,6 +295,23 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   }
 
   /**
+   * Get the URL to the extension directory
+   *
+   * @return string
+   */
+  public static function getExtensionUrl() {
+    $url = '';
+
+    $urls = static::getActiveModuleUrls();
+
+    if (array_key_exists(static::EXT_NAME, $urls)) {
+      $url = $urls[static::EXT_NAME];
+    }
+
+    return $url;
+  }
+
+  /**
    * @return array
    */
   public static function getActiveModuleFiles() {

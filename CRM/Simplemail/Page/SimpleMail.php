@@ -7,9 +7,11 @@ class CRM_Simplemail_Page_SimpleMail extends CRM_Core_Page {
     // Example: Set the page-title dynamically; alternatively, declare a static title in xml/Menu/*.xml
     CRM_Utils_System::setTitle(ts('Simple Mail'));
 
+    $ckeditorUrl = CRM_Simplemail_BAO_SimpleMail::getExtensionUrl() . '/js/vendors/ckeditor/';
+
     CRM_Core_Resources::singleton()
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/jquery.min.js', 30, 'page-footer')
-//      ->addScriptUrl('/sites/all/modules/civicrm/packages/ckeditor/ckeditor.js', 40, 'page-footer')
+      ->addScript("CKEDITOR_BASEPATH='$ckeditorUrl'", 35, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/ckeditor/ckeditor.js', 40, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular.min.js', 60, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular-route.min.js', 70, 'page-footer')
