@@ -2,6 +2,12 @@
 
 require_once 'simplemail.civix.php';
 
+simplemail_civicrm_init();
+
+///////////
+// Hooks //
+///////////
+
 /**
  * Implementation of hook_civicrm_config
  *
@@ -147,7 +153,7 @@ function simplemail_civicrm_entityTypes(&$entityTypes) {
  */
 function simplemail_civicrm_searchTasks($objectType, &$tasks) {
   $tasks[] = array(
-    'title' => 'Schedule/Send a Simple Mail Mass Mailing',
+    'title' => 'Schedule/Send a ' . SM_EXT_NAME . ' Mass Mailing',
     'class' => array(
       'CRM_Simplemail_Form_SimpleMailRecipientsFromSearch'
     )
@@ -171,8 +177,8 @@ function simplemail_civicrm_navigationMenu(&$params) {
 
   $parent = array(
     'attributes' => array(
-      'label'      => 'Simple Mail',
-      'name'       => 'Simple Mail',
+      'label' => SM_EXT_NAME,
+      'name'  => SM_EXT_NAME,
       'url'        => NULL,
       'permission' => 'access CiviSimpleMail',
       'operator'   => NULL,
@@ -317,4 +323,151 @@ function simplemail_civicrm_alterAPIPermissions($entity, $action, &$params, &$pe
 
     $permissions['option_group'] = $permissions['option_value'] = array('get' => $permissionKeys);
   }
+}
+
+/////////////
+// Helpers //
+/////////////
+
+/**
+ * Initialise the extension
+ */
+function simplemail_civicrm_init() {
+  define('SM_SESSION_SCOPE_PREFIX', 'SimpleMail_');
+
+  // Permission
+  define('SM_PERMISSION_ACCESS', 'access CiviSimpleMail');
+  define('SM_PERMISSION_EDIT', 'edit CiviSimpleMail');
+  define('SM_PERMISSION_DELETE', 'delete CiviSimpleMail');
+
+  /** @var SimpleXMLElement[] $infoXml */
+  $infoXml = CRM_Utils_XML::parseFile(simplemail_civicrm_getExtensionDir() . 'info.xml');
+
+  foreach ($infoXml as $element) {
+    if ($element instanceof SimpleXMLElement && $element->getName() == 'extension') {
+      $attributes = $element->attributes();
+
+      /**
+       * Name of the extension
+       */
+      define('SM_EXT_NAME', (string) $element->name);
+
+      /**
+       * Key of the extension (also the name of the extension's directory)
+       */
+      define('SM_EXT_KEY', (string) $attributes['key']);
+    }
+  }
+}
+
+/**
+ * Get the absolute path of the extension directory, with a trailing slash
+ *
+ * @return string
+ */
+function simplemail_civicrm_getExtensionDir() {
+  return str_replace('simplemail.php', '', simplemail_civicrm_getExtensionFile());
+}
+
+/**
+ * Get the absolute path of this file
+ *
+ * @return string
+ */
+function simplemail_civicrm_getExtensionFile() {
+  $files = simplemail_civicrm_getActiveModuleFiles();
+
+  $extFile = '';
+  foreach ($files as $file) {
+    if ($file['prefix'] === 'simplemail') {
+      $extFile = $file['filePath'];
+      break;
+    }
+  }
+
+  return $extFile;
+}
+
+/**
+ * Get the URL to the extension directory
+ *
+ * @return string
+ */
+function simplemail_civicrm_getExtensionUrl() {
+  $url = '';
+
+  $urls = simplemail_civicrm_getActiveModuleUrls();
+
+  if (array_key_exists(SM_EXT_KEY, $urls)) {
+    $url = $urls[SM_EXT_KEY];
+  }
+
+  return $url;
+}
+
+/**
+ * Get an array of all active module URLs
+ *
+ * @return array
+ */
+function simplemail_civicrm_getActiveModuleUrls() {
+  $mapper = CRM_Extension_System::singleton()->getMapper();
+
+  $urls = array();
+  $urls['civicrm'] = $mapper->keyToUrl('civicrm');
+
+  foreach ($mapper->getModules() as $module) {
+    /** @var $module CRM_Core_Module */
+    if ($module->is_active) {
+      $urls[$module->name] = $mapper->keyToUrl($module->name);
+    }
+  }
+
+  return $urls;
+}
+
+/**
+ * Get an array of all active module files
+ *
+ * @return array
+ */
+function simplemail_civicrm_getActiveModuleFiles() {
+  return CRM_Extension_System::singleton()->getMapper()->getActiveModuleFiles();
+}
+
+/**
+ * @param $key
+ * @param $value
+ *
+ * @return $this
+ */
+function simplemail_civicrm_addToSessionScope($key, $value) {
+  CRM_Core_Session::singleton()
+    ->set($key, $value, simplemail_civicrm_getSessionScopeName());
+}
+
+/**
+ * @param $key
+ *
+ * @return mixed
+ */
+function simplemail_civicrm_getFromSessionScope($key) {
+  return CRM_Core_Session::singleton()
+    ->get($key, simplemail_civicrm_getSessionScopeName());
+}
+
+/**
+ * @return string
+ */
+function simplemail_civicrm_getSessionScopeName() {
+  return SM_SESSION_SCOPE_PREFIX . CRM_Core_Session::singleton()->get('userID');
+}
+
+/**
+ * Clear the session scope used by Simple Mail
+ */
+function simplemail_civicrm_clearSessionScope() {
+  $session = CRM_Core_Session::singleton();
+  $sessionScope = simplemail_civicrm_getSessionScopeName();
+  $session->resetScope($sessionScope);
 }

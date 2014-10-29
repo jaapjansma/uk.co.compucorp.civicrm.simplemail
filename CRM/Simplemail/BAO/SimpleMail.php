@@ -5,17 +5,6 @@
  */
 class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
-  /**
-   * Name of the extension (and the directory)
-   */
-  const EXT_NAME = 'uk.co.compucorp.civicrm.simplemail';
-
-  const SESSION_SCOPE_PREFIX = 'SimpleMail_';
-
-  const PERMISSION_ACCESS = 'access CiviSimpleMail';
-  const PERMISSION_EDIT = 'edit CiviSimpleMail';
-  const PERMISSION_DELETE = 'delete CiviSimpleMail';
-
   /////////////////
   // API Methods //
   /////////////////
@@ -29,7 +18,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @return CRM_Simplemail_DAO_SimpleMail|NULL
    */
   public static function create($params) {
-    if (static::getFromSessionScope('createdFromSearch')) {
+    if (simplemail_civicrm_getFromSessionScope('createdFromSearch')) {
       static::createSmartContactGroupForSearchContacts();
     }
 
@@ -64,7 +53,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @throws CRM_Extension_Exception
    */
   public function delete() {
-    if (!static::authorised(static::PERMISSION_DELETE)) {
+    if (!static::authorised(SM_PERMISSION_DELETE)) {
       throw new CRM_Extension_Exception('Sorry! You do not have permission to delete mailings', 500);
     }
     if (!$this->crm_mailing_id) {
@@ -255,112 +244,9 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @return array
    */
   public static function isCreatedFromSearch() {
-    $createdFromSearch = static::getFromSessionScope('createdFromSearch');
+    $createdFromSearch = simplemail_civicrm_getFromSessionScope('createdFromSearch');
 
     return array('values' => array(array('answer' => $createdFromSearch)));
-  }
-
-  /**
-   * Clear the session scope used by Simple Mail
-   */
-  public static function clearSessionScope() {
-    $session = CRM_Core_Session::singleton();
-    $sessionScope = static::getSessionScopeName();
-    $session->resetScope($sessionScope);
-  }
-
-  /////////////
-  // Helpers //
-  /////////////
-
-  /**
-   * Get the absolute path of the extension directory
-   *
-   * @return string
-   */
-  public static function getExtensionDir() {
-    $files = static::getActiveModuleFiles();
-
-    $extFile = '';
-    foreach ($files as $file) {
-      if ($file['prefix'] === 'simplemail') {
-        $extFile = $file['filePath'];
-        break;
-      }
-    }
-
-    $extDir = str_replace('simplemail.php', '', $extFile);
-
-    return $extDir;
-  }
-
-  /**
-   * Get the URL to the extension directory
-   *
-   * @return string
-   */
-  public static function getExtensionUrl() {
-    $url = '';
-
-    $urls = static::getActiveModuleUrls();
-
-    if (array_key_exists(static::EXT_NAME, $urls)) {
-      $url = $urls[static::EXT_NAME];
-    }
-
-    return $url;
-  }
-
-  /**
-   * @return array
-   */
-  public static function getActiveModuleFiles() {
-    return CRM_Extension_System::singleton()->getMapper()->getActiveModuleFiles();
-  }
-
-  /**
-   * @return array
-   */
-  public static function getActiveModuleUrls() {
-    $mapper = CRM_Extension_System::singleton()->getMapper();
-    $urls = array();
-    $urls['civicrm'] = $mapper->keyToUrl('civicrm');
-    foreach ($mapper->getModules() as $module) {
-      /** @var $module CRM_Core_Module */
-      if ($module->is_active) {
-        $urls[$module->name] = $mapper->keyToUrl($module->name);
-      }
-    }
-
-    return $urls;
-  }
-
-  /**
-   * @param $key
-   * @param $value
-   *
-   * @return $this
-   */
-  public static function addToSessionScope($key, $value) {
-    CRM_Core_Session::singleton()
-      ->set($key, $value, static::getSessionScopeName());
-  }
-
-  /**
-   * @param $key
-   *
-   * @return mixed
-   */
-  public static function getFromSessionScope($key) {
-    return CRM_Core_Session::singleton()
-      ->get($key, static::getSessionScopeName());
-  }
-
-  /**
-   * @return string
-   */
-  public static function getSessionScopeName() {
-    return static::SESSION_SCOPE_PREFIX . CRM_Core_Session::singleton()->get('userID');
   }
 
   ///////////////////////
@@ -390,13 +276,13 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       static::updateMailingGroups((int) $params['crm_mailing_id'], $params['recipient_group_entity_ids']);
     }
 
-    if ($smartContactGroupId = static::getFromSessionScope('smartGroupId')) {
+    if ($smartContactGroupId = simplemail_civicrm_getFromSessionScope('smartGroupId')) {
       static::createMailingGroupForSmartContactGroup((int) $params['crm_mailing_id'], $smartContactGroupId);
 
       // Clearing the session scope will essentially clear the smart contact group ID from the session, which will make
       // sure that we only create mailing group for the smart contact group only once, as otherwise duplicates would get
       // created
-      static::clearSessionScope();
+      simplemail_civicrm_clearSessionScope();
     }
   }
 
@@ -497,7 +383,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @return string
    */
   protected static function getEmailTemplatePath() {
-    $templateDir = static::getExtensionDir() . 'email-templates' . DIRECTORY_SEPARATOR;
+    $templateDir = simplemail_civicrm_getExtensionDir() . 'email-templates' . DIRECTORY_SEPARATOR;
     $templateFileName = 'wave.html';
 
     return $templateDir . $templateFileName;
@@ -820,8 +706,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @throws Exception
    */
   private static function createSmartContactGroupForSearchContacts() {
-    $searchParams = static::getFromSessionScope('searchParams');
-    $contactIds = static::getFromSessionScope('contactIds');
+    $searchParams = simplemail_civicrm_getFromSessionScope('searchParams');
+    $contactIds = simplemail_civicrm_getFromSessionScope('contactIds');
 
     $smartGroupId = NULL;
 
@@ -864,10 +750,10 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       // All the contacts in the search result need to be sent mailing - create a dynamic smart group for the search
       else {
         // Get the saved search ID
-        $ssId = static::getFromSessionScope('ssId');
-        $formValues = static::getFromSessionScope('formValues');
-        $customSearchId = static::getFromSessionScope('customSearchId');
-        $context = static::getFromSessionScope('context');
+        $ssId = simplemail_civicrm_getFromSessionScope('ssId');
+        $formValues = simplemail_civicrm_getFromSessionScope('formValues');
+        $customSearchId = simplemail_civicrm_getFromSessionScope('customSearchId');
+        $context = simplemail_civicrm_getFromSessionScope('context');
 
         $hiddenSmartParams = array(
           'group_type'       => array('2' => 1),
@@ -882,7 +768,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
         // Set the saved search ID
         if (!$ssId) {
           if ($savedSearchId) {
-            static::addToSessionScope('ssId', $savedSearchId);
+            simplemail_civicrm_addToSessionScope('ssId', $savedSearchId);
           }
           else {
             CRM_Core_Error::fatal();
@@ -891,6 +777,6 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       }
     }
 
-    static::addToSessionScope('smartGroupId', $smartGroupId);
+    simplemail_civicrm_addToSessionScope('smartGroupId', $smartGroupId);
   }
 }

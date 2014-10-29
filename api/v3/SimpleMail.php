@@ -207,7 +207,7 @@ function civicrm_api3_simple_mail_iscreatedfromsearch($params) {
  */
 function civicrm_api3_simple_mail_clearsearchcontacts($params) {
   try {
-    CRM_Simplemail_BAO_SimpleMail::clearSessionScope();
+    simplemail_civicrm_clearSessionScope();
 
     return civicrm_api3_create_success(1, $params, NULL, 'clearsearchresultsfromsession');
   } catch (CRM_Extension_Exception $e) {

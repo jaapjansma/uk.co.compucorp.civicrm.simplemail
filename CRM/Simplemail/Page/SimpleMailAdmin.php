@@ -5,7 +5,7 @@ require_once 'CRM/Core/Page.php';
 class CRM_Simplemail_Page_SimpleMailAdmin extends CRM_Core_Page {
   function run() {
     // Example: Set the page-title dynamically; alternatively, declare a static title in xml/Menu/*.xml
-    CRM_Utils_System::setTitle(ts('Simple Mail Admin'));
+    CRM_Utils_System::setTitle(ts(SM_EXT_NAME . ' Admin'));
 
     // Example: Assign a variable for use in a template
     $this->assign('currentTime', date('Y-m-d H:i:s'));
@@ -25,7 +25,7 @@ class CRM_Simplemail_Page_SimpleMailAdmin extends CRM_Core_Page {
       ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/vendors/select.min.css')
       ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/vendors/select2.css')
       ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/dist/style.css')
-      ->addSetting(array('resourceUrls' => CRM_Simplemail_BAO_SimpleMail::getActiveModuleUrls()));
+      ->addSetting(array('resourceUrls' => simplemail_civicrm_getActiveModuleUrls()));
 
     parent::run();
   }

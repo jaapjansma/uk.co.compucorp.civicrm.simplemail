@@ -21,7 +21,7 @@ class CRM_Simplemail_Form_SimpleMailRecipientsFromSearch extends CRM_Core_Form {
    * @return $this
    */
   protected function initSession() {
-    CRM_Simplemail_BAO_SimpleMail::addToSessionScope('createdFromSearch', true);
+    simplemail_civicrm_addToSessionScope('createdFromSearch', true);
 
     return $this
       ->addSearchContactIdsToSession()
@@ -53,7 +53,7 @@ class CRM_Simplemail_Form_SimpleMailRecipientsFromSearch extends CRM_Core_Form {
       }
     }
 
-    CRM_Simplemail_BAO_SimpleMail::addToSessionScope('contactIds', $contactIds);
+    simplemail_civicrm_addToSessionScope('contactIds', $contactIds);
 
     return $this;
   }
@@ -62,7 +62,7 @@ class CRM_Simplemail_Form_SimpleMailRecipientsFromSearch extends CRM_Core_Form {
    * @return $this
    */
   private function addSearchParamsToSession() {
-    CRM_Simplemail_BAO_SimpleMail::addToSessionScope('searchParams', $this->controller->exportValues());
+    simplemail_civicrm_addToSessionScope('searchParams', $this->controller->exportValues());
 
     return $this;
   }
@@ -71,7 +71,7 @@ class CRM_Simplemail_Form_SimpleMailRecipientsFromSearch extends CRM_Core_Form {
    * @return $this
    */
   private function addFormValuesToSession() {
-    CRM_Simplemail_BAO_SimpleMail::addToSessionScope('formValues', $this->get('formValues'));
+    simplemail_civicrm_addToSessionScope('formValues', $this->get('formValues'));
 
     return $this;
   }
@@ -80,7 +80,7 @@ class CRM_Simplemail_Form_SimpleMailRecipientsFromSearch extends CRM_Core_Form {
    * @return $this
    */
   private function addCustomSearchIdToSession() {
-    CRM_Simplemail_BAO_SimpleMail::addToSessionScope('customSearchId', $this->get('customSearchID'));
+    simplemail_civicrm_addToSessionScope('customSearchId', $this->get('customSearchID'));
 
     return $this;
   }
@@ -89,7 +89,7 @@ class CRM_Simplemail_Form_SimpleMailRecipientsFromSearch extends CRM_Core_Form {
    * @return $this
    */
   private function addContextToSession() {
-    CRM_Simplemail_BAO_SimpleMail::addToSessionScope('context', $this->get('context'));
+    simplemail_civicrm_addToSessionScope('context', $this->get('context'));
 
     return $this;
   }
