@@ -1,9 +1,11 @@
 <div ng-controller="CreateMailingCtrl as create" class="sm-container">
-  <h1>Step 1 - Create Mailing</h1>
+  <h1>Step 1 - Create Email</h1>
 
   <form sm-loaded="steps.isInitialised()" class="crm-form-block">
     <div class="field-group">
-      <label for="mailing-name">Name your mailing:</label>
+      <label for="mailing-name">
+        Title (please choose a meaningful title for this email to make it easier to search for it in the future):
+      </label>
       <input name="mailing-name" id="mailing-name" type="text" class="two-thirds" ng-model="create.mailing.name"/>
     </div>
 

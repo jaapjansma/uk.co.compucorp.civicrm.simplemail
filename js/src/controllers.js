@@ -177,6 +177,8 @@
       var self = this;
 
       this.headersLoaded = false;
+      this.selectedMessage = '';
+      this.selectedFilterId = null;
 
       this.mailing = Mailing.getCurrentMailing();
       this.filters = Helper.getHeaderFilters();
@@ -196,7 +198,6 @@
       var headerFiltersPromise = Helper.initHeaderFilters()
         .then(function () {
           self.filters = Helper.getHeaderFilters();
-          self.filters.unshift({id: "all", label: "All"});
         });
 
       var headersPromise = Header.init()
@@ -219,6 +220,7 @@
 
       $q.all(promises)
         .then(function () {
+          self.initHeaderFilter();
           self.updateSelectedMessage();
         })
         .catch(function () {
@@ -232,6 +234,25 @@
       this.updateSelectedMessage = function () {
         if (this.mailing.message_id) {
           this.selectedMessage = $filter('filter')(this.messages, {id: this.mailing.message_id})[0];
+        }
+      };
+
+      /**
+       * Initialise the header filter
+       */
+      this.initHeaderFilter = function () {
+        console.log('All filtered', $filter('filter')(this.filters, {id: 'all'}));
+        if (!$filter('filter')(this.filters, {id: 'all'})[0]) {
+          this.filters.unshift({id: 'all', label: 'All'});
+        }
+
+        if (!this.mailing.header_id) {
+          // Pre-select the filter named 'ATL' (if exists)
+          var selectedFilter = $filter('filter')(this.filters, {label: 'ATL'})[0];
+
+          if (angular.isObject(selectedFilter) && selectedFilter.hasOwnProperty('id')) {
+            this.selectedFilterId = selectedFilter.id;
+          }
         }
       };
     }

@@ -936,6 +936,8 @@
       var self = this;
 
       this.headersLoaded = false;
+      this.selectedMessage = '';
+      this.selectedFilterId = null;
 
       this.mailing = Mailing.getCurrentMailing();
       this.filters = Helper.getHeaderFilters();
@@ -955,7 +957,6 @@
       var headerFiltersPromise = Helper.initHeaderFilters()
         .then(function () {
           self.filters = Helper.getHeaderFilters();
-          self.filters.unshift({id: "all", label: "All"});
         });
 
       var headersPromise = Header.init()
@@ -978,6 +979,7 @@
 
       $q.all(promises)
         .then(function () {
+          self.initHeaderFilter();
           self.updateSelectedMessage();
         })
         .catch(function () {
@@ -991,6 +993,25 @@
       this.updateSelectedMessage = function () {
         if (this.mailing.message_id) {
           this.selectedMessage = $filter('filter')(this.messages, {id: this.mailing.message_id})[0];
+        }
+      };
+
+      /**
+       * Initialise the header filter
+       */
+      this.initHeaderFilter = function () {
+        console.log('All filtered', $filter('filter')(this.filters, {id: 'all'}));
+        if (!$filter('filter')(this.filters, {id: 'all'})[0]) {
+          this.filters.unshift({id: 'all', label: 'All'});
+        }
+
+        if (!this.mailing.header_id) {
+          // Pre-select the filter named 'ATL' (if exists)
+          var selectedFilter = $filter('filter')(this.filters, {label: 'ATL'})[0];
+
+          if (angular.isObject(selectedFilter) && selectedFilter.hasOwnProperty('id')) {
+            this.selectedFilterId = selectedFilter.id;
+          }
         }
       };
     }
@@ -2280,13 +2301,24 @@
        * @returns {ng.IPromise<TResult>|*}
        */
       var proceedToStep = function (step) {
+        var changed = false;
+        if (Mailing.isCurrentMailingDirty()) {
+          var notificationInstance = Notification.loading('Saving...');
+          changed = true;
+        }
+
         return Mailing.saveProgress()
           .then(function () {
+            if (changed) {
+              Notification.clear(notificationInstance);
+              Notification.success('Mailing saved');
+            }
+
             redirectToStep(step);
           })
           .catch(function (response) {
-            Notification.error('Failed to proceed to next step');
-            $log.error('Failed to proceed to next step', response);
+            Notification.error('Failed to save mailing!');
+            $log.error('Failed to save mailing!', response);
           });
       };
 
@@ -2600,7 +2632,7 @@
               return CiviApi.get(constants.entities.OPTION_VALUE, {option_group_id: groupId, is_active: '1'},
                 {cached: true})
                 .then(function (response) {
-                  headerFilters = response.data.values;
+                  headerFilters = $filter('orderBy')(response.data.values, 'label');
                   headerFiltersInitialised = true;
                   deferred.resolve();
                 });
@@ -2791,11 +2823,7 @@
             if (!isCurrentMailingDirty()) return;
 
             // Else, save the changes
-            return CiviApi.create(constants.entities.MAILING, getCurrentMailing(), {
-              success: 'Mailing saved',
-              error: 'Failed to save the mailing',
-              progress: 'Saving...'
-            })
+            return CiviApi.create(constants.entities.MAILING, getCurrentMailing())
               .then(function (response) {
                 return CiviApi.get(constants.entities.MAILING, {id: response.data.values[0].id})
               })
@@ -2806,6 +2834,8 @@
       };
 
       /**
+       * @ngdoc method
+       * @name MailingDetailFactory#isCurrentMailingDirty
        * @returns {boolean}
        */
       var isCurrentMailingDirty = function () {
@@ -2954,7 +2984,8 @@
         getCurrentMailing: getCurrentMailing,
         setCurrentMailing: setCurrentMailing,
         isInitialised: isInitialised,
-        isCreatedFromSearch: isCreatedFromSearch
+        isCreatedFromSearch: isCreatedFromSearch,
+        isCurrentMailingDirty: isCurrentMailingDirty
       };
     }];
 

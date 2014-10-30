@@ -485,13 +485,24 @@
        * @returns {ng.IPromise<TResult>|*}
        */
       var proceedToStep = function (step) {
+        var changed = false;
+        if (Mailing.isCurrentMailingDirty()) {
+          var notificationInstance = Notification.loading('Saving...');
+          changed = true;
+        }
+
         return Mailing.saveProgress()
           .then(function () {
+            if (changed) {
+              Notification.clear(notificationInstance);
+              Notification.success('Mailing saved');
+            }
+
             redirectToStep(step);
           })
           .catch(function (response) {
-            Notification.error('Failed to proceed to next step');
-            $log.error('Failed to proceed to next step', response);
+            Notification.error('Failed to save mailing!');
+            $log.error('Failed to save mailing!', response);
           });
       };
 
@@ -805,7 +816,7 @@
               return CiviApi.get(constants.entities.OPTION_VALUE, {option_group_id: groupId, is_active: '1'},
                 {cached: true})
                 .then(function (response) {
-                  headerFilters = response.data.values;
+                  headerFilters = $filter('orderBy')(response.data.values, 'label');
                   headerFiltersInitialised = true;
                   deferred.resolve();
                 });
@@ -996,11 +1007,7 @@
             if (!isCurrentMailingDirty()) return;
 
             // Else, save the changes
-            return CiviApi.create(constants.entities.MAILING, getCurrentMailing(), {
-              success: 'Mailing saved',
-              error: 'Failed to save the mailing',
-              progress: 'Saving...'
-            })
+            return CiviApi.create(constants.entities.MAILING, getCurrentMailing())
               .then(function (response) {
                 return CiviApi.get(constants.entities.MAILING, {id: response.data.values[0].id})
               })
@@ -1011,6 +1018,8 @@
       };
 
       /**
+       * @ngdoc method
+       * @name MailingDetailFactory#isCurrentMailingDirty
        * @returns {boolean}
        */
       var isCurrentMailingDirty = function () {
@@ -1159,7 +1168,8 @@
         getCurrentMailing: getCurrentMailing,
         setCurrentMailing: setCurrentMailing,
         isInitialised: isInitialised,
-        isCreatedFromSearch: isCreatedFromSearch
+        isCreatedFromSearch: isCreatedFromSearch,
+        isCurrentMailingDirty: isCurrentMailingDirty
       };
     }];
 

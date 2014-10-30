@@ -1,11 +1,11 @@
 <div ng-controller="ComposeMailingCtrl as compose" class="sm-container">
-  <h1>Step 2 - Compose Mailing</h1>
+  <h1>Step 2 - Compose Email</h1>
 
   <form sm-loaded="steps.isInitialised()" class="crm-form-block">
     <h2>Select header image:</h2>
 
     <div class="field-group clearfix">
-      <ui-select ng-model="compose.models.selectedFilterId" theme="select2">
+      <ui-select ng-model="compose.selectedFilterId" theme="select2">
         <ui-select-match placeholder="Filter">{{$select.selected.label}}</ui-select-match>
         <ui-select-choices repeat="filter.id as filter in compose.filters | filter: {label: $select.search}">
           {{filter.label}}
@@ -15,7 +15,7 @@
 
     <div data-sm-image-carousel
          data-items="compose.headers"
-         data-selected-filter-id="compose.models.selectedFilterId"
+         data-selected-filter-id="compose.selectedFilterId"
          data-selected-item-id="compose.mailing.header_id"
          data-items-loaded="compose.headersLoaded"
          class="simple-image-carousel">
@@ -41,7 +41,7 @@
     </div>
 
     <div class="field-group clearfix">
-      <label for="subject">Email subject</label>
+      <label for="subject">Subject (choosing an appropriate subject is impo)</label>
       <input id="subject" name="subject" type="text" class="full-width" ng-model="compose.mailing.subject"/>
     </div>
 
