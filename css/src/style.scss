@@ -195,16 +195,15 @@ $border-radius: 3px;
   }
 
   .simple-image-carousel {
-    overflow: scroll;    
     min-height: 150px;
     height: auto;
+    overflow-x: scroll;
+    overflow-y: hidden;
 
     ul {        
       padding: 0;
       background: $lightest-grey;
       max-height: 120px;
-      overflow-x: scroll;
-      overflow-y: hidden;
       white-space: nowrap;
 
       li {      
