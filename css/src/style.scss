@@ -195,8 +195,7 @@ $border-radius: 3px;
   }
 
   .simple-image-carousel {
-//    min-height: 145px;
-    height: 1;
+    height: auto;
     overflow-x: scroll;
     overflow-y: hidden;
     background: $lightest-grey;
