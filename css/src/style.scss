@@ -202,16 +202,15 @@ $border-radius: 3px;
     ul {        
       padding: 0;
       background: $lightest-grey;
-      width: 5000px;
-      min-width: 100%;
       max-height: 120px;
-      overflow: hidden;    
+      overflow-x: scroll;
+      overflow-y: hidden;
+      white-space: nowrap;
 
       li {      
-        float: left;
+        display: inline-block;
         list-style: none;
         height: auto;
-        display: block;
 
         img {
           max-height: 100px;
