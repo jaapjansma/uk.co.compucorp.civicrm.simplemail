@@ -195,14 +195,14 @@ $border-radius: 3px;
   }
 
   .simple-image-carousel {
-    min-height: 150px;
-    height: auto;
+//    min-height: 145px;
+    height: 1;
     overflow-x: scroll;
     overflow-y: hidden;
+    background: $lightest-grey;
 
     ul {        
       padding: 0;
-      background: $lightest-grey;
       max-height: 120px;
       white-space: nowrap;
 
@@ -210,17 +210,15 @@ $border-radius: 3px;
         display: inline-block;
         list-style: none;
         height: auto;
+        margin-left: 8px;
 
         img {
           max-height: 100px;
-          padding: 0.5rem;
+          padding: 8px;
           border: 1px dashed $light-grey;
           border-radius: $border-radius;
           display: block;
           box-sizing: border-box;          
-          margin-top: 0.5rem;
-          margin-bottom: 0.5rem;
-          margin-left: 0.5rem;
           cursor: pointer;
         }
 
