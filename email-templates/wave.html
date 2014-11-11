@@ -532,7 +532,7 @@
                   
                   <!-- CONTENT -->
                   <!-- Col 1 Image 1 -->
-                  <table width="355" border="0" cellpadding="0" cellspacing="0" align="left"
+                  <table width="345" border="0" cellpadding="0" cellspacing="0" align="left"
                          style="border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;"
                          class="table66">
                     <tbody>
@@ -562,27 +562,6 @@
                         <td width="100%" height="14"></td>
                       </tr>
                     <?php endif; ?>
-
-                    <?php if ($template->replyAddress): ?>
-                      <tr>
-                        <td valign="middle" width="100%" style="text-align: center;">
-                          <table width="100" align="center">
-                            <tbody>
-                            <tr>
-                              <td width="100%"
-                                  style="text-align: center; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: rgb(255, 255, 255); line-height: 22px; font-weight: bold; background-color: rgb(133, 202, 131);">
-                                <!--[if !mso]><!--><span
-                                  style="font-family: 'proxima_nova_rgbold', Verdana; font-weight: normal;"><!--<![endif]--><a
-                                    style="text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255);"
-                                    href="<?php echo $template->replyAddress; ?>">Reply</a><!--[if !mso]><!--></span><!--<![endif]-->
-                              </td>
-                            </tr>
-                            </tbody>
-                          </table>
-                        </td>
-                      </tr>
-                    <?php endif; ?>
-
                     </tbody>
                   </table>
 
@@ -606,13 +585,35 @@
 
                     <?php if ($template->contactDetails): ?>
                       <tr>
-                        <td valign="middle" width="100%"
-                            style="text-align: left; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: rgb(119, 115, 115); line-height: 22px;">
-                          <!--[if !mso]><!--><span
-                            style="font-family: 'proxima_nova_rgregular', Verdana; font-weight: normal;"><!--<![endif]--><?php echo $template->contactDetails; ?><!--[if !mso]><!--></span><!--<![endif]-->
+                        <td valign="middle" width="100%" style="text-align: left; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: rgb(119, 115, 115); line-height: 22px;">
+                          <!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgregular', Verdana; font-weight: normal;"><!--<![endif]-->
+                            <strong>Contact Details</strong><br>
+                            <?php echo $template->contactDetails; ?>
+
+                            <!--[if !mso]><!-->
+                            </span><!--<![endif]-->
+                            <?php if ($template->replyAddress): ?>
+                             <table width="100%" border="0" cellpadding="0" cellspacing="0" align="center" class="full">
+                                <tbody>
+                                <tr>
+                                  <td width="100%" height="10"></td>
+                                </tr>
+                                </tbody>
+                              </table>
+
+                              <table width="100" align="left">
+                                <tbody>
+                                <tr>
+                                  <td width="100%" bgcolor="#85ca83" style="text-align: center; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: white; line-height: 22px; font-weight: bold; background-color: rgb(133, 202, 131);">
+                                    <!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgbold', Verdana; font-weight: normal;"><!--<![endif]--><a style="text-transform: uppercase; text-decoration: none; color: white;" href="<?php echo $template->replyAddress; ?>">Reply</a><!--[if !mso]><!--></span><!--<![endif]-->
+                                  </td>
+                                </tr>
+                                </tbody>
+                              </table>
+                            <?php endif; ?>
                         </td>
                       </tr>
-                   <?php endif; ?>
+                    <?php endif; ?>
 
                     <?php if ($template->logo): ?>
                       <tr>
@@ -624,10 +625,8 @@
 
                     <?php if ($template->campaignMessage): ?>
                       <tr>
-                        <td valign="middle" width="100%"
-                            style="text-align: left; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: rgb(119, 115, 115); line-height: 22px;">
-                          <!--[if !mso]><!--><span
-                            style="font-family: 'proxima_nova_rgregular', Verdana; font-weight: normal;"><!--<![endif]--><?php echo $template->campaignMessage; ?><!--[if !mso]><!--></span><!--<![endif]-->
+                        <td valign="middle" width="100%" style="text-align: left; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: rgb(119, 115, 115); line-height: 22px;">
+                          <!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgregular', Verdana; font-weight: normal;"><!--<![endif]--><?php echo $template->campaignMessage; ?><!--[if !mso]><!--></span><!--<![endif]-->
                         </td>
                       </tr>
                     <?php endif; ?>
