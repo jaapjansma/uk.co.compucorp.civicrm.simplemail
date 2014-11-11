@@ -528,7 +528,7 @@
                   
                   <!-- CONTENT -->
                   <!-- Col 1 Image 1 -->
-                  <table width="385" border="0" cellpadding="0" cellspacing="0" align="left"
+                  <table width="355" border="0" cellpadding="0" cellspacing="0" align="left"
                          style="border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;"
                          class="table66">
                     <tbody>
@@ -595,8 +595,9 @@
 
                   <!-- SIDEBAR -->
                   <!-- Col 3 Image 3 -->
-                  <table width="135" border="0" cellpadding="0" cellspacing="0" align="right"
-                         style="border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;" class="table33">
+                  <table width="180" bgcolor="#fffdee" border="0" cellpadding="18" cellspacing="0" align="right"
+                         style="background-color: #fffdee; border: 2px solid #fbf0dd; border-collapse:collapse;
+                         mso-table-lspace:0pt; mso-table-rspace:0pt;" class="table33">
                     <tbody>
 
                     <?php if ($template->contactDetails): ?>
@@ -607,20 +608,13 @@
                             style="font-family: 'proxima_nova_rgregular', Verdana; font-weight: normal;"><!--<![endif]--><?php echo $template->contactDetails; ?><!--[if !mso]><!--></span><!--<![endif]-->
                         </td>
                       </tr>
-                      <tr>
-                        <td width="100%" height="28"></td>
-                      </tr>
-                    <?php endif; ?>
+                   <?php endif; ?>
 
                     <?php if ($template->logo): ?>
                       <tr>
                         <td valign="middle" width="100%">
                           <span style="display: block;"><div class="pic180"><img src="<?php echo $template->logo; ?>" width="180" height="auto" border="0" alt=""/></div></span>
                         </td>
-                      </tr>
-
-                      <tr>
-                        <td width="100%" height="28"></td>
                       </tr>
                     <?php endif; ?>
 
@@ -631,9 +625,6 @@
                           <!--[if !mso]><!--><span
                             style="font-family: 'proxima_nova_rgregular', Verdana; font-weight: normal;"><!--<![endif]--><?php echo $template->campaignMessage; ?><!--[if !mso]><!--></span><!--<![endif]-->
                         </td>
-                      </tr>
-                      <tr>
-                        <td width="100%" height="28"></td>
                       </tr>
                     <?php endif; ?>
                     </tbody>
@@ -670,7 +661,7 @@
 
 <!-- FOOTER -->
 <!-- Wrapper 5 (3 Col From Left to Right) -->
-<table width="100%" border="0" cellpadding="0" cellspacing="0" align="center" class="full">
+<table width="100%" border="0" cellpadding="0" cellspacing="0" align="center" class="full" style="border-top: 5px solid #efefef;">
   <tbody>
   <tr>
     <td width="100%" valign="top" bgcolor="#f8f8f8" style="background-color: rgb(248, 248, 248);">
