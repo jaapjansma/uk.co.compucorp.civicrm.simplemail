@@ -10,8 +10,8 @@ class CRM_Simplemail_Page_SimpleMail extends CRM_Core_Page {
     $ckeditorUrl = simplemail_civicrm_getExtensionUrl() . '/js/vendors/ckeditor/';
 
     CRM_Core_Resources::singleton()
-      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/jquery.min.js', 30, 'page-footer')
-      ->addScript("CKEDITOR_BASEPATH='$ckeditorUrl'", 35, 'page-footer')
+      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/jquery.min.js', 20, 'page-footer')
+      ->addScript("CKEDITOR_BASEPATH='$ckeditorUrl'", 30, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/ckeditor/ckeditor.js', 40, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular.min.js', 60, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular-route.min.js', 70, 'page-footer')

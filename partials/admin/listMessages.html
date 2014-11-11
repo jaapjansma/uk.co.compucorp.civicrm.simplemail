@@ -53,7 +53,7 @@
           <span ng-hide="message.editing">{{message.text}}</span>
 
           <div ng-show="message.editing">
-            <textarea sm-ck-editor="normal" name="text-{{message.id}}" id="text-{{message.id}}"
+            <textarea sm-ck-editor="minimal" data-height="105" name="text-{{message.id}}" id="text-{{message.id}}"
                       cols="50" rows="3" ng-model="message.text"></textarea>
           </div>
         </td>

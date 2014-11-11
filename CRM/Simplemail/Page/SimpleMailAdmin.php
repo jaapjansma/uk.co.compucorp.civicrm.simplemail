@@ -7,15 +7,14 @@ class CRM_Simplemail_Page_SimpleMailAdmin extends CRM_Core_Page {
     // Example: Set the page-title dynamically; alternatively, declare a static title in xml/Menu/*.xml
     CRM_Utils_System::setTitle(ts(SM_EXT_NAME . ' Admin'));
 
-    // Example: Assign a variable for use in a template
-    $this->assign('currentTime', date('Y-m-d H:i:s'));
+    $ckeditorUrl = simplemail_civicrm_getExtensionUrl() . '/js/vendors/ckeditor/';
 
     CRM_Core_Resources::singleton()
-      ->addScriptFile(
-        'uk.co.compucorp.civicrm.simplemail', 'js/vendors/es5-shim.min.js', 50, 'page-footer'
-      )// needed by angular-file-upload
-      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/jquery.min.js', 60, 'page-footer')
-      ->addScriptUrl('/sites/all/modules/civicrm/packages/ckeditor/ckeditor.js', 70, 'page-footer')
+      // es5-shim needed by angular-file-upload
+      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/es5-shim.min.js', 40, 'page-footer')
+      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/jquery.min.js', 50, 'page-footer')
+      ->addScript("CKEDITOR_BASEPATH='$ckeditorUrl'", 60, 'page-footer')
+      ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/ckeditor/ckeditor.js', 70, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular.min.js', 80, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular-route.min.js', 90, 'page-footer')
       ->addScriptFile('uk.co.compucorp.civicrm.simplemail', 'js/vendors/angular-animate.min.js', 90, 'page-footer')
