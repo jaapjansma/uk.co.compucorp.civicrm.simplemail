@@ -216,28 +216,29 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       );
     }
 
-    if (empty($params['groupId'])) {
+    $jobIds = array();
+    $jobs = array();
+
+    if ($params['groupId'] || $params['emails']) {
+      if ($params['groupId']) {
+        $jobs[] = static::sendTestEmailToGroup($params['crmMailingId'], $params['groupId']);
+      }
+      if ($params['emails']) {
+        $jobs[] = static::sendTestEmailToIndividuals($params['crmMailingId'], $params['emails']);
+      }
+    }
+    else {
       throw new CRM_Extension_Exception(
-        'Failed to send test email as recipient group was not provided', 405, array('dao' => NULL)
+        'Failed to send test email as no recipient provided', 405, array('dao' => NULL)
       );
     }
 
-    $job = new CRM_Mailing_BAO_MailingJob();
-    $job->mailing_id = $params['crmMailingId'];
-    $job->is_test = TRUE;
-    $job->save();
-
-    $testParams = array(
-      'test_group' => (int) $params['groupId'],
-      'job_id'     => $job->id
-    );
-
-    $isComplete = FALSE;
-    while (!$isComplete) {
-      $isComplete = CRM_Mailing_BAO_MailingJob::runJobs($testParams);
+    foreach ($jobs as $job) {
+      $jobIds[] = $job->id;
+      $job->free();
     }
 
-    return array('values' => array(array('jobId' => $job->id)), 'dao' => $job);
+    return array('values' => array(array('jobIds' => $jobIds)));
   }
 
   /**
@@ -375,6 +376,113 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    */
   protected static function cancelMailingJobs($crmMailingId) {
     CRM_Mailing_BAO_MailingJob::cancel($crmMailingId);
+  }
+
+  /**
+   * @param $mailingId
+   * @param $groupId
+   *
+   * @return CRM_Mailing_BAO_MailingJob
+   */
+  protected static function sendTestEmailToGroup($mailingId, $groupId) {
+    $job = static::createTestMailingJob($mailingId);
+
+    static::runTestEmailJobs($job, $groupId);
+
+    return $job;
+  }
+
+  /**
+   * @param $mailingId
+   * @param $emails
+   *
+   * @return CRM_Mailing_BAO_MailingJob
+   */
+  protected static function sendTestEmailToIndividuals($mailingId, $emails) {
+    $job = static::createTestMailingJob($mailingId);
+
+    $emailArr = explode(',', $emails);
+
+    array_walk(
+      $emailArr, function (&$email) {
+      $email = trim($email);
+    }
+    );
+
+    $emailStr = implode(
+      ', ', array_map(
+        function ($email) {
+          return '\'' . $email . '\'';
+        }, $emailArr
+      )
+    );
+
+    $query = "
+      SELECT e.id, e.contact_id, e.email
+      FROM civicrm_email e
+
+      INNER JOIN civicrm_contact c ON e.contact_id = c.id
+
+      WHERE e.email IN ($emailStr)
+        AND e.on_hold = 0
+        AND c.is_opt_out = 0
+        AND c.do_not_email = 0
+        AND c.is_deceased = 0
+
+      GROUP BY e.id
+      ORDER BY e.is_bulkmail DESC, e.is_primary DESC
+    ";
+
+    $dao = CRM_Core_DAO::executeQuery($query);
+
+    $emailDetail = array();
+    // fetch contact_id and email id for all existing emails
+    while ($dao->fetch()) {
+      $emailDetail[$dao->email] = array(
+        'contact_id' => $dao->contact_id,
+        'email_id'   => $dao->id,
+      );
+    }
+
+    $dao->free();
+    foreach ($emailArr as $email) {
+      $email = trim($email);
+      $contactId = $emailId = NULL;
+      if (array_key_exists($email, $emailDetail)) {
+        $emailId = $emailDetail[$email]['email_id'];
+        $contactId = $emailDetail[$email]['contact_id'];
+      }
+
+      if (!$contactId) {
+        //create new contact.
+        $createParams = array(
+          'contact_type' => 'Individual',
+          'email'        => array(
+            1 => array(
+              'email'            => $email,
+              'is_primary'       => 1,
+              'location_type_id' => 1,
+            )
+          ),
+        );
+        $contact = CRM_Contact_BAO_Contact::create($createParams);
+        $emailId = $contact->email[0]->id;
+        $contactId = $contact->id;
+        $contact->free();
+      }
+
+      $queueParams = array(
+        'job_id'     => $job->id,
+        'email_id'   => $emailId,
+        'contact_id' => $contactId,
+      );
+
+      CRM_Mailing_Event_BAO_Queue::create($queueParams);
+    }
+
+    static::runTestEmailJobs($job);
+
+    return $job;
   }
 
   /**
@@ -778,5 +886,37 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     }
 
     simplemail_civicrm_addToSessionScope('smartGroupId', $smartGroupId);
+  }
+
+  /**
+   * @param $mailingId
+   *
+   * @return CRM_Mailing_BAO_MailingJob
+   */
+  private static function createTestMailingJob($mailingId) {
+    $job = new CRM_Mailing_BAO_MailingJob();
+    $job->mailing_id = $mailingId;
+    $job->is_test = TRUE;
+    $job->save();
+
+    return $job;
+  }
+
+  /**
+   * @param $job
+   * @param $groupId
+   */
+  private static function runTestEmailJobs($job, $groupId = NULL) {
+    $testJobParams = array();
+    $testJobParams['job_id'] = $job->id;
+
+    if ($groupId) {
+      $testJobParams['test_group'] = $groupId;
+    }
+
+    $isComplete = FALSE;
+    while (!$isComplete) {
+      $isComplete = CRM_Mailing_BAO_MailingJob::runJobs($testJobParams);
+    }
   }
 }

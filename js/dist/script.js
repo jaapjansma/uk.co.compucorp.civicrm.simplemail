@@ -2871,7 +2871,8 @@
 
         return CiviApi.post('SimpleMail', {
           crmMailingId: mailing.crm_mailing_id,
-          groupId: mailing.testRecipientGroupId
+          groupId: mailing.testRecipientGroupId,
+          emails: mailing.testRecipientEmails
         }, 'sendtestemail')
           .then(function (response) {
             Notification.success('Test email sent');

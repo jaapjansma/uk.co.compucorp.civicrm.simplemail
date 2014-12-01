@@ -141,7 +141,7 @@ function civicrm_api3_simple_mail_sendtestemail($params) {
   try {
     $result = CRM_Simplemail_BAO_SimpleMail::sendTestEmail($params);
 
-    return civicrm_api3_create_success($result['values'], $params, NULL, 'senttestemail', $result['dao']);
+    return civicrm_api3_create_success($result['values'], $params, NULL, 'sendtestemail');
   } catch (CRM_Extension_Exception $e) {
     $errorData = $e->getErrorData();
 
