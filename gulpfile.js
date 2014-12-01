@@ -18,7 +18,7 @@ gulp.task('css', function () {
 
 gulp.task('javascript', function () {
   return gulp.src('js/src/*.js')
-//    .pipe(uglify())
+    .pipe(uglify())
     .pipe(concat('script.js'))
     .pipe(gulp.dest('js/dist'))
     .pipe(notify({message: 'JavaScript tasks complete'}));
