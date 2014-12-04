@@ -253,8 +253,12 @@
           })
           .then(clearSearchResultsFromSession)
           .catch(function (response) {
-            Notification.error(response);
-          })
+            if (response.data && response.data.error_message) {
+              Notification.error(response.data.error_message);
+            } else {
+              Notification.error(response);
+            }
+          });
       };
 
       /**
@@ -272,8 +276,11 @@
        * @returns {IPromise}
        */
       var clearSearchResultsFromSession = function () {
-        return CiviApi.post(constants.entities.MAILING, {}, 'clearsearchcontacts');
-     };
+        return CiviApi.post(constants.entities.MAILING, {}, 'clearsearchcontacts')
+          .catch(function () {
+            return true; // because don't want to show an error notification for this - would simply confuse end-users
+          });
+      };
 
       return {
         init: init,
@@ -821,8 +828,8 @@
                   deferred.resolve();
                 });
             })
-            .catch(function () {
-              deferred.reject();
+            .catch(function (response) {
+              deferred.reject(response);
             });
         }
 
