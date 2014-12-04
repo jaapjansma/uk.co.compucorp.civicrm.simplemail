@@ -27,7 +27,6 @@ $full: 100%;
 $border-radius: 3px;
 
 .sm-container {
-/*   overflow: hidden; */
   .fa-clock-o {
     color: $orange;
   }
@@ -343,6 +342,9 @@ $border-radius: 3px;
   .right {
     float: right;
   }
+  .no-margin {
+    margin: 0 !important;
+  }
   .field-group.inline .auto-width {
     width: auto;
   }
@@ -448,6 +450,9 @@ $border-radius: 3px;
     }
     input {
       margin: 0.5rem 0;
+    }
+    .button {
+      margin: 1px 10px;
     }
   }
 

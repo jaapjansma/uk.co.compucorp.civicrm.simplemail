@@ -25,13 +25,22 @@
 
     <div class="cols clearfix">
       <div class="col one-half field-group left">
-        <label for="">From address</label>
+        <label for="">From</label>
         <ui-select class="full-width" ng-model="compose.mailing.from_address" theme="select2">
           <ui-select-match placeholder="Select From Address">{{$select.selected.label}}</ui-select-match>
           <ui-select-choices repeat="email.label as email in compose.fromEmails | filter: {label: $select.search}">
             {{email.label}}
           </ui-select-choices>
         </ui-select>
+
+        <a ng-click="compose.editFromName = true" ng-show="!compose.editFromName" class="button no-margin" href>
+          <i class="icon edit-icon"></i>Customise Name
+        </a>
+
+        <div ng-show="compose.editFromName" class="field-group inline no-margin">
+          <input type="text" ng-model="compose.mailing.from_name" placeholder="From Name" class="no-margin left" />
+          <a ng-click="compose.cancelFromNameCustomisation()" class="button" href>Cancel</a>
+        </div>
       </div>
 
       <div class="col one-half field-group right">
