@@ -133,7 +133,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       = "
     SELECT
       sm.id, sm.crm_mailing_id, sm.from_address, sm.header_id, sm.title, sm.body, sm.contact_details, sm.message_id, sm.reply_address,
-      cm.name, cm.subject, cm.body_html, cm.created_id, cm.created_date, cm.scheduled_id, cm.scheduled_date, cm.dedupe_email,
+      cm.name, cm.subject, cm.body_html, cm.from_name, cm.created_id, cm.created_date, cm.scheduled_id, cm.scheduled_date, cm .dedupe_email,
       MIN(j.start_date) start_date, MAX(j.end_date) end_date, j.status,
       c.sort_name, c.external_identifier,
       GROUP_CONCAT(DISTINCT CONCAT(g.id, ':', g.is_hidden)) recipient_group_entities
@@ -629,7 +629,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
         $fromEmail = $match[2];
       }
 
-      $crmMailingParams['from_name'] = $fromName;
+      $crmMailingParams['from_name'] = empty($params['from_name']) ? $fromName : $params['from_name'];
       $crmMailingParams['from_email'] = $fromEmail;
     }
 
@@ -686,6 +686,9 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @param $params
    */
   protected static function sanitiseParams(&$params) {
+    if (!empty($params['from_name'])) {
+      $params['from_address'] = preg_replace('/\".+\"/', '"' . $params['from_name'] . '"', $params['from_address']);
+    }
     if (!empty($params['body'])) {
       // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
       $params['body'] = html_entity_decode($params['body']);

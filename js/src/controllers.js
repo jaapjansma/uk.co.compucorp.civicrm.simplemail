@@ -177,6 +177,7 @@
       var self = this;
 
       this.headersLoaded = false;
+      this.editFromName = false;
       this.selectedMessage = '';
       this.selectedFilterId = null;
 
@@ -221,6 +222,7 @@
       $q.all(promises)
         .then(function () {
           self.initHeaderFilter();
+          self.initFromName();
           self.updateSelectedMessage();
         })
         .catch(function () {
@@ -241,7 +243,6 @@
        * Initialise the header filter
        */
       this.initHeaderFilter = function () {
-        console.log('All filtered', $filter('filter')(this.filters, {id: 'all'}));
         if (!$filter('filter')(this.filters, {id: 'all'})[0]) {
           this.filters.unshift({id: 'all', label: 'All'});
         }
@@ -254,6 +255,17 @@
             this.selectedFilterId = selectedFilter.id;
           }
         }
+      };
+
+      this.initFromName = function() {
+        if (this.mailing.from_name) {
+          this.fromEmails.unshift({label: this.mailing.from_address})
+        }
+      };
+
+      this.cancelFromNameCustomisation = function () {
+        this.mailing.from_name = Mailing.getCurrentMailing(true).from_name;
+        this.editFromName = false;
       };
     }
   ];
@@ -349,6 +361,7 @@
   var MailingButtonsCtrl = ['MailingDetailFactory', 'WizardStepFactory',
     /**
      *
+     * @param {MailingDetailFactory} Mailing
      * @param {WizardStepFactory} Wizard
      */
       function (Mailing, Wizard) {
