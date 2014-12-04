@@ -199,6 +199,9 @@
       var headerFiltersPromise = Helper.initHeaderFilters()
         .then(function () {
           self.filters = Helper.getHeaderFilters();
+        })
+        .catch(function() {
+          return true; // because we don't want to show error notification for this, so as to not scare the end-user
         });
 
       var headersPromise = Header.init()
