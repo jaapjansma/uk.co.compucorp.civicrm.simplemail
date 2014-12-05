@@ -356,12 +356,18 @@ function simplemail_civicrm_init() {
        * Key of the extension (also the name of the extension's directory)
        */
       define('SM_EXT_KEY', (string) $attributes['key']);
+
+      /**
+       * Path to the assets directory
+       */
+      define('SM_ASSETS_URL', simplemail_civicrm_getExtensionUrl() . '/assets');
     }
   }
 }
 
 /**
  * Get the absolute path of the extension directory, with a trailing slash
+ * TODO (robin): Probably add the extension directory and url as constants as well
  *
  * @return string
  */
