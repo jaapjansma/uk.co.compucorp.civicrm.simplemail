@@ -1068,8 +1068,9 @@
           .then(function (response) {
             Notification.success('Test email sent');
           })
-          .catch(function () {
-            Notification.error('Failed to send test email');
+          .catch(function (response) {
+            var description = (response.data && response.data.error_message) ? response.data.error_message : '';
+            Notification.error('Failed to send test email', description);
           });
       };
 
