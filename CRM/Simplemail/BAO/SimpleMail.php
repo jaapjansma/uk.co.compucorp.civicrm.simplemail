@@ -491,6 +491,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @return string
    */
   protected static function getEmailTemplatePath() {
+    // TODO (robin): Probably add template dir as a constant
     $templateDir = simplemail_civicrm_getExtensionDir() . 'email-templates' . DIRECTORY_SEPARATOR;
     $templateFileName = 'wave.html';
 
