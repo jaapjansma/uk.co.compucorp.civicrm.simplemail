@@ -168,6 +168,15 @@ function simplemail_civicrm_searchTasks($objectType, &$tasks) {
  * @param $params
  */
 function simplemail_civicrm_navigationMenu(&$params) {
+
+	/* Added by Scott 10-12-2014 
+	 * Only provides this extension's menu if a customised one does not already exist */
+	foreach ($params as $parameter) {
+		if ($parameter['attributes']['name'] == 'MailJet') {
+			return;
+		}
+	}
+
   //  Get the maximum key of $params
   $maxKey = _getMenuKeyMax($params);
 
