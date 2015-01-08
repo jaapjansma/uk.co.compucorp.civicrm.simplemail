@@ -9,24 +9,35 @@
       <input name="mailing-name" id="mailing-name" type="text" class="two-thirds" ng-model="create.mailing.name"/>
     </div>
 
-    <div class="field-group inline clearfix">
-      <label for="remove-duplicates" class="auto-width">Remove duplicate emails?</label>
-      <input name="remove-duplicates" id="remove-duplicates" type="checkbox" ng-model="create.mailing.dedupe_email"
-             ng-true-value="1" ng-false-value="0" />
-    </div>
+    <h2>Category</h2>
+
+    <div class="field-group">
+      <p>Select the category for the mailing:</p>
+
+      <label ng-repeat="category in create.categories" for="mailing-category-{{category.id}}">
+        <input name="mailing-category" id="mailing-category-{{category.id}}" value="{{category.id}}"
+               ng-model="create.mailing.category_id" type="radio"/> {{category.title}}
+      </label>
+   </div>
 
     <h2>Mailing Recipients</h2>
 
     <p ng-if="create.fromSearch" class="status">This mailing contains recipients from search results</p>
 
     <div class="field-group required">
-      <label for="">Include group(s)</label>
+      <label for="">Include recipients from group(s):</label>
       <ui-select multiple ng-model="create.mailing.recipient_group_entity_ids" theme="select2">
         <ui-select-match placeholder="Select group(s)">{{$item.title}}</ui-select-match>
         <ui-select-choices repeat="group.id as group in create.groups | filter: {title: $select.search}">
           {{group.title}}
         </ui-select-choices>
       </ui-select>
+    </div>
+
+    <div class="field-group inline clearfix">
+      <label for="remove-duplicates" class="auto-width">Remove duplicate emails?</label>
+      <input name="remove-duplicates" id="remove-duplicates" type="checkbox" ng-model="create.mailing.dedupe_email"
+             ng-true-value="1" ng-false-value="0"/>
     </div>
   </form>
 </div>

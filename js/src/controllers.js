@@ -126,6 +126,7 @@
 
       this.mailing = Mailing.getCurrentMailing();
       this.groups = Helper.getMailingGroups();
+      this.categories = Helper.getMailingCategories();
 
       var promises = [];
 
@@ -139,6 +140,7 @@
       var mailingGroupsPromise = Helper.initMailingGroups()
         .then(function () {
           self.groups = Helper.getMailingGroups();
+          self.categories = Helper.getMailingCategories();
         });
 
       promises.push(mailingPromise, mailingGroupsPromise);

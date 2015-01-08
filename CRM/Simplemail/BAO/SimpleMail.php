@@ -5,6 +5,21 @@
  */
 class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
+  /**
+   * This mailing group type is used for as an unsubscribe group for a mailing
+   */
+  const MAILING_GROUP_TYPE_BASE = 'Base';
+
+  /**
+   * This mailing group type is used for including contacts from the group in the mailing
+   */
+  const MAILING_GROUP_TYPE_INCLUDE = 'Include';
+
+  /**
+   * This mailing group type is used for excluding contacts from the group in the mailing
+   */
+  const MAILING_GROUP_TYPE_EXCLUDE = 'Exclude';
+
   /////////////////
   // API Methods //
   /////////////////
@@ -31,6 +46,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     }
 
     static::updateRecipientGroups($params);
+    static::setMailingCategory($params);
 
     $entityName = 'SimpleMail';
 
@@ -113,6 +129,14 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     $dao = static::create($params);
 
+    // This is only done once the mailing is finally 'scheduled' for sending. We can't do this step before, since
+    // someone might decide to change the mailing category on a future date, before mailing has been scheduled, and it
+    // won't be possible to remove back the contacts which were added to the prior group since there is no way of
+    // know this from the current data structure.
+    // Once the mailing has been scheduled, we can simply disable changing the mailing category altogether, so that
+    // no one can change the mailing category :)
+    static::updateMailingCategoryContacts($params);
+
     return array('values' => $dao->toArray(), 'dao' => $dao);
   }
 
@@ -136,7 +160,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       cm.name, cm.subject, cm.body_html, cm.from_name, cm.created_id, cm.created_date, cm.scheduled_id, cm.scheduled_date, cm .dedupe_email,
       MIN(j.start_date) start_date, MAX(j.end_date) end_date, j.status,
       c.sort_name, c.external_identifier,
-      GROUP_CONCAT(DISTINCT CONCAT(g.id, ':', g.is_hidden)) recipient_group_entities
+      GROUP_CONCAT(DISTINCT CONCAT(g.id, ':', g.is_hidden, ':', g.group_type)) recipient_group_entities
 
     FROM civicrm_simplemail sm
 
@@ -172,21 +196,35 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
         $mailing['status'] = $mailing['status'] ?: 'Not Scheduled';
 
         $groups = explode(',', $mailing['recipient_group_entities']);
+
         $groupIds = $hiddenGroupIds = array();
+        $categoryId = NULL;
+
         foreach ($groups as $group) {
           $id = strtok($group, ':');
           $isHidden = strtok(':');
+          $groupTypes = strtok(':');
+          $groupTypes = explode(CRM_Core_DAO::VALUE_SEPARATOR, substr($groupTypes, 1, -1));
 
           if ($isHidden) {
             $hiddenGroupIds[] = $id;
           }
           else {
-            $groupIds[] = $id;
+            if (in_array(SM_MAILING_CATEGORY_GROUP_TYPE_VALUE, $groupTypes)) {
+              $categoryId = $id;
+            }
+            else {
+              $groupIds[] = $id;
+            }
           }
         }
 
         $mailing['recipient_group_entity_ids'] = $groupIds;
         $mailing['hidden_recipient_group_entity_ids'] = $hiddenGroupIds;
+        $mailing['category_id'] = $categoryId;
+
+        // we don't need this in the output
+        unset($mailing['recipient_group_entities']);
 
         $mailings[] = $mailing;
       }
@@ -274,7 +312,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    */
   protected static function updateRecipientGroups($params) {
     if (!empty($params['recipient_group_entity_ids'])) {
-      static::updateMailingGroups((int) $params['crm_mailing_id'], $params['recipient_group_entity_ids']);
+      static::updateMailingRecipientGroups((int) $params['crm_mailing_id'], $params['recipient_group_entity_ids']);
     }
 
     if ($smartContactGroupId = simplemail_civicrm_getFromSessionScope('smartGroupId')) {
@@ -288,8 +326,112 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   }
 
   /**
-   * TODO (robin): This might no longer require retrieving groups from the DB as now everything is retrieved from getMailing
+   * Set or update the category of the mailing.
    *
+   * A mailing category is simply a mailing group of type 'Mailing Category', in addition to being of type 'Mailing
+   * List'.
+   *
+   * A mailing can only ever be associated with one category (i.e. mailing group of type 'Mailing Category')
+   *
+   * @param $params
+   *
+   * @return $this
+   */
+  protected static function setMailingCategory($params) {
+    if (!empty($params['category_id'])) {
+      $group = new CRM_Mailing_DAO_MailingGroup();
+
+      $group->reset();
+      $group->selectAdd('*');
+
+      $group->mailing_id = $params['crm_mailing_id'];
+      $group->group_type = static::MAILING_GROUP_TYPE_BASE;
+      $group->entity_table = 'civicrm_group';
+
+      if ($group->find(TRUE)) {
+        $group->entity_id = $params['category_id'];
+
+        return $group->save();
+      }
+
+      $group->entity_id = $params['category_id'];
+
+      return $group->save();
+    }
+  }
+
+  /**
+   * Update the list of contacts associated with a mailing category (i.e. group of type 'Mailing Category'), by adding
+   * contacts from the recipient groups (normal or smart), which are not already included in the mailing category,
+   * to the mailing category.
+   *
+   * @param $params
+   *
+   * @throws CRM_Extension_Exception
+   */
+  protected static function updateMailingCategoryContacts($params) {
+    if (empty($params['category_id'])) {
+      throw new CRM_Extension_Exception(
+        'Failed to update mailing category as category ID not provided', 405, array('dao' => NULL)
+      );
+    }
+
+    if (empty($params['recipient_group_entity_ids']) && empty($params['hidden_recipient_group_entity_ids'])) {
+      throw new CRM_Extension_Exception(
+        'Failed to update mailing category as neither recipient nor smart group ID not provided', 405,
+        array('dao' => NULL)
+      );
+    }
+
+    $groupEntityIds = empty($params['recipient_group_entity_id'])
+      ? array()
+      : $params['recipient_group_entity_ids'];
+
+    $hiddenGroupEntityIds = empty($params['hidden_recipient_group_entity_ids'])
+      ? array()
+      : $params['hidden_recipient_group_entity_ids'];
+
+    $groupIds = implode(', ', array_merge($groupEntityIds + $hiddenGroupEntityIds));
+
+    $query =
+      "SELECT GROUP_CONCAT(DISTINCT contact_id) contact_ids
+         FROM civicrm_group_contact
+         WHERE
+         	group_id IN (%0)
+         	AND status = %1";
+
+    $queryParams = array(
+      array($groupIds, 'String'),
+      array('Added', 'String')
+    );
+
+    $dao = CRM_Core_DAO::executeQuery($query, $queryParams);
+
+    $contactIds = $dao->fetch() ? explode(',', $dao->contact_ids) : array();
+
+    $dao = CRM_Core_DAO::executeQuery(
+      'SELECT GROUP_CONCAT(contact_id) contact_ids FROM civicrm_group_contact WHERE group_id = %0',
+      array(array($params['category_id'], 'Integer'))
+    );
+
+    $existingContactIds = $dao->fetch() ? explode(',', $dao->contact_ids) : array();
+
+    $newContactIds = array_diff($contactIds, $existingContactIds);
+
+    // Add contacts currently in the mailing groups (normal as well as smart groups), but not already in mailing
+    // category group, to the mailing category group
+    $result = CRM_Contact_BAO_GroupContact::addContactsToGroup($newContactIds, $params['category_id']);
+
+    // Set the group type to 'NULL' for mailing groups which are set as 'Include'. This is to ensure that there is
+    // only one mailing group (i.e. a category) from which a recipient can unsubscribe from.
+    // Note that this is done now (i.e. during scheduling and after the recipient list has been prepared for the
+    // mailing), as doing this anytime before would lead to no recipients being created since the mailing groups
+    // from which to create recipients would have group type set as 'NULL' (and recipients are only created from
+    // groups which have type set to 'Include' and excluded from ones which have it as 'Exclude)
+    static::unsetGroupTypeForMailingGroups($params['crm_mailing_id']);
+  }
+
+  /**
    * @param $crmMailingId
    *
    * @return array
@@ -298,7 +440,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $sql
       = "SELECT
     	  mg.*,
-    	  g.is_hidden, g.saved_search_id
+    	  g.is_hidden, g.saved_search_id, g.group_type
         FROM civicrm_mailing_group mg
         LEFT JOIN civicrm_group g
         ON mg.entity_id = g.id
@@ -308,17 +450,24 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $dao = CRM_Core_DAO::executeQuery($sql);
 
     $groups = $smartGroups = array();
+    $category = NULL;
 
     while ($dao->fetch()) {
       if ($dao->is_hidden) {
         $smartGroups[] = $dao->toArray();
       }
       else {
-        $groups[] = $dao->toArray();
+        $groupTypes = explode(CRM_Core_DAO::VALUE_SEPARATOR, substr($dao->group_type, 1, -1));
+        if (in_array(SM_MAILING_CATEGORY_GROUP_TYPE_VALUE, $groupTypes)) {
+          $category = $dao->toArray();
+        }
+        else {
+          $groups[] = $dao->toArray();
+        }
       }
     }
 
-    return array($groups, $smartGroups);
+    return array($groups, $smartGroups, $category);
   }
 
   /**
@@ -741,7 +890,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @param int   $crmMailingId
    * @param array $newGroupEntityIds
    */
-  private static function updateMailingGroups($crmMailingId, $newGroupEntityIds) {
+  private static function updateMailingRecipientGroups($crmMailingId, $newGroupEntityIds) {
     list($existingGroups) = static::getRecipientGroups($crmMailingId);
 
     $existingGroupsWithEntityIdAsKeys = array();
@@ -769,32 +918,26 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
   /**
    * @param $crmMailingId
-   * @param $entityId
+   * @param $smartContactGroupId
    */
-  private static function createMailingGroup($crmMailingId, $entityId) {
+  private static function createMailingGroupForSmartContactGroup($crmMailingId, $smartContactGroupId) {
+    static::createMailingGroup($crmMailingId, $smartContactGroupId);
+  }
+
+  /**
+   * @param        $crmMailingId
+   * @param        $entityId
+   * @param string $groupType
+   */
+  private static function createMailingGroup($crmMailingId, $entityId, $groupType = 'Include') {
     $group = new CRM_Mailing_DAO_MailingGroup();
 
     $group->reset();
     $group->mailing_id = $crmMailingId;
-    $group->group_type = 'Include';
+    $group->group_type = $groupType;
     $group->entity_table = 'civicrm_group';
     $group->entity_id = $entityId;
     $group->save();
-  }
-
-  /**
-   * @param $crmMailingId
-   * @param $smartContactGroupId
-   */
-  private static function createMailingGroupForSmartContactGroup($crmMailingId, $smartContactGroupId) {
-    $dao = new CRM_Mailing_DAO_MailingGroup();
-
-    $dao->reset();
-    $dao->mailing_id = $crmMailingId;
-    $dao->group_type = 'Include';
-    $dao->entity_table = 'civicrm_group';
-    $dao->entity_id = $smartContactGroupId;
-    $dao->save();
   }
 
   /**
@@ -807,8 +950,6 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $group->id = $mailingGroupId;
     $group->delete();
   }
-
-  // ---------- //
 
   /**
    * Note: A lot of the logic in this method (for creating hidden and smart groups) is taken from
@@ -923,4 +1064,23 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       $isComplete = CRM_Mailing_BAO_MailingJob::runJobs($testJobParams);
     }
   }
+
+  /**
+   * Unset (i.e. set to NULL) the group type for all mailing groups for the mailing given by its ID, where the group
+   * type is currently set to 'Include'.
+   *
+   * @param $mailingId
+   */
+  private static function unsetGroupTypeForMailingGroups($mailingId) {
+    $dao = CRM_Core_DAO::executeQuery(
+      'UPDATE civicrm_mailing_group SET group_type = NULL WHERE mailing_id = %0 AND group_type = %1',
+      array(
+        array($mailingId, 'Integer'),
+        array('Include', 'String')
+      )
+    );
+
+    $dao->free();
+  }
+
 }
