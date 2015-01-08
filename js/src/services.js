@@ -705,7 +705,8 @@
         entities: {
           OPTION_GROUP: 'OptionGroup',
           OPTION_VALUE: 'OptionValue',
-          MAILING_GROUP: 'Group'
+          MAILING_GROUP: 'Group',
+          MAILING_CATEGORY: 'Group'
         }
       };
 
@@ -714,6 +715,12 @@
        * @type {Array}
        */
       var mailingGroups = [];
+
+      /**
+       *
+       * @type {Array}
+       */
+      var mailingCategories = [];
 
       /**
        *
@@ -759,7 +766,21 @@
           CiviApi.get(constants.entities.MAILING_GROUP)
             .then(function (response) {
               // TODO (robin): Move is_hidden filtering to API query
-              mailingGroups = $filter('filter')(response.data.values, {is_hidden: 0});
+              var groups = $filter('filter')(response.data.values, {is_hidden: 0});
+
+              angular.forEach(groups, function (group) {
+                var isMailingGroup = false;
+                var isMailingCategory = false;
+
+                if (group.group_type.indexOf('2') !== -1) isMailingGroup = true;
+                if (group.group_type.indexOf('3') !== -1) isMailingCategory = true;
+
+                if (isMailingGroup) {
+                  if (isMailingCategory) mailingCategories.push(group);
+                  else mailingGroups.push(group);
+                }
+              });
+
               mailingGroupsInitialised = true;
               deferred.resolve();
             })
@@ -849,6 +870,15 @@
 
       /**
        * @ngdoc method
+       * @name MailingHelperFactory#getMailingCategories
+       * @returns {Array}
+       */
+      var getMailingCategories = function () {
+        return mailingCategories;
+      };
+
+      /**
+       * @ngdoc method
        * @name MailingHelperFactory#getFromEmails
        * @returns {Array}
        */
@@ -869,6 +899,7 @@
         initMailingGroups: initMailingGroups,
         initFromEmails: initFromEmails,
         initHeaderFilters: initHeaderFilters,
+        getMailingCategories: getMailingCategories,
         getMailingGroups: getMailingGroups,
         getFromEmails: getFromEmails,
         getHeaderFilters: getHeaderFilters
