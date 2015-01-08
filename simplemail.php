@@ -344,6 +344,11 @@ function simplemail_civicrm_alterAPIPermissions($entity, $action, &$params, &$pe
 function simplemail_civicrm_init() {
   define('SM_SESSION_SCOPE_PREFIX', 'SimpleMail_');
 
+  /**
+   * The value of the option value for name 'mailing_category', part of the option group 'group_type'
+   */
+  define('SM_MAILING_CATEGORY_GROUP_TYPE_VALUE', '3');
+
   // Permission
   define('SM_PERMISSION_ACCESS', 'access CiviSimpleMail');
   define('SM_PERMISSION_EDIT', 'edit CiviSimpleMail');
