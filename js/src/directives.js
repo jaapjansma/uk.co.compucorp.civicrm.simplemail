@@ -252,7 +252,11 @@
       });
 
       ngModel.$render = function () {
-        ck.setData(ngModel.$viewValue);
+        if (ngModel.$viewValue) {
+          ck.setData(ngModel.$viewValue);
+        } else if (attributes.placeholder) {
+          ck.setData(attributes.placeholder);
+        }
       };
     }
 
