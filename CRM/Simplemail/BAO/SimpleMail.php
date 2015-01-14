@@ -420,7 +420,9 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     // Add contacts currently in the mailing groups (normal as well as smart groups), but not already in mailing
     // category group, to the mailing category group
-    $result = CRM_Contact_BAO_GroupContact::addContactsToGroup($newContactIds, $params['category_id']);
+    if ($newContactIds && $newContactIds[0]) {
+      $result = CRM_Contact_BAO_GroupContact::addContactsToGroup($newContactIds, $params['category_id']);
+    }
 
     // Set the group type to 'NULL' for mailing groups which are set as 'Include'. This is to ensure that there is
     // only one mailing group (i.e. a category) from which a recipient can unsubscribe from.
