@@ -383,7 +383,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       );
     }
 
-    $groupEntityIds = empty($params['recipient_group_entity_id'])
+    $groupEntityIds = empty($params['recipient_group_entity_ids'])
       ? array()
       : $params['recipient_group_entity_ids'];
 
@@ -407,6 +407,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     $dao = CRM_Core_DAO::executeQuery($query, $queryParams);
 
+    /** @var array IDs of contacts included in the mailing recipient *group* currently selected $contactIds */
     $contactIds = $dao->fetch() ? explode(',', $dao->contact_ids) : array();
 
     $dao = CRM_Core_DAO::executeQuery(
@@ -414,8 +415,11 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       array(array($params['category_id'], 'Integer'))
     );
 
+    /** @var array IDs of contacts included in the mailing *category* currently selected $existingContactIds */
     $existingContactIds = $dao->fetch() ? explode(',', $dao->contact_ids) : array();
 
+    /** @var array IDs of contacts which are included in the mailing recipient group but not in the category (i.e.
+     * which need to be added to the category) $newContactIds */
     $newContactIds = array_diff($contactIds, $existingContactIds);
 
     // Add contacts currently in the mailing groups (normal as well as smart groups), but not already in mailing
