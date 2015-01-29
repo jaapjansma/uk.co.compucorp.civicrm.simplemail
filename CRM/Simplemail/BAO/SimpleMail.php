@@ -20,6 +20,23 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    */
   const MAILING_GROUP_TYPE_EXCLUDE = 'Exclude';
 
+  /**
+   * Params that are required when submitting an email for mass mailing (i.e. when being scheduled).
+   *
+   * Note: include a sub-array to signify that at least one of the params in the sub-array must be provided.
+   *
+   * @var array
+   */
+  protected static $requiredParams = array(
+    'crm_mailing_id' => 'CRM mailing ID',
+    'scheduled_date' => 'schedule date',
+    'category_id'    => 'category ID',
+    array(
+      'recipient_group_entity_ids'        => 'recipient group ID',
+      'hidden_recipient_group_entity_ids' => 'smart group ID'
+    )
+  );
+
   /////////////////
   // API Methods //
   /////////////////
@@ -104,40 +121,49 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @throws CRM_Extension_Exception
    */
   public static function submitMassEmail($params) {
-    static::sanitiseParams($params);
+    try {
+      static::sanitiseParams($params);
+      static::validateOnSchedule($params);
 
-    $params['scheduled_id'] = CRM_Core_Session::singleton()->get('userID');
+      $params['scheduled_id'] = CRM_Core_Session::singleton()->get('userID');
 
-    $params['approval_date'] = date('YmdHis');
-    $params['approval_status_id'] = 1;
+      $params['approval_date'] = date('YmdHis');
+      $params['approval_status_id'] = 1;
 
-    /* Scheduled mailing jobs are being updated first here as it will help in two ways:
-     *
-     * 1. In case mass mailing was being submitted for the first time, there won't be any jobs for it. The update method
-     *    would simply not find any jobs and therefore won't have to save any records.
-     *
-     * 2. CRM_Mailing_BAO_Mailing::create() created a mailing job if one does not exist yet. For such situation, if the
-     *    update method was used after the create() method below, the mailing job's scheduled date would be updated
-     *    unnecessarily.
-    */
-    static::updateScheduledMailingJobs($params);
+      /* Scheduled mailing jobs are being updated first here as it will help in two ways:
+         *
+         * 1. In case mass mailing was being submitted for the first time, there won't be any jobs for it. The update method
+         *    would simply not find any jobs and therefore won't have to save any records.
+         *
+         * 2. CRM_Mailing_BAO_Mailing::create() created a mailing job if one does not exist yet. For such situation, if the
+         *    update method was used after the create() method below, the mailing job's scheduled date would be updated
+         *    unnecessarily.
+        */
+      static::updateScheduledMailingJobs($params);
 
-    // This wouldn't have been needed if CRM_Mailing_BAO_Mailing::create() was able to run getRecipients() itself
-    // towards the end, which unfortunately fails due to a bug in the add() method where it instantiates the DAO
-    // instead of the BAO!
-    static::createRecipients((int) $params['crm_mailing_id'], static::shouldRemoveDuplicateEmails($params));
+      // This wouldn't have been needed if CRM_Mailing_BAO_Mailing::create() was able to run getRecipients() itself
+      // towards the end, which unfortunately fails due to a bug in the add() method where it instantiates the DAO
+      // instead of the BAO!
+      static::createRecipients((int) $params['crm_mailing_id'], static::shouldRemoveDuplicateEmails($params));
 
-    $dao = static::create($params);
+      $dao = static::create($params);
 
-    // This is only done once the mailing is finally 'scheduled' for sending. We can't do this step before, since
-    // someone might decide to change the mailing category on a future date, before mailing has been scheduled, and it
-    // won't be possible to remove back the contacts which were added to the prior group since there is no way of
-    // know this from the current data structure.
-    // Once the mailing has been scheduled, we can simply disable changing the mailing category altogether, so that
-    // no one can change the mailing category :)
-    static::updateMailingCategoryContacts($params);
+      // This is only done once the mailing is finally 'scheduled' for sending. We can't do this step before, since
+      // someone might decide to change the mailing category on a future date, before mailing has been scheduled, and it
+      // won't be possible to remove back the contacts which were added to the prior group since there is no way of
+      // know this from the current data structure.
+      // Once the mailing has been scheduled, we can simply disable changing the mailing category altogether, so that
+      // no one can change the mailing category :)
+      static::updateMailingCategoryContacts($params);
 
-    return array('values' => $dao->toArray(), 'dao' => $dao);
+      return array('values' => $dao->toArray(), 'dao' => $dao);
+    } catch (CRM_Extension_Exception $e) {
+      $errorMsg = $e->getMessage();
+      $errorCode = $e->getErrorCode() ?: 405;
+      $errorData = $e->getErrorData() ?: array('dao' => NULL);
+
+      throw new CRM_Extension_Exception($errorMsg, $errorCode, $errorData);
+    }
   }
 
   /**
@@ -326,6 +352,40 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   }
 
   /**
+   * Validate upon submission of mass mailing (i.e. once it's been scheduled)
+   *
+   * @param $params
+   *
+   * @throws CRM_Extension_Exception
+   */
+  protected static function validateOnSchedule($params) {
+    $errors = array();
+
+    foreach (static::$requiredParams as $param => $name) {
+      // Process the 'at least one' clause
+      if (is_array($name)) {
+        $allEmpty = true;
+        foreach ($name as $eitherParam => $eitherName) {
+          if (!empty($params[$eitherParam])) {
+            $allEmpty = false;
+            break;
+          }
+        }
+
+        if ($allEmpty) $errors[] = 'either of ' . implode(', ', $param) . ' not provided';
+      }
+      // Process the usual required param
+      else if (empty($params[$param])) {
+        $errors[] = $name . ' not provided';
+      }
+    }
+
+    if ($errors) {
+      throw new CRM_Extension_Exception(implode(', ', $errors));
+    }
+  }
+
+  /**
    * Set or update the category of the mailing.
    *
    * A mailing category is simply a mailing group of type 'Mailing Category', in addition to being of type 'Mailing
@@ -382,6 +442,9 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
         array('dao' => NULL)
       );
     }
+
+    // This is needed in order to process large group concat - MySQL's default is a measly 1024 characters
+    CRM_Core_DAO::executeQuery('SET group_concat_max_len = 1000000');
 
     $groupEntityIds = empty($params['recipient_group_entity_ids'])
       ? array()

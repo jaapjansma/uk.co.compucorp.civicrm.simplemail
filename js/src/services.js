@@ -1076,7 +1076,7 @@
 
         return CiviApi.post(constants.entities.MAILING, getCurrentMailing(), 'submitmassemail', {
           success: 'Mailing submitted for mass emailing',
-          error: 'Oops! Failed to submit the mailing for mass emailing!'
+          error: 'Oops! Failed to submit the mailing for mass emailing'
         });
       };
 
