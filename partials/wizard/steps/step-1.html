@@ -1,14 +1,5 @@
-<div ng-controller="CreateMailingCtrl as create" class="sm-container">
-  <h1>Step 1 - Create Email</h1>
-
+<div ng-controller="CreateMailingCtrl as create">
   <form sm-loaded="steps.isInitialised()" class="crm-form-block">
-    <p ng-if="!create.isMailingNotScheduled()" ng-switch="create.mailing.status">
-      <span class="status" ng-switch-when="Scheduled">This mailing has been scheduled for sending</span>
-      <span class="status" ng-switch-when="Running">This mailing is currently being sent out</span>
-      <span class="status" ng-switch-when="Complete">This mailing has been sent</span>
-      <span class="status" ng-switch-when="Canceled">This mailing has been cancelled</span>
-    </p>
-
     <div class="field-group">
       <label for="mailing-name">
         Title (please choose a meaningful title for this email to make it easier to search for it in the future):
