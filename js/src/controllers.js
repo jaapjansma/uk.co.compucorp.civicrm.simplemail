@@ -153,6 +153,10 @@
           self.initialised = true;
           Wizard.init();
         });
+
+      this.isMailingNotScheduled = function() {
+        return this.mailing.status === 'Not Scheduled';
+      }
     }
   ];
 

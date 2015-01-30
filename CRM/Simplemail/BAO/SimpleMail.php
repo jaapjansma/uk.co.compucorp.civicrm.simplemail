@@ -21,6 +21,12 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   const MAILING_GROUP_TYPE_EXCLUDE = 'Exclude';
 
   /**
+   * Status of mailing when it's not yet been scheduled - more correctly, when a mailing job for the mailing has never
+   * been created
+   */
+  const MAILING_STATUS_NOT_SCHEDULED = 'Not Scheduled';
+
+  /**
    * Params that are required when submitting an email for mass mailing (i.e. when being scheduled).
    *
    * Note: include a sub-array to signify that at least one of the params in the sub-array must be provided.
@@ -219,7 +225,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       while ($dao->fetch()) {
         $mailing = $dao->toArray();
 
-        $mailing['status'] = $mailing['status'] ?: 'Not Scheduled';
+        $mailing['status'] = $mailing['status'] ?: static::MAILING_STATUS_NOT_SCHEDULED;
 
         $groups = explode(',', $mailing['recipient_group_entities']);
 

@@ -1044,8 +1044,22 @@
             // If nothing changed, just return a resolved promise
             if (!isCurrentMailingDirty()) return;
 
+            var currentMailing = getCurrentMailing();
+
+            // Reset scheduled_date and send_immediately in case the current mailing object (cached) has a scheduled
+            // date but is not yet actually been scheduled - this is needed because if the mailing object has a
+            // scheduled date and we sent the API request to save it, CiviCRM will actually schedule it. We only want
+            // to schedule a mailing from the submitMassEmail() method, and not saveProgress(), because it will fire the
+            // special API action 'submitmassemail', which takes care of a few important bits before scheduling.
+            if (currentMailing.scheduled_date && currentMailing.status === 'Not Scheduled') {
+              currentMailing.scheduled_date = '';
+              if (currentMailing.send_immediately) {
+                currentMailing.send_immediately = false;
+              }
+            }
+
             // Else, save the changes
-            return CiviApi.create(constants.entities.MAILING, getCurrentMailing())
+            return CiviApi.create(constants.entities.MAILING, currentMailing)
               .then(function (response) {
                 return CiviApi.get(constants.entities.MAILING, {id: response.data.values[0].id})
               })

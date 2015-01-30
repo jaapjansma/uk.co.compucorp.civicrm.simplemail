@@ -2,6 +2,13 @@
   <h1>Step 1 - Create Email</h1>
 
   <form sm-loaded="steps.isInitialised()" class="crm-form-block">
+    <p ng-if="!create.isMailingNotScheduled()" ng-switch="create.mailing.status">
+      <span class="status" ng-switch-when="Scheduled">This mailing has been scheduled for sending</span>
+      <span class="status" ng-switch-when="Running">This mailing is currently being sent out</span>
+      <span class="status" ng-switch-when="Complete">This mailing has been sent</span>
+      <span class="status" ng-switch-when="Canceled">This mailing has been cancelled</span>
+    </p>
+
     <div class="field-group">
       <label for="mailing-name">
         Title (please choose a meaningful title for this email to make it easier to search for it in the future):
@@ -15,7 +22,8 @@
       <p>Select the category for the mailing:</p>
 
       <label ng-repeat="category in create.categories" for="mailing-category-{{category.id}}">
-        <input name="mailing-category" id="mailing-category-{{category.id}}" value="{{category.id}}"
+        <input ng-disabled="!create.isMailingNotScheduled()" name="mailing-category"
+               id="mailing-category-{{category.id}}" value="{{category.id}}"
                ng-model="create.mailing.category_id" type="radio"/> {{category.title}}
       </label>
    </div>
@@ -26,7 +34,8 @@
 
     <div class="field-group required">
       <label for="">Include recipients from group(s):</label>
-      <ui-select multiple ng-model="create.mailing.recipient_group_entity_ids" theme="select2">
+      <ui-select multiple ng-model="create.mailing.recipient_group_entity_ids"
+                 ng-disabled="!create.isMailingNotScheduled()" theme="select2">
         <ui-select-match placeholder="Select group(s)">{{$item.title}}</ui-select-match>
         <ui-select-choices repeat="group.id as group in create.groups | filter: {title: $select.search}">
           {{group.title}}
