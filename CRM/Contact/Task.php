@@ -353,7 +353,7 @@ class CRM_Contact_Task {
     if (user_access( 'access CiviSimpleMail')) {
       $mrmSearchTaskID = null;
       foreach (self::$_tasks as $key => $value) {
-        if(strpos(self::$_tasks[$key]['title'], 'Schedule/Send a MRM Mail Mass Mailing') !== FALSE){
+        if(strpos(self::$_tasks[$key]['title'], 'Send a MailJet') !== FALSE){
           $mrmSearchTaskID = $key;
           break;
         }

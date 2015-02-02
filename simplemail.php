@@ -153,7 +153,7 @@ function simplemail_civicrm_entityTypes(&$entityTypes) {
  */
 function simplemail_civicrm_searchTasks($objectType, &$tasks) {
   $tasks[] = array(
-    'title' => 'Schedule/Send a ' . SM_EXT_NAME . ' Mass Mailing',
+    'title' => 'Send a MailJet',
     'class' => array(
       'CRM_Simplemail_Form_SimpleMailRecipientsFromSearch'
     )
