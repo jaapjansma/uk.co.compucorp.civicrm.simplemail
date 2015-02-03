@@ -339,12 +339,21 @@ class CRM_Contact_Task {
       }
 
     }
+	
+	/* CATL-257
+     * Remove all menu items not applicable to most ATL users */
+	 if (!CRM_Core_Permission::check('administer CiviCRM')) {
+		$remove = array(2, 3, 4, 6, 7, 9, 10, 12, 15, 17, 19, 20, 21, 22, 25);
+			foreach ($remove as $r) {
+				unset($tasks[$r]);
+			}
+	}
     
     //Force adding SimpleMail searchTask
     if (user_access( 'access CiviSimpleMail')) {
       $mrmSearchTaskID = null;
       foreach (self::$_tasks as $key => $value) {
-        if(strpos(self::$_tasks[$key]['title'], 'Schedule/Send a MRM Mail Mass Mailing') !== FALSE){
+        if(strpos(self::$_tasks[$key]['title'], 'Send a MailJet email') !== FALSE){
           $mrmSearchTaskID = $key;
           break;
         }
