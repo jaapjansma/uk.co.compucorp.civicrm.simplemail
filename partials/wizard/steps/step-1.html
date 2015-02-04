@@ -23,12 +23,12 @@
       </label>
    </div>
 
-    <h2>Mailing recipients (filter)</h2>
+    <h2>Mailing Recipients</h2>
 
     <p ng-if="create.fromSearch" class="status">This mailing contains recipients from search results</p>
 
     <div class="field-group required">
-      <label for="">If you have saved your data as a group (filter), select it here:</label>
+      <label for="">Include recipients from group(s):</label>
       <ui-select multiple ng-model="create.mailing.recipient_group_entity_ids" theme="select2">
         <ui-select-match placeholder="Select group(s)">{{$item.title}}</ui-select-match>
         <ui-select-choices repeat="group.id as group in create.groups | filter: {title: $select.search}">
