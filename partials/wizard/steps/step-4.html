@@ -1,7 +1,5 @@
-<div ng-controller="ScheduleAndSendCtrl as scheduleAndSend" class="sm-container">
-  <h1>Step 4 - Schedule and Send</h1>
-
-  <p>You can schedule this mailing to be sent starting at a specific data and time, OR you can request it</p>
+<div ng-controller="ScheduleAndSendCtrl as scheduleAndSend">
+  <p>You can schedule this mailing to be sent starting at a specific data and time, OR you can request it to send immediately</p>
 
   <form sm-loaded="steps.isInitialised()" class="crm-form-block">
     <div class="field-group inline clearfix">
@@ -20,6 +18,7 @@
       <quick-datepicker ng-model="scheduleAndSend.mailing.scheduled_date" data-date-format="d MMM, yyyy"
                         data-label-format="EEEE, d MMMM, yyyy 'at' h:mm a"
                         icon-class="fa fa-calendar"></quick-datepicker>
+
       <p>Set a data and time when you want CiviMail to start sending this mailing</p>
     </div>
   </form>
