@@ -2,17 +2,20 @@
   <h1>Step 1 - Create Email</h1>
 
   <form sm-loaded="steps.isInitialised()" class="crm-form-block">
+  
+  <h2>Title</h2>
+  
     <div class="field-group">
       <label for="mailing-name">
-        Title (please choose a meaningful title for this email to make it easier to search for it in the future):
+		Please choose a meaningful title for this email to make it easier to search for it in the future
       </label>
       <input name="mailing-name" id="mailing-name" type="text" class="two-thirds" ng-model="create.mailing.name"/>
     </div>
 
-    <h2>Category</h2>
+    <h2>Unsubscribe category</h2>
 
     <div class="field-group">
-      <p>Select the category for the mailing:</p>
+      <p>You must select a category that best defines the target audience</p>
 
       <label ng-repeat="category in create.categories" for="mailing-category-{{category.id}}">
         <input name="mailing-category" id="mailing-category-{{category.id}}" value="{{category.id}}"
@@ -20,12 +23,12 @@
       </label>
    </div>
 
-    <h2>Mailing Recipients</h2>
+    <h2>Mailing recipients (filter)</h2>
 
     <p ng-if="create.fromSearch" class="status">This mailing contains recipients from search results</p>
 
     <div class="field-group required">
-      <label for="">Include recipients from group(s):</label>
+      <label for="">If you have saved your data as a group (filter), select it here:</label>
       <ui-select multiple ng-model="create.mailing.recipient_group_entity_ids" theme="select2">
         <ui-select-match placeholder="Select group(s)">{{$item.title}}</ui-select-match>
         <ui-select-choices repeat="group.id as group in create.groups | filter: {title: $select.search}">
