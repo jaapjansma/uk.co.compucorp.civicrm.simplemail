@@ -1,6 +1,18 @@
 <div ng-controller="WizardStepsCtrl as steps" class="sm-container">
-  <div ng-include="steps.partial"></div>
-  <div ng-controller="MailingButtonsCtrl as buttons" class="buttons">
+  <header class="step-header section" ng-switch="steps.currentStep">
+    <h1 class="step-title">{{steps.title}}</h1>
+
+    <p class="status-container" ng-switch="steps.getMailingStatus()">
+      <span class="status" ng-switch-when="Scheduled">This mailing has been scheduled for sending</span>
+      <span class="status" ng-switch-when="Running">This mailing is currently being sent out</span>
+      <span class="status" ng-switch-when="Complete">This mailing has been sent</span>
+      <span class="status" ng-switch-when="Cancelled">This mailing has been cancelled</span>
+    </p>
+  </header>
+
+  <div class="step-body section" ng-include="steps.partial"></div>
+
+  <div ng-controller="MailingButtonsCtrl as buttons" class="buttons section clearfix">
     <div class="pagination left">
       <a sm-disabled="!buttons.isInitialised()" href ng-click="buttons.prevStep()" ng-if="buttons.showPrevStepLink" class="button">&laquo; Prev Step</a>
       <a sm-disabled="!buttons.isInitialised()" href ng-click="buttons.nextStep()" ng-if="buttons.showNextStepLink" class="button">Next Step &raquo;</a>

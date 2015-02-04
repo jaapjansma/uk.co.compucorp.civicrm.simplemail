@@ -153,6 +153,10 @@
           self.initialised = true;
           Wizard.init();
         });
+
+      this.isMailingNotScheduled = function() {
+        return Mailing.isCurrentMailingNotScheduled();
+      }
     }
   ];
 
@@ -348,14 +352,19 @@
      * @param {WizardStepFactory} Wizard
      */
       function ($routeParams, Wizard) {
-      var currentStep = +$routeParams.step;
+      this.currentStep = +$routeParams.step;
 
-      Wizard.setCurrentStep(currentStep);
+      Wizard.setCurrentStep(this.currentStep);
 
       this.partial = Wizard.getPartialPath();
+      this.title = Wizard.getStepTitle();
 
       this.isInitialised = function () {
         return Wizard.isInitialised();
+      };
+
+      this.getMailingStatus = function() {
+        return Wizard.getMailingStatus();
       };
     }
   ];

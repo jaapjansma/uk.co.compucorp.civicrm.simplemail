@@ -463,6 +463,32 @@
         return paths.TEMPLATES_DIR() + '/wave-regions.html';
       };
 
+      /**
+       * @ngdoc method
+       * @name WizardStepFactory#getStepTitle
+       * @returns {*}
+       */
+      var getStepTitle = function() {
+        var title;
+
+        switch(currentStep) {
+          case 1:
+            title = 'Step 1: Create Email';
+            break;
+          case 2:
+            title = 'Step 2: Compose Email';
+            break;
+          case 3:
+            title = 'Step 3: Preview and Test';
+            break;
+          case 4:
+            title = 'Step 4: Schedule and Send';
+            break;
+        }
+
+        return title;
+      };
+
       // Getters and Setters //
 
       /**
@@ -472,6 +498,15 @@
        */
       var getCurrentStep = function () {
         return currentStep;
+      };
+
+      /**
+       * @ngdoc method
+       * @name WizardStepFactory#getMailingStatus
+       * @returns {string}
+       */
+      var getMailingStatus = function() {
+        return Mailing.getCurrentMailingStatus();
       };
 
       /**
@@ -551,7 +586,9 @@
         saveAndContinueLater: saveAndContinueLater,
         sendTestEmail: sendTestEmail,
         submitMassEmail: submitMassEmail,
-        getPartialPath: getPartialPath
+        getPartialPath: getPartialPath,
+        getMailingStatus: getMailingStatus,
+        getStepTitle: getStepTitle
       };
     }];
 
@@ -925,6 +962,13 @@
       var constants = {
         entities: {
           MAILING: 'SimpleMail'
+        },
+        statuses: {
+          NOT_SCHEDULED: 'Not Scheduled',
+          SCHEDULED: 'Scheduled',
+          RUNNING: 'Running',
+          COMPLETE: 'Complete',
+          CANCELLED: 'Cancelled'
         }
       };
 
@@ -944,6 +988,11 @@
        * @type {boolean}
        */
       var createdFromSearch;
+
+      /**
+       * @type {string}
+       */
+      var status = constants.statuses.NOT_SCHEDULED;
 
       /**
        * @type {boolean}
@@ -1044,8 +1093,22 @@
             // If nothing changed, just return a resolved promise
             if (!isCurrentMailingDirty()) return;
 
+            var currentMailing = getCurrentMailing();
+
+            // Reset scheduled_date and send_immediately in case the current mailing object (cached) has a scheduled
+            // date but is not yet actually been scheduled - this is needed because if the mailing object has a
+            // scheduled date and we sent the API request to save it, CiviCRM will actually schedule it. We only want
+            // to schedule a mailing from the submitMassEmail() method, and not saveProgress(), because it will fire the
+            // special API action 'submitmassemail', which takes care of a few important bits before scheduling.
+            if (currentMailing.scheduled_date && isCurrentMailingNotScheduled()) {
+              currentMailing.scheduled_date = '';
+              if (currentMailing.send_immediately) {
+                currentMailing.send_immediately = false;
+              }
+            }
+
             // Else, save the changes
-            return CiviApi.create(constants.entities.MAILING, getCurrentMailing())
+            return CiviApi.create(constants.entities.MAILING, currentMailing)
               .then(function (response) {
                 return CiviApi.get(constants.entities.MAILING, {id: response.data.values[0].id})
               })
@@ -1066,6 +1129,24 @@
 
       /**
        * @ngdoc method
+       * @name MailingDetailFactory#getCurrentMailingStatus
+       * @returns {string}
+       */
+      var getCurrentMailingStatus = function() {
+        return status;
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingDetailFactory#isCurrentMailingNotScheduled
+       * @returns {boolean}
+       */
+      var isCurrentMailingNotScheduled = function() {
+        return getCurrentMailingStatus() === constants.statuses.NOT_SCHEDULED;
+      };
+
+      /**
+       * @ngdoc method
        * @name MailingDetailFactory#submitMassEmail
        * @returns {IPromise}
        */
@@ -1076,7 +1157,7 @@
 
         return CiviApi.post(constants.entities.MAILING, getCurrentMailing(), 'submitmassemail', {
           success: 'Mailing submitted for mass emailing',
-          error: 'Oops! Failed to submit the mailing for mass emailing!'
+          error: 'Oops! Failed to submit the mailing for mass emailing'
         });
       };
 
@@ -1135,6 +1216,8 @@
       var setCurrentMailing = function (mailing, updateOriginal) {
         currentMailing = mailing;
         if (updateOriginal) originalCurrentMailing = angular.copy(mailing);
+
+        updateCurrentMailingStatus();
       };
 
       /**
@@ -1169,6 +1252,7 @@
           CiviApi.get(constants.entities.MAILING, {id: getMailingIdFromUrl()})
             .then(function (response) {
               setCurrentMailing(response.data.values[0], true);
+
               var createdFromSearch = response.data.values[0].hidden_recipient_group_entity_ids.length ? true : false;
               setCreatedFromSearch(createdFromSearch);
 
@@ -1191,6 +1275,31 @@
 
       /**
        * @private
+       */
+      var updateCurrentMailingStatus = function() {
+        switch (getCurrentMailing().status) {
+         case 'Scheduled':
+            status = constants.statuses.SCHEDULED;
+            break;
+          case 'Running':
+            status = constants.statuses.RUNNING;
+            break;
+          case 'Complete':
+            status = constants.statuses.COMPLETE;
+            break;
+          case 'Canceled':
+            status = constants.statuses.CANCELLED;
+            break;
+          case 'Not Scheduled':
+            // break missed intentionally
+          default:
+            status = constants.statuses.NOT_SCHEDULED;
+            break;
+        }
+      };
+
+      /**
+       * @private
        * @returns {?number|string}
        */
       var getMailingIdFromUrl = function () {
@@ -1209,7 +1318,9 @@
         setCurrentMailing: setCurrentMailing,
         isInitialised: isInitialised,
         isCreatedFromSearch: isCreatedFromSearch,
-        isCurrentMailingDirty: isCurrentMailingDirty
+        isCurrentMailingDirty: isCurrentMailingDirty,
+        isCurrentMailingNotScheduled: isCurrentMailingNotScheduled,
+        getCurrentMailingStatus: getCurrentMailingStatus
       };
     }];
 

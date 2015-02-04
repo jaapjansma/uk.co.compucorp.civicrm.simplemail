@@ -46,9 +46,35 @@ $border-radius: 3px;
     color: $red;
   }
 
+  .step-header {
+    .step-title {
+      display: inline;
+    }
+
+    .status-container {
+      position: relative;
+      top: -2px;
+      left: 5px;
+      font-size: 0.75rem;
+
+      .status {
+        margin: 0;
+      }
+    }
+  }
+
+  .status-container {
+    display: inline;
+  }
+
   .status {
     margin: 0.75rem 0;
     display: inline-block;
+  }
+
+  .section {
+    margin: 1rem 0 !important;
+    padding: 0 !important;
   }
 
   .quickdate {
@@ -124,8 +150,7 @@ $border-radius: 3px;
   }
 
   .buttons {
-    margin-top: 0 !important;    
-    margin-bottom: 1rem !important;    
+    background: none !important;
 
     p {
       margin-top: 0;
@@ -328,10 +353,7 @@ $border-radius: 3px;
   .full-width {
     width: $full !important;
   }
-  
-  .buttons {
-    background: none !important;
-  }
+
   .left,
   .right {
     text-align: left;
