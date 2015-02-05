@@ -378,7 +378,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
           }
         }
 
-        if ($allEmpty) $errors[] = 'either of ' . implode(', ', $param) . ' not provided';
+        if ($allEmpty) $errors[] = 'either of ' . implode(', ', $name) . ' not provided';
       }
       // Process the usual required param
       else if (empty($params[$param])) {
