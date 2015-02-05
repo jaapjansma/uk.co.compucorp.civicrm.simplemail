@@ -348,7 +348,7 @@
    *
    * @type {*[]}
    */
-  var smClickOnceDirective = ['$parse', function ($parse) {
+  var smClickOnceDirective = ['$parse', '$q', function ($parse, $q) {
     var link = function (scope, element, attributes) {
       var fn = $parse(attributes['smClickOnce']);
       scope.submitting = false;
@@ -358,11 +358,17 @@
           if (scope.submitting) return;
 
           scope.submitting = true;
+          element.addClass('disabled');
 
-          fn(scope)
-            .finally(function () {
-              scope.submitting = false;
-            });
+          if (typeof fn === 'function') {
+            // Wrap the function's return value into a promise (to cover the case when it's not a promise already),
+            // and enable the button
+            $q.when(fn(scope))
+              .finally(function () {
+                scope.submitting = false;
+                element.removeClass('disabled');
+              });
+          }
         });
       });
     };
@@ -377,10 +383,9 @@
       element.addClass('disabled');
 
       scope.$watch(attributes['smDisabled'], function (newVal) {
-        if (newVal === false) {
-          element.removeClass('disabled');
-        }
-      });
+        if (newVal === true) element.addClass('disabled');
+        else if (newVal === false) element.removeClass('disabled');
+    });
     };
 
     return {
@@ -390,7 +395,7 @@
 
   var smLoadedDirective = [function () {
     var link = function (scope, element, attributes) {
-      element.append('<div class="loading-panel"></div>')
+      element.append('<div class="loading-panel"></div>');
 
       scope.$watch(attributes['smLoaded'], function (newVal) {
         if (newVal === true) {
