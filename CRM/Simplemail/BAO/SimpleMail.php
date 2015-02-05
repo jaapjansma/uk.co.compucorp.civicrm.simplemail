@@ -2,6 +2,7 @@
 
 /**
  * Class CRM_Simplemail_BAO_SimpleMail
+ * TODO (robin): Refactor the class to make it less reliant on static methods
  */
 class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
