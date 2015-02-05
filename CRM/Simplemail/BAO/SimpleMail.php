@@ -919,7 +919,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       $params['body'] = html_entity_decode($params['body']);
 
       // Replace nbsp; with space as otherwise it will make MySQL save fail
-      $params['body'] = str_replace("\xA0", ' ', $params['body']);
+      $params['body'] = str_replace("\xC2\xA0", ' ', $params['body']);
     }
     if (!empty($params['contact_details'])) {
       // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
