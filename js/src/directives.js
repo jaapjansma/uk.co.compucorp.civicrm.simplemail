@@ -385,7 +385,7 @@
       scope.$watch(attributes['smDisabled'], function (newVal) {
         if (newVal === true) element.addClass('disabled');
         else if (newVal === false) element.removeClass('disabled');
-    });
+      });
     };
 
     return {

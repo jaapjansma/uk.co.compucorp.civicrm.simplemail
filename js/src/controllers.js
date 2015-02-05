@@ -407,7 +407,6 @@
       };
 
       this.submitMassEmail = function () {
-        console.log('Submit button clicked');
         if (Wizard.isInitialised()) {
           Wizard.deinit();
           Wizard.submitMassEmail()
