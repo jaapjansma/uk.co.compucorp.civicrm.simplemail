@@ -237,6 +237,7 @@ $border-radius: 3px;
 
         img {
           max-height: 100px;
+          max-width: none; // without this, certain bigger images become tiny due to max-width set to 100% somewhere in the core CSS files
           padding: 8px;
           border: 1px dashed $light-grey;
           border-radius: $border-radius;

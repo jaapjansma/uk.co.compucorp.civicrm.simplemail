@@ -364,6 +364,14 @@
 
       /**
        * @ngdoc method
+       * @name WizardStepFactory#deinit
+       */
+      var deinit = function () {
+        initialised = false;
+      };
+
+      /**
+       * @ngdoc method
        * @name WizardStepFactory#nextStepAllowed
        * @returns {boolean}
        */
@@ -574,6 +582,7 @@
 
       return {
         init: init,
+        deinit: deinit,
         isInitialised: isInitialised,
         getCurrentStep: getCurrentStep,
         getRegionsTemplatePath: getRegionsTemplatePath,
@@ -1019,8 +1028,8 @@
               initialised = true;
               deferred.resolve();
             })
-            .catch(function () {
-              deferred.reject();
+            .catch(function (response) {
+              deferred.reject(response);
             });
         }
 
@@ -1251,6 +1260,8 @@
         if (!isNewMailing()) {
           CiviApi.get(constants.entities.MAILING, {id: getMailingIdFromUrl()})
             .then(function (response) {
+              if (response.data.values.length === 0) return $q.reject('Mailing not found!');
+
               setCurrentMailing(response.data.values[0], true);
 
               var createdFromSearch = response.data.values[0].hidden_recipient_group_entity_ids.length ? true : false;
@@ -1258,8 +1269,8 @@
 
               deferred.resolve();
             })
-            .catch(function () {
-              deferred.reject();
+            .catch(function (response) {
+              deferred.reject(response);
             });
         } else {
           CiviApi.post('SimpleMail', getCurrentMailing(), 'iscreatedfromsearch')
@@ -1325,6 +1336,8 @@
     }];
 
   /**
+   * TODO (robin): Implement queued notification service
+   *
    * @ngdoc service
    * @name NotificationFactory
    * @return {object}
@@ -1432,8 +1445,11 @@
        * @ngdoc method
        * @name NotificationFactory#genericError
        */
-      var genericError = function () {
-        return _createCrmNotification('Oops! Something went wrong.', 'Please refresh the page', constants.notificationTypes.ERROR);
+      var genericError = function (message) {
+        var subject = 'Oops! Something went wrong';
+        var description = message || 'Please refresh the page';
+
+        return _createCrmNotification(subject, description, constants.notificationTypes.ERROR);
       };
 
       /**

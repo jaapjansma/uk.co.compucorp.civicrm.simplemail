@@ -146,8 +146,8 @@
       promises.push(mailingPromise, mailingGroupsPromise);
 
       $q.all(promises)
-        .catch(function () {
-          Notification.genericError();
+        .catch(function (response) {
+          Notification.genericError(response);
         })
         .finally(function () {
           self.initialised = true;
@@ -234,8 +234,8 @@
           self.initFromName();
           self.updateSelectedMessage();
         })
-        .catch(function () {
-          Notification.genericError();
+        .catch(function (response) {
+          Notification.genericError(response);
         })
         .finally(function () {
           Wizard.init();
@@ -307,8 +307,8 @@
       promises.push(mailingPromise, mailingGroupsPromise);
 
       $q.all(promises)
-        .catch(function () {
-          Notification.genericError();
+        .catch(function (response) {
+          Notification.genericError(response);
         })
         .finally(function () {
           Wizard.init();
@@ -316,6 +316,12 @@
     }
   ];
 
+  /**
+   * Step 4 of the wizard
+   *
+   * @ngdoc controller
+   * @name ScheduleAndSendCtrl
+   */
   var ScheduleAndSendCtrl = ['$q', 'MailingDetailFactory', 'NotificationFactory', 'WizardStepFactory',
     function ($q, Mailing, Notification, Wizard) {
       var self = this;
@@ -332,8 +338,8 @@
       promises.push(mailingPromise);
 
       $q.all(promises)
-        .catch(function () {
-          Notification.genericError();
+        .catch(function (response) {
+          Notification.genericError(response);
         })
         .finally(function () {
           Wizard.init();
@@ -401,7 +407,13 @@
       };
 
       this.submitMassEmail = function () {
-        if (Wizard.isInitialised()) Wizard.submitMassEmail();
+        if (Wizard.isInitialised()) {
+          Wizard.deinit();
+          Wizard.submitMassEmail()
+            .finally(function() {
+              Wizard.init();
+            });
+        }
       };
 
       this.cancel = function () {

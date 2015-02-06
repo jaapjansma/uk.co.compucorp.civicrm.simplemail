@@ -2,6 +2,7 @@
 
 /**
  * Class CRM_Simplemail_BAO_SimpleMail
+ * TODO (robin): Refactor the class to make it less reliant on static methods
  */
 class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
@@ -378,7 +379,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
           }
         }
 
-        if ($allEmpty) $errors[] = 'either of ' . implode(', ', $param) . ' not provided';
+        if ($allEmpty) $errors[] = 'either of ' . implode(', ', $name) . ' not provided';
       }
       // Process the usual required param
       else if (empty($params[$param])) {
@@ -919,7 +920,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       $params['body'] = html_entity_decode($params['body']);
 
       // Replace nbsp; with space as otherwise it will make MySQL save fail
-      $params['body'] = str_replace("\xA0", ' ', $params['body']);
+      $params['body'] = str_replace("\xC2\xA0", ' ', $params['body']);
     }
     if (!empty($params['contact_details'])) {
       // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
