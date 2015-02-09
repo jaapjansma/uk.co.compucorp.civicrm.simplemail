@@ -416,9 +416,11 @@
        * @returns {ng.IPromise<TResult>|*}
        */
       var saveAndContinueLater = function () {
+        Notification.clearPersistentNotifications();
+
         return Mailing.saveProgress()
           .then(function () {
-            Mailing.clearCurrentMailing();
+            Mailing.resetCurrentMailing();
             redirectToListing();
           });
       };
@@ -429,6 +431,8 @@
        * @returns {IPromise}
        */
       var submitMassEmail = function () {
+        Notification.clearPersistentNotifications();
+
         return Mailing.submitMassEmail()
           .then(function () {
             redirectToListing();
@@ -449,7 +453,7 @@
        * @name WizardStepFactory#cancel
        */
       var cancel = function () {
-        Mailing.clearCurrentMailing();
+        Mailing.resetCurrentMailing();
         redirectToListing();
       };
 
@@ -535,24 +539,12 @@
        * @returns {ng.IPromise<TResult>|*}
        */
       var proceedToStep = function (step) {
-        var changed = false;
-        if (Mailing.isCurrentMailingDirty()) {
-          var notificationInstance = Notification.loading('Saving...');
-          changed = true;
-        }
+        Notification.clearPersistentNotifications();
 
         return Mailing.saveProgress()
-          .then(function () {
-            if (changed) {
-              Notification.clear(notificationInstance);
-              Notification.success('Mailing saved');
-            }
-
+          .then(function (response) {
             redirectToStep(step);
-          })
-          .catch(function (response) {
-            Notification.error('Failed to save mailing!');
-            $log.error('Failed to save mailing!', response);
+            return response;
           });
       };
 
@@ -560,6 +552,8 @@
        * @private
        */
       var redirectToStep = function (step) {
+        Notification.clearPersistentNotifications();
+
         setCurrentStep(step);
         initialised = false;
         $location.path(getStepUrl(step));
@@ -569,6 +563,8 @@
        * @private
        */
       var redirectToListing = function () {
+        Notification.clearPersistentNotifications();
+
         $location.path(constants.paths.WIZARD_ROOT);
       };
 
@@ -1102,6 +1098,8 @@
             // If nothing changed, just return a resolved promise
             if (!isCurrentMailingDirty()) return;
 
+            Notification.loading('Saving...');
+
             var currentMailing = getCurrentMailing();
 
             // Reset scheduled_date and send_immediately in case the current mailing object (cached) has a scheduled
@@ -1122,7 +1120,19 @@
                 return CiviApi.get(constants.entities.MAILING, {id: response.data.values[0].id})
               })
               .then(function (response) {
+                if (response.data.values.length === 0) {
+                  return $q.reject('Saved mailing cannot be found. Please refresh the page and try again.');
+                }
+
                 setCurrentMailing(response.data.values[0], true);
+
+                Notification.success('Mailing saved');
+              })
+              .catch(function(response) {
+                Notification.clearByType(Notification.constants.notificationTypes.LOADING);
+                Notification.error('Failed to save mailing', response);
+
+                return $q.reject(response);
               });
           });
       };
@@ -1160,14 +1170,22 @@
        * @returns {IPromise}
        */
       var submitMassEmail = function () {
+        Notification.loading('Submitting the mailing for mass emailing...');
+
         if (currentMailing.send_immediately) {
           currentMailing.scheduled_date = Date.create().format('{yyyy}-{{MM}}-{{dd}} {{HH}}:{{mm}}:{{ss}}');
         }
 
-        return CiviApi.post(constants.entities.MAILING, getCurrentMailing(), 'submitmassemail', {
-          success: 'Mailing submitted for mass emailing',
-          error: 'Oops! Failed to submit the mailing for mass emailing'
-        });
+        return CiviApi.post(constants.entities.MAILING, getCurrentMailing(), 'submitmassemail')
+          .then(function() {
+            Notification.success('Mailing submitted for mass emailing');
+          })
+          .catch(function(response) {
+            Notification.clearByType(Notification.constants.notificationTypes.LOADING);
+            Notification.error('Failed to save mailing', response);
+
+            return $q.reject(response);
+          });
       };
 
       /**
@@ -1319,7 +1337,7 @@
 
       return {
         canUpdate: canUpdate,
-        clearCurrentMailing: resetCurrentMailing,
+        resetCurrentMailing: resetCurrentMailing,
         init: init,
         saveProgress: saveProgress,
         sendTestEmail: sendTestEmail,
@@ -1350,22 +1368,9 @@
      */
       function ($log) {
       /**
-       * Enable or disable all notifications
-       *
-       * @type {boolean}
-       */
-      var notificationEnabled = true;
-
-      /**
-       * Enable or disable logging of notifications
-       *
-       * @type {boolean}
-       */
-      var logNotifications = true;
-
-      /**
        * Notification status constants for passing as argument to CiviCRM notification function
        *
+       * @name NotificationFactory#constants
        * @readonly
        * @enum {string}
        */
@@ -1380,6 +1385,27 @@
       };
 
       /**
+       * Enable or disable all notifications
+       *
+       * @type {boolean}
+       */
+      var notificationEnabled = true;
+
+      /**
+       * Enable or disable logging of notifications
+       *
+       * @type {boolean}
+       */
+      var logNotifications = true;
+
+      /**
+       * Notification queue
+       *
+       * @type {object}
+       */
+       var queue = {};
+
+     /**
        * Create an alert message
        *
        * @ngdoc method
@@ -1400,7 +1426,7 @@
        * @param description
        */
       var success = function (subject, description) {
-        return _createCrmNotification(subject, description, constants.notificationTypes.SUCCESS);
+        return _createCrmNotification(subject, description, constants.notificationTypes.SUCCESS, {expires: 2000});
       };
 
       /**
@@ -1424,6 +1450,9 @@
        * @param description
        */
       var error = function (subject, description) {
+        subject = subject || 'Oops! Something went wrong.';
+        description = description || 'Please refresh the page and try again.';
+
         return _createCrmNotification(subject, description, constants.notificationTypes.ERROR);
       };
 
@@ -1457,10 +1486,57 @@
        *
        * @ngdoc method
        * @name NotificationFactory#clear
-       * @param instance Notification instance
+       * @param notification Notification instance
        */
-      var clear = function (instance) {
-        instance.close();
+      var clear = function (notification) {
+        angular.forEach(queue, function(notifications, type) {
+          var index = notifications.indexOf(notification);
+
+          if (index !== -1) {
+            notifications.splice(index, 1);
+            notification.close();
+          }
+        });
+      };
+
+      /**
+       * Clear all persistent notifications
+       *
+       * @ngdoc method
+       * @name NotificationFactory#clearPersistentNotifications
+       */
+      var clearPersistentNotifications = function() {
+        clearByType(constants.notificationTypes.LOADING);
+        clearByType(constants.notificationTypes.ERROR);
+      };
+
+      /**
+       * Clear all notifications
+       *
+       * @ngdoc method
+       * @name NotificationFactory#clearAll
+       */
+      var clearAll = function () {
+        angular.forEach(queue, function(notifications, type) {
+          clearByType(type);
+        });
+      };
+
+      /**
+       * Clear all notifications for the given type
+       *
+       * @ngdoc method
+       * @name NotificationFactory#clearByType
+       * @param type
+       */
+      var clearByType = function (type) {
+        if (queue[type]) {
+          angular.forEach(queue[type], function (notification) {
+            notification.close();
+          });
+
+          queue[type].length = 0;
+        }
       };
 
       /**
@@ -1480,18 +1556,39 @@
 
           if (logNotifications) $log.debug('(' + type.toUpperCase() + ') ' + subject, description);
 
-          return CRM.alert(description, subject, type, options);
+          var notification = CRM.alert(description, subject, type, options);
+
+          _pushNotification(notification, type);
+
+          return notification;
         }
+      };
+
+      /**
+       * Push a notification to the queue, corresponding to its type
+       *
+       * @ngdoc function
+       * @param notification Notification instance
+       * @param type Type of notification
+       * @private
+       */
+      var _pushNotification = function(notification, type) {
+        queue[type] = queue[type] || [];
+        queue[type].push(notification);
       };
 
       return {
         alert: alert,
         clear: clear,
+        clearAll: clearAll,
+        clearByType: clearByType,
+        clearPersistentNotifications: clearPersistentNotifications,
         success: success,
         info: info,
         error: error,
         loading: loading,
-        genericError: genericError
+        genericError: genericError,
+        constants: constants
       };
     }
   ];
@@ -1639,26 +1736,26 @@
               Notification.clear(notificationInstance);
             }
 
-            if (successMessage) {
-              Notification.success(successMessage);
-              $log.info(successMessage + ':', response);
-            } else {
-              $log.info('Successfully performed \'' + action + '\' on \'' + entityName + '\' with response:', response);
-            }
+            if (successMessage) Notification.success(successMessage);
+
+            $log.info('Successfully performed \'' + action + '\' on \'' + entityName + '\' with response:', response);
 
             return response;
           })
           .catch(function (response) {
-            if (errorMessage) {
-              if (response.data.error_message) errorMessage += ': ' + response.data.error_message;
+            var errorDescription = errorMessage || '';
 
-              Notification.error(errorMessage);
-              $log.error(errorMessage + ':', response);
-            } else {
-              $log.error('Failed to perform ' + action + ' on ' + entityName + ' with response:', response);
+            if (response.data.error_message) {
+              if (errorDescription) errorDescription += ': ';
+
+              errorDescription += response.data.error_message;
             }
 
-            return $q.reject(response);
+            if (errorMessage) Notification.error(errorDescription);
+
+            $log.error('Failed to perform ' + action + ' on ' + entityName + ' with response:', response);
+
+            return $q.reject(errorDescription);
           });
       };
 
