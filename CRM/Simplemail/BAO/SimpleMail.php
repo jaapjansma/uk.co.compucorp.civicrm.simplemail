@@ -39,8 +39,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     'scheduled_date' => 'schedule date',
     'category_id'    => 'category ID',
     array(
-      'recipient_group_entity_ids'        => 'recipient group ID',
-      'hidden_recipient_group_entity_ids' => 'smart group ID'
+      'recipient_group_entity_ids'        => 'recipient group(s)',
+      'hidden_recipient_group_entity_ids' => 'smart group'
     )
   );
 
@@ -379,16 +379,16 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
           }
         }
 
-        if ($allEmpty) $errors[] = 'either of ' . implode(', ', $name) . ' not provided';
+        if ($allEmpty) $errors[] = '<li>Neither of these provided: ' . implode(', ', $name) . '</li>';
       }
       // Process the usual required param
       else if (empty($params[$param])) {
-        $errors[] = $name . ' not provided';
+        $errors[] = '<li>' . ucfirst($name) . ' not provided</li>';
       }
     }
 
     if ($errors) {
-      throw new CRM_Extension_Exception(implode(', ', $errors));
+      throw new CRM_Extension_Exception('<ul>' . implode('', $errors) . '</ul>');
     }
   }
 
@@ -912,6 +912,9 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @param $params
    */
   protected static function sanitiseParams(&$params) {
+    $params['id'] = (int) $params['id'];
+    $params['crm_mailing_id'] = (int) $params['crm_mailing_id'];
+
     if (!empty($params['from_name'])) {
       $params['from_address'] = preg_replace('/\".+\"/', '"' . $params['from_name'] . '"', $params['from_address']);
     }

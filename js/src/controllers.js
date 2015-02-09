@@ -378,7 +378,7 @@
   /**
    * Mailing buttons
    */
-  var MailingButtonsCtrl = ['MailingDetailFactory', 'WizardStepFactory',
+  var MailingButtonsCtrl = ['MailingDetailFactory', 'WizardStepFactory', 'NotificationFactory',
     /**
      *
      * @param {MailingDetailFactory} Mailing
@@ -395,22 +395,22 @@
       };
 
       this.prevStep = function () {
-        if (Wizard.isInitialised()) Wizard.prevStep();
+        if (Wizard.isInitialised()) return Wizard.prevStep();
       };
 
       this.nextStep = function () {
-        if (Wizard.isInitialised()) Wizard.nextStep();
+        if (Wizard.isInitialised()) return Wizard.nextStep();
       };
 
       this.saveAndContinueLater = function () {
-        if (Wizard.isInitialised()) Wizard.saveAndContinueLater();
+        if (Wizard.isInitialised()) return Wizard.saveAndContinueLater();
       };
 
       this.submitMassEmail = function () {
         if (Wizard.isInitialised()) {
           Wizard.deinit();
-          Wizard.submitMassEmail()
-            .finally(function() {
+          return Wizard.submitMassEmail()
+            .finally(function () {
               Wizard.init();
             });
         }
@@ -420,8 +420,8 @@
         Wizard.cancel();
       };
 
-      this.sendTestEmail = function() {
-        Wizard.sendTestEmail();
+      this.sendTestEmail = function () {
+        return Wizard.sendTestEmail();
       }
     }];
 
