@@ -943,8 +943,10 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       $params['created_date'] = $dateTime->format('YmdHis');
     }
     if (!empty($params['scheduled_date'])) {
-      $dateTime = new DateTime($params['scheduled_date']);
-      $params['scheduled_date'] = $dateTime->format('YmdHis');
+      // This will get rid of the double timezone specification error - the '+' at the end causes the trailing data
+      // to issue a warning, instead of an error
+      $params['scheduled_date'] = DateTime::createFromFormat('D M d Y H:i:s e+', $params['scheduled_date'])
+        ->format('YmdHis');
     }
     if (!empty($params['approval_date'])) {
       $dateTime = new DateTime($params['approval_date']);
