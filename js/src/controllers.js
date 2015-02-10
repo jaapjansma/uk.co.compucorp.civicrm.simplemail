@@ -267,8 +267,10 @@
       };
 
       this.initFromName = function() {
-        if (this.mailing.from_name) {
-          this.fromEmails.unshift({label: this.mailing.from_address})
+        if (this.mailing.from_name && this.fromEmails.indexOf(this.mailing.from_address) === -1) {
+          var selectedEmail = $filter('filter')(this.fromEmails, {label: this.mailing.from_address});
+
+          if (selectedEmail.length === 0) this.fromEmails.unshift({label: this.mailing.from_address})
         }
       };
 
