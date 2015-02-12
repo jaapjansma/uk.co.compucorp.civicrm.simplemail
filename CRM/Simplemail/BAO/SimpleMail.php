@@ -913,18 +913,15 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @param $params
    */
   protected static function sanitiseParams(&$params) {
-    $params['id'] = (int) $params['id'];
-    $params['crm_mailing_id'] = (int) $params['crm_mailing_id'];
+    if (!empty($params['id'])) $params['id'] = (int) $params['id'];
+    if (!empty($params['crm_mailing_id'])) $params['crm_mailing_id'] = (int) $params['crm_mailing_id'];
 
     if (!empty($params['from_name'])) {
       $params['from_address'] = preg_replace('/\".+\"/', '"' . $params['from_name'] . '"', $params['from_address']);
     }
     if (!empty($params['body'])) {
       // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
-      $params['body'] = html_entity_decode($params['body']);
-
-      // Replace nbsp; with space as otherwise it will make MySQL save fail
-      $params['body'] = str_replace("\xC2\xA0", ' ', $params['body']);
+      $params['body'] = html_entity_decode($params['body'], ENT_NOQUOTES, 'UTF-8');
     }
     if (!empty($params['contact_details'])) {
       // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
