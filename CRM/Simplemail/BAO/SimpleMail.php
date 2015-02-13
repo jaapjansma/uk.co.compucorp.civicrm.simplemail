@@ -742,7 +742,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $template->contactDetails = isset($params['contact_details']) && $params['contact_details']
       ? $params['contact_details']
       : NULL;
-    $template->unsubscribeLink = 'https://member.atl.org.uk/node/5?cid1={contact.contact_id}&{contact.checksum}';
+    // TODO (robin): Make this dynamic as useful when testing on a dev box
+    $template->unsubscribeLink = static::getOptOutLink();
 
     // Retrieve header if the mailing has one, and assign header and logo images in the template accordingly
     if (isset($params['header_id'])) {
@@ -808,6 +809,16 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $mailToLink .= '?subject=' . $subject;
 
     return 'mailto:' . $mailToLink;
+  }
+
+  /**
+   * Get the URL for opting out of all emails. Currently, this has been hardcoded to a certain webform that handles
+   * unsubscribe from all operation.
+   *
+   * @return string
+   */
+  protected function getOptOutLink() {
+    return CRM_Core_Config::singleton()->userFrameworkBaseURL . 'node/5?cid1={contact.contact_id}&{contact.checksum}';
   }
 
   /**
