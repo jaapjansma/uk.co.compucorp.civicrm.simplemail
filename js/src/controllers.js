@@ -37,6 +37,8 @@
         ENTITY_NAME: 'SimpleMail',
         DRAFT: 'Not Scheduled',
         SCHEDULED: 'Scheduled',
+        RUNNING: 'Running',
+        PAUSED: 'Paused',
         SENT: 'Complete',
         CANCELLED: 'Canceled'
       };
@@ -56,6 +58,8 @@
       $scope.mailingFilters.status[$scope.constants.DRAFT] = true;
       $scope.mailingFilters.status[$scope.constants.SCHEDULED] = true;
       $scope.mailingFilters.status[$scope.constants.SENT] = true;
+      $scope.mailingFilters.status[$scope.constants.RUNNING] = true;
+      $scope.mailingFilters.status[$scope.constants.PAUSED] = true;
       $scope.mailingFilters.status[$scope.constants.CANCELLED] = true;
 
       MailingsListing.init()

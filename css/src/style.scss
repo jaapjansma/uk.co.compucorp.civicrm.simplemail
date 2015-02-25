@@ -1,14 +1,22 @@
 /* Generic colours */
 $black: #000;
+
+// Greys
 $darkest-grey: #303030;
 $dark-grey: #505050;
 $grey: #808080;
 $medium-grey: #a0a0a0;
 $light-grey: #c0c0c0;
 $lightest-grey: #f0f0f0;
+
 $yellow: lightgoldenrodyellow;
+
 $orange: orange;
+
 $green: green;
+
+$blue: #2786c2;
+
 $red: indianred;
 
 /* Themed colours */
@@ -44,6 +52,14 @@ $border-radius: 3px;
 
   .fa-times-circle-o {
     color: $red;
+  }
+
+  .fa-flag {
+    color: $medium-grey;
+  }
+
+  .fa-paper-plane {
+    color: $blue;
   }
 
   .step-header {
@@ -470,7 +486,7 @@ $border-radius: 3px;
   .field-group.inline {
     label,
     .label {
-      width: 20%;
+      width: 15%;
       float: left;
       text-align: right;
       margin-right: 1rem;
@@ -497,7 +513,7 @@ $border-radius: 3px;
   }
 
   .resizable-textarea {
-    width: 75%;
+    width: 80%;
     float: left;
     textarea {
       width: 100%;

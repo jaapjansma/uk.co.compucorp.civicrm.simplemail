@@ -26,6 +26,16 @@
         </li>
 
         <li>
+          <input ng-model="mailingFilters.status[constants.RUNNING]" id="filter-running-mailings" type="checkbox"/>
+          <label for="filter-running-mailings">Running</label>
+        </li>
+
+        <li>
+          <input ng-model="mailingFilters.status[constants.PAUSED]" id="filter-paused-mailings" type="checkbox"/>
+          <label for="filter-paused-mailings">Paused</label>
+        </li>
+
+        <li>
           <input ng-model="mailingFilters.status[constants.SENT]" id="filter-sent-mailings" type="checkbox"/>
           <label for="filter-sent-mailings">Sent</label>
         </li>
@@ -69,7 +79,7 @@
       <td class="name">{{mailing.name}}</td>
       <td class="current-status">
         <i class="fa fa-2x"
-           ng-class="{Scheduled: 'fa-clock-o', Complete: 'fa-check-circle-o', 'Not Scheduled': 'fa-pencil', Canceled: 'fa-times-circle-o'}[mailing.status]"
+           ng-class="{Scheduled: 'fa-clock-o', Complete: 'fa-check-circle-o', 'Not Scheduled': 'fa-pencil', Canceled: 'fa-times-circle-o', Running: 'fa-paper-plane', Paused: 'fa-flag'}[mailing.status]"
            title="{{mailing.status}}">
         </i>
       </td>
