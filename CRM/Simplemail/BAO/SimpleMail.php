@@ -192,7 +192,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       sm.id, sm.crm_mailing_id, sm.from_address, sm.header_id, sm.title, sm.body, sm.contact_details, sm.message_id, sm.reply_address,
       cm.name, cm.subject, cm.body_html, cm.from_name, cm.created_id, cm.created_date, cm.scheduled_id, cm.scheduled_date, cm .dedupe_email,
       MIN(j.start_date) start_date, MAX(j.end_date) end_date, j.status,
-      c.sort_name, c.external_identifier,
+      c.sort_name,
       GROUP_CONCAT(DISTINCT CONCAT(g.id, ':', g.is_hidden, ':', g.group_type)) recipient_group_entities
 
     FROM civicrm_simplemail sm
@@ -798,11 +798,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     }
 
     $subject = rawurlencode($params['subject']);
-
-    $subject .= !empty($params['external_identifier'])
-      ? rawurlencode(' -- Membership ID: ') . '{contact.external_identifier} '
-      : '';
-
+    $subject .= rawurlencode(' -- Membership ID: ') . '{contact.external_identifier} ';
     $subject .= rawurlencode(' -- Mailing ID: ' . $params['id']);
 
     $mailToLink = $params['reply_address'];
