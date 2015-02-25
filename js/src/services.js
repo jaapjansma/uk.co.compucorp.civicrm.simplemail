@@ -851,7 +851,7 @@
             })
             // Get the option values
             .then(function (groupId) {
-              return CiviApi.get('OptionValue', {option_group_id: groupId}, {cached: true})
+              return CiviApi.get('OptionValue', {option_group_id: groupId, is_active: 1}, {cached: true})
                 .then(function (response) {
                   fromEmails = response.data.values;
                   fromEmailsInitialised = true;
