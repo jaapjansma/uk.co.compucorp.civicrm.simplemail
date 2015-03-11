@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * General todos:
+ *
+ * TODO (robin): Automate adding a new option value for Group Type for Mailing Category on installation
+ * TODO (robin): Automate adding a new option group and values for header categories
+ */
+
 require_once 'simplemail.civix.php';
 
 simplemail_civicrm_init();

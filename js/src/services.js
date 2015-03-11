@@ -811,6 +811,8 @@
               var groups = $filter('filter')(response.data.values, {is_hidden: 0});
 
               angular.forEach(groups, function (group) {
+                if (!group.group_type) return;
+
                 var isMailingGroup = false;
                 var isMailingCategory = false;
 
@@ -826,8 +828,8 @@
               mailingGroupsInitialised = true;
               deferred.resolve();
             })
-            .catch(function () {
-              deferred.reject();
+            .catch(function (response) {
+              deferred.reject(response);
             });
         }
 

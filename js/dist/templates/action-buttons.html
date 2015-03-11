@@ -1,16 +1,16 @@
 <ul>
   <li>
     <a ng-class="{disabled: submitting === true}"
-       ng-if="mailing.status === constants.DRAFT || mailing.status === constants.SCHEDULED"
+       ng-if="mailing.status === constants.DRAFT"
        ng-href="#/mailings/{{mailing.id}}" class="">
-      {{mailing.status === constants.DRAFT ? 'Edit' : 'Update'}}
+        Edit
     </a>
   </li>
-  <li ng-if="mailing.status === constants.SCHEDULED">
+  <li ng-if="mailing.status === constants.SCHEDULED || mailing.status === constants.RUNNING">
     <a href sm-click-once="cancel()">Cancel</a>
   </li>
   <li><a href sm-click-once="duplicate()">Duplicate</a></li>
-  <li><a href sm-click-once="delete()">Delete</a></li>
+  <li ng-if="mailing.status !== constants.RUNNING"><a href sm-click-once="delete()">Delete</a></li>
   <li ng-if="mailing.start_date">
     <a ng-href="/civicrm/mailing/report?mid={{mailing.crm_mailing_id}}&reset=1">Report</a>
   </li>
