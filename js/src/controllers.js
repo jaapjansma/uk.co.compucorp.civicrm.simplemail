@@ -134,6 +134,7 @@
         .then(function () {
           self.mailing = Mailing.getCurrentMailing();
           self.fromSearch = Mailing.isCreatedFromSearch();
+          self.contactsCount = Mailing.getContactsCount();
           if (angular.isUndefined(self.mailing.dedupe_email)) self.mailing.dedupe_email = '1';
         });
 
@@ -156,7 +157,8 @@
 
       this.isMailingNotScheduled = function() {
         return Mailing.isCurrentMailingNotScheduled();
-      }
+      };
+      
     }
   ];
 

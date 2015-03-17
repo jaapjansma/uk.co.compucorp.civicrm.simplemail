@@ -320,6 +320,45 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     return array('values' => array(array('answer' => $createdFromSearch)));
   }
 
+	
+	public static function getSearchContacts(){
+		$result = simplemail_civicrm_getFromSessionScope('contactIds');
+		return array('values' => $result);
+	}
+
+	public static function getMailingContacts($entityId, $mailingId){
+		
+		$retry = 0;
+		$foundContacts = false;
+		
+		do {
+			$sql = "
+				SELECT COUNT(*) AS total
+				FROM civicrm_group_contact_cache
+				WHERE group_id = '".(int) $entityId."'
+			";
+			
+			try {
+				$dao = CRM_Core_DAO::executeQuery($sql);
+				$dao->fetch();
+				$row = $dao->toArray();
+				
+				if ($row['total'] == 0){
+					CRM_Mailing_BAO_Mailing::getRecipients($mailingId, $mailingId, null, null, true, true);
+				} else {
+					$foundContacts = $row['total'];
+				}
+			} catch (Exception $e){
+				throw new CRM_Extension_Exception("Error finding contacts: ".$e->getMessage(), 500, array('dao' => $dao));
+			}
+			
+			$retry++;
+		} while (($retry <= 1) && !$foundContacts);
+		
+		return $foundContacts;
+		
+	}
+	
   ///////////////////////
   // Protected Methods //
   ///////////////////////

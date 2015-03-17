@@ -48,7 +48,34 @@ function civicrm_api3_simple_mail_delete($params) {
 function civicrm_api3_simple_mail_get($params) {
   try {
     $result = CRM_Simplemail_BAO_SimpleMail::getMailing($params);
+		
+		//$contactsResult = CRM_Simplemail_BAO_SimpleMail::getMailingContacts();
+		
+		if ($result && isset($result['values']) && (count($result['values']) > 0)){
+			
+			// This may need reviewing for two reasons:
+			// 1. the entity id may not be in hidden_recipient_group_entity_ids, it could be located by a different
+			// array key
+			// 2. we're looking at an array of values, so there may be more than one value
+			$entities = $result['values'][0]['hidden_recipient_group_entity_ids'];
+			$entityId = $entities[0];
+			$mailingId = $result['values'][0]['crm_mailing_id'];
 
+			$apiResult = civicrm_api('GroupContact', 'getcount', array(
+				'version' => 3,
+				'group_id' => $entityId
+			));
+			
+			if (!$apiResult){
+				$contactsCount = CRM_Simplemail_BAO_SimpleMail::getMailingContacts($entityId, $mailingId);
+			} else {
+				$contactsCount = $apiResult;
+			}
+
+			$result['extraValues']['contactsCount'] = $contactsCount;
+			
+		}
+		
     return civicrm_api3_create_success($result['values'], $params, NULL, 'get', $result['dao'], $result['extraValues']);
   } catch (CRM_Extension_Exception $e) {
     $errorData = $e->getErrorData();
@@ -194,6 +221,39 @@ function civicrm_api3_simple_mail_iscreatedfromsearch($params) {
     return civicrm_api3_create_error($e->getMessage());
   }
 }
+
+/**
+ * SimpleMail.GetSearchContacts
+ * 
+ * This method returns a list of contacts who were previously results from a search
+ * Could be used in conjunction with iscreatedfromsearch
+ * 
+ */
+function civicrm_api3_simple_mail_getsearchcontacts($params){
+	try {
+		$result = CRM_Simplemail_BAO_SimpleMail::getSearchContacts();
+		return civicrm_api3_create_success($result['values'], $params, NULL, 'getsearchcontacts');
+	} catch (CRM_Extension_Exception $e){
+		return civicrm_api3_create_error($e->getMessage());
+	}
+}
+
+
+/**
+ * This differs subtley from getsearchcontacts
+ * This returns the contacts for a mailing that has already been started
+ * Whereas getsearchcontacts works for a mailing that has literally just been created
+ * This goes to the DB to get the users, whereas the getsearchcontacts looks in the session
+ */
+function civicrm_api3_simple_mail_getmailingcontacts($params){
+	try {
+		$result = CRM_Simplemail_BAO_SimpleMail::getMailingContacts($params['mailingid']);
+		return civicrm_api3_create_success($result['values'], $params, NULL, 'getmailingcontacts');
+	} catch (CRM_Extension_Exception $e){
+		return civicrm_api3_create_error($e->getMessage());
+	}
+}
+
 
 /**
  * SimpleMail.ClearSearchContacts API

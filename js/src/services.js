@@ -989,6 +989,15 @@
        */
       var createdFromSearch;
 
+			/**
+			 * Stores the number of contacts that are being emailed
+			 * This value is only populated if the contacts have come from a previous
+			 * search result, or if this is a previous email that we've come back to
+			 * 
+			 * @type {int} 
+			 */
+			var contactsCount;
+
       /**
        * @type {string}
        */
@@ -1110,7 +1119,7 @@
             // Else, save the changes
             return CiviApi.create(constants.entities.MAILING, currentMailing)
               .then(function (response) {
-                return CiviApi.get(constants.entities.MAILING, {id: response.data.values[0].id})
+                return CiviApi.get(constants.entities.MAILING, {id: response.data.values[0].id});
               })
               .then(function (response) {
                 setCurrentMailing(response.data.values[0], true);
@@ -1195,6 +1204,15 @@
         return createdFromSearch;
       };
 
+			/**
+			 * @ngdoc method
+			 * @name MailingDetailFactory#getContactsCount
+			 * @returns {int} 
+			 */
+			var getContactsCount = function(){
+				return contactsCount;
+			};
+
       // Getters and Setters
 
       /**
@@ -1248,14 +1266,20 @@
         var deferred = $q.defer();
 
         // The mailing isn't new (i.e. mailing ID exists in the URL) - populate current mailing using the API
+        // constants.entities.MAILING = SimpleMail
         if (!isNewMailing()) {
           CiviApi.get(constants.entities.MAILING, {id: getMailingIdFromUrl()})
             .then(function (response) {
+            	
               setCurrentMailing(response.data.values[0], true);
 
               var createdFromSearch = response.data.values[0].hidden_recipient_group_entity_ids.length ? true : false;
               setCreatedFromSearch(createdFromSearch);
-
+							
+							if (response.data.contactsCount){
+								contactsCount = response.data.contactsCount;
+							}
+							
               deferred.resolve();
             })
             .catch(function () {
@@ -1264,9 +1288,23 @@
         } else {
           CiviApi.post('SimpleMail', getCurrentMailing(), 'iscreatedfromsearch')
             .then(function (response) {
-              setCreatedFromSearch(response.data.values[0].answer);
+              
+              var createdFromSearch = response.data.values[0].answer;
+              
+              setCreatedFromSearch(createdFromSearch);
+							
+							if (createdFromSearch){
 
-              deferred.resolve();
+								CiviApi.post('SimpleMail', getCurrentMailing(), 'getsearchcontacts')
+									.then(function(response){
+										contactsCount = response.data.values.length;
+			              deferred.resolve();
+									});
+							
+							} else {
+	              deferred.resolve();
+							}
+							
             });
         }
 
@@ -1318,6 +1356,7 @@
         setCurrentMailing: setCurrentMailing,
         isInitialised: isInitialised,
         isCreatedFromSearch: isCreatedFromSearch,
+        getContactsCount : getContactsCount,
         isCurrentMailingDirty: isCurrentMailingDirty,
         isCurrentMailingNotScheduled: isCurrentMailingNotScheduled,
         getCurrentMailingStatus: getCurrentMailingStatus

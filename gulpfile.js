@@ -9,7 +9,13 @@ var notify = require('gulp-notify');
  * CSS operations
  */
 gulp.task('css', function () {
-  return gulp.src('css/src/style.scss')
+	
+	// the change to the gulpfile is due to this:
+	// http://stackoverflow.com/questions/28140012/gulp-typeerror-arguments-to-path-join-must-be-strings
+	
+  return 
+  	//gulp.src('css/src/style.scss')
+  	sass('css/src/style.scss', {style: 'compressed', sourcemap: true})
     .pipe(sass({style: 'compressed', sourcemap: true}))
     .pipe(autoprefixer())
     .pipe(gulp.dest('css/dist'))
@@ -24,12 +30,24 @@ gulp.task('javascript', function () {
     .pipe(notify({message: 'JavaScript tasks complete'}));
 });
 
+gulp.task('javascript-debug', function(){
+  return gulp.src('js/src/*.js')
+    .pipe(concat('script.js'))
+    .pipe(gulp.dest('js/dist'));
+});
+
 /**
  * Watch
  */
 gulp.task('watch', function () {
   gulp.watch('css/src/*.scss', ['css']);
   gulp.watch('js/src/*.js', ['javascript']);
+});
+
+
+gulp.task('watch-debug', function(){
+  gulp.watch('css/src/*.scss', ['css']);
+  gulp.watch('js/src/*.js', ['javascript-debug']);
 });
 
 /**
