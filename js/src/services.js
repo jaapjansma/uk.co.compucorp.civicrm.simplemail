@@ -593,6 +593,13 @@
     }];
 
 
+
+
+
+
+
+
+
   /**
    * @ngdoc service
    * @name HeaderFactory
@@ -629,7 +636,7 @@
         var deferred = $q.defer();
 
         if (initialised) {
-          deferred.resolve()
+          deferred.resolve();
         } else {
           CiviApi.get('SimpleMailHeader', {withFilters: true}, {cached: true})
             .then(function (response) {
@@ -848,6 +855,14 @@
             .then(function (groupId) {
               return CiviApi.get('OptionValue', {option_group_id: groupId}, {cached: true})
                 .then(function (response) {
+                	
+                	for (var fromEmailIndex in response.data.values){
+                		var item = response.data.values[fromEmailIndex];
+                		if (!item.id){
+                			delete(response.data.values[item]);
+                		}
+                	}
+                	
                   fromEmails = response.data.values;
                   fromEmailsInitialised = true;
                   deferred.resolve();

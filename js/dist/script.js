@@ -947,7 +947,7 @@
       this.editFromName = false;
       this.selectedMessage = '';
       this.selectedFilterId = null;
-
+			
       this.mailing = Mailing.getCurrentMailing();
       this.filters = Helper.getHeaderFilters();
       this.headers = Header.getHeaders();
@@ -980,6 +980,23 @@
       var fromEmailsPromise = Helper.initFromEmails()
         .then(function () {
           self.fromEmails = Helper.getFromEmails();
+					
+					// check we actually were returned a list of email addresses
+          if (self.fromEmails.length){
+          	
+          	// cycle through the email addresses
+          	for (var fromEmailIndex in self.fromEmails){
+          		var item = self.fromEmails[ fromEmailIndex ];
+          		
+          		// if this email address item has an id, which indicates a valid record from the DB, then set this
+          		// as the default selected option
+          		if (item.id){
+          			self.mailing.from_address = item.label;
+          			break;
+          		}
+          	}
+          }
+        	
         });
 
       var campaignMessagesPromise = CampaignMessage.init()
@@ -1020,7 +1037,7 @@
         if (!this.mailing.header_id) {
           // Pre-select the filter named 'ATL' (if exists)
           var selectedFilter = $filter('filter')(this.filters, {label: 'ATL'})[0];
-
+					
           if (angular.isObject(selectedFilter) && selectedFilter.hasOwnProperty('id')) {
             this.selectedFilterId = selectedFilter.id;
           }
@@ -1029,7 +1046,7 @@
 
       this.initFromName = function() {
         if (this.mailing.from_name) {
-          this.fromEmails.unshift({label: this.mailing.from_address})
+          this.fromEmails.unshift({label: this.mailing.from_address});
         }
       };
 
@@ -1039,6 +1056,8 @@
       };
     }
   ];
+
+
 
   /**
    * Step 3 of the wizard
@@ -2442,6 +2461,13 @@
     }];
 
 
+
+
+
+
+
+
+
   /**
    * @ngdoc service
    * @name HeaderFactory
@@ -2478,7 +2504,7 @@
         var deferred = $q.defer();
 
         if (initialised) {
-          deferred.resolve()
+          deferred.resolve();
         } else {
           CiviApi.get('SimpleMailHeader', {withFilters: true}, {cached: true})
             .then(function (response) {
@@ -2697,6 +2723,14 @@
             .then(function (groupId) {
               return CiviApi.get('OptionValue', {option_group_id: groupId}, {cached: true})
                 .then(function (response) {
+                	
+                	for (var fromEmailIndex in response.data.values){
+                		var item = response.data.values[fromEmailIndex];
+                		if (!item.id){
+                			delete(response.data.values[item]);
+                		}
+                	}
+                	
                   fromEmails = response.data.values;
                   fromEmailsInitialised = true;
                   deferred.resolve();

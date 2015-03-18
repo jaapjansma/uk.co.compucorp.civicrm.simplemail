@@ -4,16 +4,6 @@
 
     <div class="cols clearfix">
       <div class="col one-half left field-group">
-        <label for="">Send to a mailing group</label>
-        <ui-select class="full-width" ng-model="test.mailing.testRecipientGroupId" theme="select2">
-          <ui-select-match placeholder="Select group">{{$select.selected.title}}</ui-select-match>
-          <ui-select-choices repeat="group.id as group in test.groups | filter: {title: $select.search}">
-            {{group.title}}
-          </ui-select-choices>
-        </ui-select>
-      </div>
-
-      <div class="col one-half right field-group">
         <label for="reply-address">Send to an email address</label>
         <input class="full-width" id="reply-address" ng-model="test.mailing.testRecipientEmails" type="text"/>
       </div>

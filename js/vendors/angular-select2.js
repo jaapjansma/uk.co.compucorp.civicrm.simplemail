@@ -91,7 +91,9 @@ angular.module('ui.select2', []).value('uiSelect2Config', {}).directive('uiSelec
             }
             controller.$render();
           }, true);
+          
           controller.$render = function () {
+          	
             if (isSelect) {
               elm.select2('val', controller.$viewValue);
             } else {
@@ -196,6 +198,7 @@ angular.module('ui.select2', []).value('uiSelect2Config', {}).directive('uiSelec
 
           // Set initial value - I'm not sure about this but it seems to need to be there
           elm.val(controller.$viewValue);
+          
           // important!
           controller.$render();
 
