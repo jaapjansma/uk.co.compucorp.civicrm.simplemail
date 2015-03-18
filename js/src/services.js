@@ -996,6 +996,15 @@
        */
       var createdFromSearch;
 
+			/**
+			 * Stores the number of contacts that are being emailed
+			 * This value is only populated if the contacts have come from a previous
+			 * search result, or if this is a previous email that we've come back to
+			 * 
+			 * @type {int} 
+			 */
+			var contactsCount;
+
       /**
        * @type {string}
        */
@@ -1224,6 +1233,17 @@
         return createdFromSearch;
       };
 
+
+			/**
+			 * @ngdoc method
+			 * @name MailingDetailFactory#getContactsCount
+			 * @returns {int} 
+			 */
+			var getContactsCount = function(){
+				return contactsCount;
+			};
+
+
       // Getters and Setters
 
       /**
@@ -1287,6 +1307,10 @@
               var createdFromSearch = response.data.values[0].hidden_recipient_group_entity_ids.length ? true : false;
               setCreatedFromSearch(createdFromSearch);
 
+							if (response.data.contactsCount){
+								contactsCount = response.data.contactsCount;
+							}
+							
               deferred.resolve();
             })
             .catch(function (response) {
@@ -1295,9 +1319,22 @@
         } else {
           CiviApi.post('SimpleMail', getCurrentMailing(), 'iscreatedfromsearch')
             .then(function (response) {
-              setCreatedFromSearch(response.data.values[0].answer);
 
-              deferred.resolve();
+							var createdFromSearch = response.data.values[0].answer;
+              setCreatedFromSearch(createdFromSearch);
+							
+							if (createdFromSearch){
+
+								CiviApi.post('SimpleMail', getCurrentMailing(), 'getsearchcontacts')
+									.then(function(response){
+										contactsCount = response.data.values.length;
+			              deferred.resolve();
+									});
+							
+							} else {
+	              deferred.resolve();
+							}
+
             });
         }
 
@@ -1347,6 +1384,7 @@
         //getCurrentMailingId: getCurrentMailingId,
         getCurrentMailing: getCurrentMailing,
         setCurrentMailing: setCurrentMailing,
+        getContactsCount : getContactsCount,
         isInitialised: isInitialised,
         isCreatedFromSearch: isCreatedFromSearch,
         isCurrentMailingDirty: isCurrentMailingDirty,

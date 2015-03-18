@@ -138,6 +138,8 @@
         .then(function () {
           self.mailing = Mailing.getCurrentMailing();
           self.fromSearch = Mailing.isCreatedFromSearch();
+          self.contactsCount = Mailing.getContactsCount();
+          
           if (angular.isUndefined(self.mailing.dedupe_email)) self.mailing.dedupe_email = '1';
         });
 
@@ -223,6 +225,22 @@
       var fromEmailsPromise = Helper.initFromEmails()
         .then(function () {
           self.fromEmails = Helper.getFromEmails();
+
+          if (self.fromEmails.length){
+          	
+          	// cycle through the email addresses
+          	for (var fromEmailIndex in self.fromEmails){
+          		var item = self.fromEmails[ fromEmailIndex ];
+          		
+          		// if this email address item has an id, which indicates a valid record from the DB, then set this
+          		// as the default selected option
+          		if (item.id){
+          			self.mailing.from_address = item.label;
+          			break;
+          		}
+          	}
+          }
+
         });
 
       var campaignMessagesPromise = CampaignMessage.init()
