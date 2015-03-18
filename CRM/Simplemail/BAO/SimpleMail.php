@@ -2,6 +2,7 @@
 
 /**
  * Class CRM_Simplemail_BAO_SimpleMail
+ * TODO (robin): Refactor the class to make it less reliant on static methods
  */
 class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
@@ -38,8 +39,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     'scheduled_date' => 'schedule date',
     'category_id'    => 'category ID',
     array(
-      'recipient_group_entity_ids'        => 'recipient group ID',
-      'hidden_recipient_group_entity_ids' => 'smart group ID'
+      'recipient_group_entity_ids'        => 'recipient group(s)',
+      'hidden_recipient_group_entity_ids' => 'smart group'
     )
   );
 
@@ -191,7 +192,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       sm.id, sm.crm_mailing_id, sm.from_address, sm.header_id, sm.title, sm.body, sm.contact_details, sm.message_id, sm.reply_address,
       cm.name, cm.subject, cm.body_html, cm.from_name, cm.created_id, cm.created_date, cm.scheduled_id, cm.scheduled_date, cm .dedupe_email,
       MIN(j.start_date) start_date, MAX(j.end_date) end_date, j.status,
-      c.sort_name, c.external_identifier,
+      c.sort_name,
       GROUP_CONCAT(DISTINCT CONCAT(g.id, ':', g.is_hidden, ':', g.group_type)) recipient_group_entities
 
     FROM civicrm_simplemail sm
@@ -417,16 +418,16 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
           }
         }
 
-        if ($allEmpty) $errors[] = 'either of ' . implode(', ', $param) . ' not provided';
+        if ($allEmpty) $errors[] = '<li>Neither of these provided: ' . implode(', ', $name) . '</li>';
       }
       // Process the usual required param
       else if (empty($params[$param])) {
-        $errors[] = $name . ' not provided';
+        $errors[] = '<li>' . ucfirst($name) . ' not provided</li>';
       }
     }
 
     if ($errors) {
-      throw new CRM_Extension_Exception(implode(', ', $errors));
+      throw new CRM_Extension_Exception('<ul>' . implode('', $errors) . '</ul>');
     }
   }
 
@@ -780,7 +781,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $template->contactDetails = isset($params['contact_details']) && $params['contact_details']
       ? $params['contact_details']
       : NULL;
-    $template->unsubscribeLink = 'https://member.atl.org.uk/node/5?cid1={contact.contact_id}&{contact.checksum}';
+    // TODO (robin): Make this dynamic as useful when testing on a dev box
+    $template->unsubscribeLink = static::getOptOutLink();
 
     // Retrieve header if the mailing has one, and assign header and logo images in the template accordingly
     if (isset($params['header_id'])) {
@@ -835,17 +837,23 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     }
 
     $subject = rawurlencode($params['subject']);
-
-    $subject .= !empty($params['external_identifier'])
-      ? rawurlencode(' -- Membership ID: ') . '{contact.external_identifier} '
-      : '';
-
+    $subject .= rawurlencode(' -- Membership ID: ') . '{contact.external_identifier} ';
     $subject .= rawurlencode(' -- Mailing ID: ' . $params['id']);
 
     $mailToLink = $params['reply_address'];
     $mailToLink .= '?subject=' . $subject;
 
     return 'mailto:' . $mailToLink;
+  }
+
+  /**
+   * Get the URL for opting out of all emails. Currently, this has been hardcoded to a certain webform that handles
+   * unsubscribe from all operation.
+   *
+   * @return string
+   */
+  protected function getOptOutLink() {
+    return CRM_Core_Config::singleton()->userFrameworkBaseURL . 'node/5?cid1={contact.contact_id}&{contact.checksum}';
   }
 
   /**
@@ -946,19 +954,20 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
   /**
    * Sanitise the params in order to make it conform to the requirements of the entity
+   * TODO (robin): This could be moved to the constructor when migrating to instance methods for the class from the current static ones
    *
    * @param $params
    */
   protected static function sanitiseParams(&$params) {
+    if (!empty($params['id'])) $params['id'] = (int) $params['id'];
+    if (!empty($params['crm_mailing_id'])) $params['crm_mailing_id'] = (int) $params['crm_mailing_id'];
+
     if (!empty($params['from_name'])) {
       $params['from_address'] = preg_replace('/\".+\"/', '"' . $params['from_name'] . '"', $params['from_address']);
     }
     if (!empty($params['body'])) {
       // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
-      $params['body'] = html_entity_decode($params['body']);
-
-      // Replace nbsp; with space as otherwise it will make MySQL save fail
-      $params['body'] = str_replace("\xA0", ' ', $params['body']);
+      $params['body'] = html_entity_decode($params['body'], ENT_NOQUOTES, 'UTF-8');
     }
     if (!empty($params['contact_details'])) {
       // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
@@ -978,7 +987,9 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       $params['created_date'] = $dateTime->format('YmdHis');
     }
     if (!empty($params['scheduled_date'])) {
-      $dateTime = new DateTime($params['scheduled_date']);
+      // This will get rid of the double timezone specification error (where sometimes the timezone is also included
+      // wrapped up in braces towards the end)
+      $dateTime = new DateTime(preg_replace('/\(.+?\)/', '', $params['scheduled_date']));
       $params['scheduled_date'] = $dateTime->format('YmdHis');
     }
     if (!empty($params['approval_date'])) {

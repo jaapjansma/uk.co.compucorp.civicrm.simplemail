@@ -37,6 +37,8 @@
         ENTITY_NAME: 'SimpleMail',
         DRAFT: 'Not Scheduled',
         SCHEDULED: 'Scheduled',
+        RUNNING: 'Running',
+        PAUSED: 'Paused',
         SENT: 'Complete',
         CANCELLED: 'Canceled'
       };
@@ -56,6 +58,8 @@
       $scope.mailingFilters.status[$scope.constants.DRAFT] = true;
       $scope.mailingFilters.status[$scope.constants.SCHEDULED] = true;
       $scope.mailingFilters.status[$scope.constants.SENT] = true;
+      $scope.mailingFilters.status[$scope.constants.RUNNING] = true;
+      $scope.mailingFilters.status[$scope.constants.PAUSED] = true;
       $scope.mailingFilters.status[$scope.constants.CANCELLED] = true;
 
       MailingsListing.init()
@@ -134,7 +138,6 @@
         .then(function () {
           self.mailing = Mailing.getCurrentMailing();
           self.fromSearch = Mailing.isCreatedFromSearch();
-          self.contactsCount = Mailing.getContactsCount();
           if (angular.isUndefined(self.mailing.dedupe_email)) self.mailing.dedupe_email = '1';
         });
 
@@ -147,8 +150,8 @@
       promises.push(mailingPromise, mailingGroupsPromise);
 
       $q.all(promises)
-        .catch(function () {
-          Notification.genericError();
+        .catch(function (response) {
+          Notification.genericError(response);
         })
         .finally(function () {
           self.initialised = true;
@@ -157,8 +160,7 @@
 
       this.isMailingNotScheduled = function() {
         return Mailing.isCurrentMailingNotScheduled();
-      };
-      
+      }
     }
   ];
 
@@ -188,7 +190,7 @@
       this.editFromName = false;
       this.selectedMessage = '';
       this.selectedFilterId = null;
-			
+
       this.mailing = Mailing.getCurrentMailing();
       this.filters = Helper.getHeaderFilters();
       this.headers = Header.getHeaders();
@@ -221,23 +223,6 @@
       var fromEmailsPromise = Helper.initFromEmails()
         .then(function () {
           self.fromEmails = Helper.getFromEmails();
-					
-					// check we actually were returned a list of email addresses
-          if (self.fromEmails.length){
-          	
-          	// cycle through the email addresses
-          	for (var fromEmailIndex in self.fromEmails){
-          		var item = self.fromEmails[ fromEmailIndex ];
-          		
-          		// if this email address item has an id, which indicates a valid record from the DB, then set this
-          		// as the default selected option
-          		if (item.id){
-          			self.mailing.from_address = item.label;
-          			break;
-          		}
-          	}
-          }
-        	
         });
 
       var campaignMessagesPromise = CampaignMessage.init()
@@ -253,8 +238,8 @@
           self.initFromName();
           self.updateSelectedMessage();
         })
-        .catch(function () {
-          Notification.genericError();
+        .catch(function (response) {
+          Notification.genericError(response);
         })
         .finally(function () {
           Wizard.init();
@@ -278,7 +263,7 @@
         if (!this.mailing.header_id) {
           // Pre-select the filter named 'ATL' (if exists)
           var selectedFilter = $filter('filter')(this.filters, {label: 'ATL'})[0];
-					
+
           if (angular.isObject(selectedFilter) && selectedFilter.hasOwnProperty('id')) {
             this.selectedFilterId = selectedFilter.id;
           }
@@ -286,8 +271,10 @@
       };
 
       this.initFromName = function() {
-        if (this.mailing.from_name) {
-          this.fromEmails.unshift({label: this.mailing.from_address});
+        if (this.mailing.from_name && this.fromEmails.indexOf(this.mailing.from_address) === -1) {
+          var selectedEmail = $filter('filter')(this.fromEmails, {label: this.mailing.from_address});
+
+          if (selectedEmail.length === 0) this.fromEmails.unshift({label: this.mailing.from_address})
         }
       };
 
@@ -297,8 +284,6 @@
       };
     }
   ];
-
-
 
   /**
    * Step 3 of the wizard
@@ -328,8 +313,8 @@
       promises.push(mailingPromise, mailingGroupsPromise);
 
       $q.all(promises)
-        .catch(function () {
-          Notification.genericError();
+        .catch(function (response) {
+          Notification.genericError(response);
         })
         .finally(function () {
           Wizard.init();
@@ -337,6 +322,12 @@
     }
   ];
 
+  /**
+   * Step 4 of the wizard
+   *
+   * @ngdoc controller
+   * @name ScheduleAndSendCtrl
+   */
   var ScheduleAndSendCtrl = ['$q', 'MailingDetailFactory', 'NotificationFactory', 'WizardStepFactory',
     function ($q, Mailing, Notification, Wizard) {
       var self = this;
@@ -353,8 +344,8 @@
       promises.push(mailingPromise);
 
       $q.all(promises)
-        .catch(function () {
-          Notification.genericError();
+        .catch(function (response) {
+          Notification.genericError(response);
         })
         .finally(function () {
           Wizard.init();
@@ -393,7 +384,7 @@
   /**
    * Mailing buttons
    */
-  var MailingButtonsCtrl = ['MailingDetailFactory', 'WizardStepFactory',
+  var MailingButtonsCtrl = ['MailingDetailFactory', 'WizardStepFactory', 'NotificationFactory',
     /**
      *
      * @param {MailingDetailFactory} Mailing
@@ -410,27 +401,33 @@
       };
 
       this.prevStep = function () {
-        if (Wizard.isInitialised()) Wizard.prevStep();
+        if (Wizard.isInitialised()) return Wizard.prevStep();
       };
 
       this.nextStep = function () {
-        if (Wizard.isInitialised()) Wizard.nextStep();
+        if (Wizard.isInitialised()) return Wizard.nextStep();
       };
 
       this.saveAndContinueLater = function () {
-        if (Wizard.isInitialised()) Wizard.saveAndContinueLater();
+        if (Wizard.isInitialised()) return Wizard.saveAndContinueLater();
       };
 
       this.submitMassEmail = function () {
-        if (Wizard.isInitialised()) Wizard.submitMassEmail();
+        if (Wizard.isInitialised()) {
+          Wizard.deinit();
+          return Wizard.submitMassEmail()
+            .finally(function () {
+              Wizard.init();
+            });
+        }
       };
 
       this.cancel = function () {
         Wizard.cancel();
       };
 
-      this.sendTestEmail = function() {
-        Wizard.sendTestEmail();
+      this.sendTestEmail = function () {
+        return Wizard.sendTestEmail();
       }
     }];
 
