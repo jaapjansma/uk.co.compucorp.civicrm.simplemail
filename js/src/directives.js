@@ -344,7 +344,7 @@
         cancel: '&onCancel'
       },
       templateUrl: paths.TEMPLATES_DIR() + '/action-buttons.html'
-    }
+    };
   }];
 
   /**

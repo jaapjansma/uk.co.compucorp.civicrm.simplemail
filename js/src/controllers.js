@@ -79,6 +79,17 @@
           $scope.models.mailingsLoaded = true;
         });
 
+			/**
+			 * @name confirmDeleteMailing
+			 * @description	Confirms that the user wishes to delete an email, and if they agree it proceeds to
+			 * 							perform said deletion 
+			 */
+			$scope.confirmDeleteMailing = function(mailing){
+				if (confirm("Are you sure you wish to delete the mailing:\n"+mailing.name)){
+					$scope.deleteMailing(mailing);
+				}
+			};
+
       /**
        * @name deleteMailing
        * @description Delete a mailing given by its index in the mailings array
