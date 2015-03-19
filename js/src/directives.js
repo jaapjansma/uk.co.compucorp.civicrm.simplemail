@@ -232,6 +232,7 @@
         // break omitted intentionally
         case 'normal':
           config.toolbar.push(
+          	['Undo','Redo'],
             ['Bold', 'Italic', 'Strike', 'RemoveFormat'],
             ['NumberedList', 'BulletedList'],
             ['Link', 'Unlink'],
