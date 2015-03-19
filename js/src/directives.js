@@ -245,7 +245,8 @@
         config.height = attributes.height;
       }
 
-			config.contentsCss = paths.EXT_DIR+'/css/dist/style.css';      
+			// This line tells CKEditor to use our stylesheet, although currently it's not required
+			//config.contentsCss = paths.EXT_DIR+'/css/dist/style.css';      
 
       var ck = CKEDITOR.replace(element[0], config);
 

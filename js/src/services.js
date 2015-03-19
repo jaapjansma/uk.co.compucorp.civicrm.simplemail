@@ -546,11 +546,6 @@
       var proceedToStep = function (step) {
         Notification.clearPersistentNotifications();
 				
-				// When we load the next stage/form, we should set the form to being invalid by default
-				// Once the form's loaded, Angular will automatically validate the form, and our
-				// watcher will update the FormValidtor service
-				FormValidation.setState(false);
-
         return Mailing.saveProgress()
           .then(function (response) {
             redirectToStep(step);
@@ -1681,6 +1676,10 @@
 			if (form){
 				form.$setPristine();
 			}
+			
+			// If we are passed a new form it should start off invalid
+			setState(false);
+			
 		};
 		
 		var doValidation = function(){

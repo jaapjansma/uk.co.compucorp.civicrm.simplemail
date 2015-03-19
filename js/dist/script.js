@@ -1124,8 +1124,8 @@
    * @ngdoc controller
    * @name TestMailingCtrl
    */
-  var TestMailingCtrl = ['$q', 'MailingHelperFactory', 'MailingDetailFactory', 'NotificationFactory', 'WizardStepFactory',
-    function ($q, Helper, Mailing, Notification, Wizard) {
+  var TestMailingCtrl = ['$scope','$q', 'MailingHelperFactory', 'MailingDetailFactory', 'NotificationFactory', 'WizardStepFactory',
+    function ($scope, $q, Helper, Mailing, Notification, Wizard) {
       var self = this;
 
       this.mailing = Mailing.getCurrentMailing();
@@ -1525,7 +1525,8 @@
         config.height = attributes.height;
       }
 
-			config.contentsCss = paths.EXT_DIR+'/css/dist/style.css';      
+			// This line tells CKEditor to use our stylesheet, although currently it's not required
+			//config.contentsCss = paths.EXT_DIR+'/css/dist/style.css';      
 
       var ck = CKEDITOR.replace(element[0], config);
 
@@ -2498,11 +2499,6 @@
       var proceedToStep = function (step) {
         Notification.clearPersistentNotifications();
 				
-				// When we load the next stage/form, we should set the form to being invalid by default
-				// Once the form's loaded, Angular will automatically validate the form, and our
-				// watcher will update the FormValidtor service
-				FormValidation.setState(false);
-
         return Mailing.saveProgress()
           .then(function (response) {
             redirectToStep(step);
@@ -3633,6 +3629,10 @@
 			if (form){
 				form.$setPristine();
 			}
+			
+			// If we are passed a new form it should start off invalid
+			setState(false);
+			
 		};
 		
 		var doValidation = function(){

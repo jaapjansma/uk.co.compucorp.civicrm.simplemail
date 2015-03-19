@@ -365,8 +365,8 @@
    * @ngdoc controller
    * @name TestMailingCtrl
    */
-  var TestMailingCtrl = ['$q', 'MailingHelperFactory', 'MailingDetailFactory', 'NotificationFactory', 'WizardStepFactory',
-    function ($q, Helper, Mailing, Notification, Wizard) {
+  var TestMailingCtrl = ['$scope','$q', 'MailingHelperFactory', 'MailingDetailFactory', 'NotificationFactory', 'WizardStepFactory',
+    function ($scope, $q, Helper, Mailing, Notification, Wizard) {
       var self = this;
 
       this.mailing = Mailing.getCurrentMailing();
