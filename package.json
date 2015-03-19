@@ -1,4 +1,5 @@
 {
+	"name" : "simplemail",
   "devDependencies": {
     "gulp": "^3.8.10",
     "gulp-autoprefixer": "^1.0.0",

@@ -1,5 +1,5 @@
 <div ng-controller="ComposeMailingCtrl as compose">
-  <form sm-loaded="steps.isInitialised()" class="crm-form-block">
+  <form sm-loaded="steps.isInitialised()" class="crm-form-block" name="compose.step2form">
     <h2>Select header image:</h2>
 
     <div class="field-group clearfix">
@@ -43,7 +43,7 @@
 
       <div class="col one-half field-group right">
         <label for="reply-address">Reply To</label>
-        <input class="full-width" id="reply-address" ng-model="compose.mailing.reply_address" type="text"/>
+        <input class="full-width" id="reply-address" ng-model="compose.mailing.reply_address" type="text" required="required" />
       </div>
     </div>
 
@@ -51,7 +51,7 @@
 	
     <div class="field-group clearfix">
       <label for="subject">Choosing an appropriate subject is important</label>
-      <input id="subject" name="subject" type="text" class="full-width" ng-model="compose.mailing.subject"/>
+      <input id="subject" name="subject" type="text" class="full-width" ng-model="compose.mailing.subject" required="required" />
     </div>
 
     <h2>Compose:</h2>
@@ -67,18 +67,18 @@
       <input id="title" name="title" type="text" class="full-width" ng-model="compose.mailing.title"/>
     </div>
 
-    <div class="field-group clearfix">
+    <div class="field-group clearfix" ng-class="{ 'ng-invalid' : compose.step2form.body.$error.required, 'ng-dirty' : compose.step2form.body.$dirty}">
       <label for="body">Main Body</label>
       <textarea sm-ck-editor name="body" id="body" cols="30" rows="10" class="full-width"
-                placeholder="Dear {contact.display_name}," ng-model="compose.mailing.body">
+                placeholder="Dear {contact.display_name}," ng-model="compose.mailing.body" required="required">
       </textarea>
     </div>
 
     <div class="cols clearfix">
-      <div class="field-group col left one-third">
+      <div class="field-group col left one-third" ng-class="{ 'ng-invalid' : compose.step2form['contact-details'].$error.required, 'ng-dirty' : compose.step2form['contact-details'].$dirty}">
         <label for="contact-details">Contact details</label>
         <textarea sm-ck-editor="minimal" data-height="105" name="contact-details" id="contact-details"
-                  class="full-width" cols="50" rows="3" ng-model="compose.mailing.contact_details">
+                  class="full-width" cols="50" rows="3" ng-model="compose.mailing.contact_details" required="required">
         </textarea>
       </div>
 

@@ -300,7 +300,7 @@
    * @alias WizardStepFactory
    * @type {*[]}
    */
-  var WizardStepProvider = ['$location', '$log', '$q', 'CiviApiFactory', 'MailingDetailFactory', 'NotificationFactory', 'paths',
+  var WizardStepProvider = ['$location', '$log', '$q', 'CiviApiFactory', 'MailingDetailFactory', 'NotificationFactory', 'paths', 'FormValidationFactory', 
     /**
      *
      * @param $location
@@ -311,7 +311,7 @@
      * @param {NotificationFactory} Notification
      * @param paths
      */
-      function ($location, $log, $q, CiviApi, Mailing, Notification, paths) {
+      function ($location, $log, $q, CiviApi, Mailing, Notification, paths, FormValidation) {
       var constants = {
         steps: {
           FIRST: 1,
@@ -396,6 +396,11 @@
       var nextStep = function () {
         if (!nextStepAllowed()) return $q.reject('Next step now allowed!');
 
+      	if (!FormValidation.isValid()){
+      		FormValidation.doValidation();
+      		return $q.reject("Next step not allowed");
+      	};
+      		
         return proceedToStep(currentStep + 1);
       };
 
@@ -540,6 +545,11 @@
        */
       var proceedToStep = function (step) {
         Notification.clearPersistentNotifications();
+				
+				// When we load the next stage/form, we should set the form to being invalid by default
+				// Once the form's loaded, Angular will automatically validate the form, and our
+				// watcher will update the FormValidtor service
+				FormValidation.setState(false);
 
         return Mailing.saveProgress()
           .then(function (response) {
@@ -1393,6 +1403,11 @@
       };
     }];
 
+
+
+
+
+
   /**
    * TODO (robin): Implement queued notification service
    *
@@ -1633,6 +1648,62 @@
     }
   ];
 
+	
+	/**
+	 * Provides a method of checking if a form is valid, across controllers
+	 * Set the state to false when a form first loads, then run your validation on the
+	 * form, and finally set the state on this to true if the form is valid
+	 * 
+	 * Other controllers can then call isValid to check the state of the form
+	 * 
+	 * @ngdoc service
+	 * @name FormValidationFactory
+	 * @return {object}
+	 */
+	var FormValidationProvider = [function(){
+		
+		var validState = false;
+		var form = null;
+		
+		var setState = function(state){
+			validState = state;
+		};
+		
+		var isValid = function(){
+			return validState;
+		};
+		
+		var setForm = function(_form){
+			form = _form;
+			if (form){
+				form.$setPristine();
+			}
+		};
+		
+		var doValidation = function(){
+			if (!form){
+				return;
+			}
+			
+			form.$setDirty();
+
+			// I think this is a limitation of Angular1.2
+			// In 1.4 I believe you can just call form.$setDirty() to make all the elements dirty
+			angular.element(form).addClass('ng-dirty');
+			
+		};
+		
+		return {
+			setState : setState,
+			isValid : isValid,
+			setForm : setForm,
+			doValidation : doValidation
+		};
+		
+	}];
+	
+
+
   /**
    * @ngdoc factory
    * @name loggingServices
@@ -1822,7 +1893,8 @@
         var serialisedData = jQuery.param(data);
 
         // TODO (robin): Move this to config
-        var postUrl = '/civicrm/ajax/rest';
+        //var postUrl = '/civicrm/ajax/rest';
+        var postUrl = CRM.API_URL + '/civicrm/ajax/rest';
 
         // Set the headers so AngularJS POSTs the data as form data (and not request payload, which CiviCRM doesn't recognise)
         var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
@@ -1851,5 +1923,6 @@
     .factory('WizardStepFactory', WizardStepProvider)
     .factory('NotificationFactory', NotificationProvider)
     .factory('CiviApiFactory', CiviApiProvider)
+    .factory('FormValidationFactory', FormValidationProvider)
   ;
 })();

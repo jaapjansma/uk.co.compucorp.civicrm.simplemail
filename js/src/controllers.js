@@ -105,9 +105,12 @@
        */
       $scope.duplicateMailing = function (mailing) {
         return MailingsListing.duplicateMailing(mailing);
-      }
+      };
     }
   ];
+
+
+
 
   /**
    * Step 1 of the wizard
@@ -116,7 +119,7 @@
    * @name CreateMailingCtrl
    * @type {*[]}
    */
-  var CreateMailingCtrl = ['$q', 'MailingDetailFactory', 'NotificationFactory', 'MailingHelperFactory', 'WizardStepFactory',
+  var CreateMailingCtrl = ['$scope', '$q', 'MailingDetailFactory', 'NotificationFactory', 'MailingHelperFactory', 'WizardStepFactory', 'FormValidationFactory', 
     /**
      *
      * @param $q
@@ -125,7 +128,8 @@
      * @param {MailingHelperFactory} Helper
      * @param {WizardStepFactory} Wizard
      */
-      function ($q, Mailing, Notification, Helper, Wizard) {
+      function ($scope, $q, Mailing, Notification, Helper, Wizard, FormValidation) {
+
       var self = this;
 
       this.mailing = Mailing.getCurrentMailing();
@@ -157,14 +161,27 @@
         })
         .finally(function () {
           self.initialised = true;
+          
+          // assign the form to the scope so we can watch it
+          $scope.step1form = self.step1form;
+          FormValidation.setForm(self.step1form);
+
           Wizard.init();
         });
 
       this.isMailingNotScheduled = function() {
         return Mailing.isCurrentMailingNotScheduled();
-      }
+      };
+      
+      $scope.$watch('step1form.$valid', function(isValid){
+      	FormValidation.setState(isValid);
+      });
+      
     }
   ];
+
+
+
 
   /**
    * Step 2 of the wizard
@@ -173,7 +190,7 @@
    * @name ComposeMailingCtrl
    * @type {*[]}
    */
-  var ComposeMailingCtrl = ['$filter', '$q', '$scope', 'CampaignMessageFactory', 'HeaderFactory', 'MailingHelperFactory', 'MailingDetailFactory', 'NotificationFactory', 'WizardStepFactory',
+  var ComposeMailingCtrl = ['$filter', '$q', '$scope', 'CampaignMessageFactory', 'HeaderFactory', 'MailingHelperFactory', 'MailingDetailFactory', 'NotificationFactory', 'WizardStepFactory', 'FormValidationFactory',
     /**
      * @param $filter
      * @param $q
@@ -185,7 +202,7 @@
      * @param {NotificationFactory} Notification
      * @param {WizardStepFactory} Wizard
      */
-      function ($filter, $q, $scope, CampaignMessage, Header, Helper, Mailing, Notification, Wizard) {
+      function ($filter, $q, $scope, CampaignMessage, Header, Helper, Mailing, Notification, Wizard, FormValidation) {
       var self = this;
 
       this.headersLoaded = false;
@@ -220,6 +237,9 @@
         .then(function () {
           self.headers = Header.getHeaders();
           self.headersLoaded = true;
+          
+          setDefaultHeader();
+          
         });
 
       var fromEmailsPromise = Helper.initFromEmails()
@@ -260,6 +280,11 @@
           Notification.genericError(response);
         })
         .finally(function () {
+
+          // assign the form to the scope so we can watch it
+          $scope.step2form = self.step2form;
+          FormValidation.setForm(self.step2form);
+
           Wizard.init();
         });
 
@@ -277,7 +302,7 @@
         if (!$filter('filter')(this.filters, {id: 'all'})[0]) {
           this.filters.unshift({id: 'all', label: 'All'});
         }
-
+				
         if (!this.mailing.header_id) {
           // Pre-select the filter named 'ATL' (if exists)
           var selectedFilter = $filter('filter')(this.filters, {label: 'ATL'})[0];
@@ -292,7 +317,7 @@
         if (this.mailing.from_name && this.fromEmails.indexOf(this.mailing.from_address) === -1) {
           var selectedEmail = $filter('filter')(this.fromEmails, {label: this.mailing.from_address});
 
-          if (selectedEmail.length === 0) this.fromEmails.unshift({label: this.mailing.from_address})
+          if (selectedEmail.length === 0) this.fromEmails.unshift({label: this.mailing.from_address});
         }
       };
 
@@ -300,6 +325,26 @@
         this.mailing.from_name = Mailing.getCurrentMailing(true).from_name;
         this.editFromName = false;
       };
+
+
+			/**
+			 * Checks if the user has selected a header already
+			 * If not, pick the first one 
+			 */
+			function setDefaultHeader(){
+				if (!self.mailing.header_id){
+					if (self.headers && (self.headers.length > 0)){
+						self.mailing.header_id = self.headers[0].id;
+					}
+				}
+			}
+			
+			
+      $scope.$watch('step2form.$valid', function(isValid){
+      	FormValidation.setState(isValid);
+      });
+
+      
     }
   ];
 
@@ -446,7 +491,8 @@
 
       this.sendTestEmail = function () {
         return Wizard.sendTestEmail();
-      }
+      };
+      
     }];
 
 

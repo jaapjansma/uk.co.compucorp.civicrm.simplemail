@@ -24,8 +24,10 @@ class CRM_Simplemail_Page_SimpleMailAdmin extends CRM_Core_Page {
       ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/vendors/select.min.css')
       ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/vendors/select2.css')
       ->addStyleFile('uk.co.compucorp.civicrm.simplemail', 'css/dist/style.css')
-      ->addSetting(array('resourceUrls' => simplemail_civicrm_getActiveModuleUrls()));
-
+      ->addSetting(array('resourceUrls' => simplemail_civicrm_getActiveModuleUrls()))
+			->addSetting(array('API_URL' => CIVICRM_UF_BASEURL))	// this will break when/if we upgrade to 4.5
+		;
+	
     parent::run();
   }
 }

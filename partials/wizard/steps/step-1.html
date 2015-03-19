@@ -1,5 +1,5 @@
 <div ng-controller="CreateMailingCtrl as create">
-  <form sm-loaded="steps.isInitialised()" class="crm-form-block">
+  <form sm-loaded="steps.isInitialised()" class="crm-form-block" name="create.step1form">
   
   <h2>Title</h2>
   
@@ -7,7 +7,7 @@
       <label for="mailing-name">
 		Please choose a meaningful title for this email to make it easier to search for it in the future
       </label>
-      <input name="mailing-name" id="mailing-name" type="text" class="two-thirds" ng-model="create.mailing.name"/>
+      <input name="mailing-name" id="mailing-name" type="text" class="two-thirds" ng-model="create.mailing.name" required="required" />
     </div>
 
     <h2>Unsubscribe category</h2>

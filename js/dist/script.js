@@ -864,9 +864,12 @@
        */
       $scope.duplicateMailing = function (mailing) {
         return MailingsListing.duplicateMailing(mailing);
-      }
+      };
     }
   ];
+
+
+
 
   /**
    * Step 1 of the wizard
@@ -875,7 +878,7 @@
    * @name CreateMailingCtrl
    * @type {*[]}
    */
-  var CreateMailingCtrl = ['$q', 'MailingDetailFactory', 'NotificationFactory', 'MailingHelperFactory', 'WizardStepFactory',
+  var CreateMailingCtrl = ['$scope', '$q', 'MailingDetailFactory', 'NotificationFactory', 'MailingHelperFactory', 'WizardStepFactory', 'FormValidationFactory', 
     /**
      *
      * @param $q
@@ -884,7 +887,8 @@
      * @param {MailingHelperFactory} Helper
      * @param {WizardStepFactory} Wizard
      */
-      function ($q, Mailing, Notification, Helper, Wizard) {
+      function ($scope, $q, Mailing, Notification, Helper, Wizard, FormValidation) {
+
       var self = this;
 
       this.mailing = Mailing.getCurrentMailing();
@@ -916,14 +920,27 @@
         })
         .finally(function () {
           self.initialised = true;
+          
+          // assign the form to the scope so we can watch it
+          $scope.step1form = self.step1form;
+          FormValidation.setForm(self.step1form);
+
           Wizard.init();
         });
 
       this.isMailingNotScheduled = function() {
         return Mailing.isCurrentMailingNotScheduled();
-      }
+      };
+      
+      $scope.$watch('step1form.$valid', function(isValid){
+      	FormValidation.setState(isValid);
+      });
+      
     }
   ];
+
+
+
 
   /**
    * Step 2 of the wizard
@@ -932,7 +949,7 @@
    * @name ComposeMailingCtrl
    * @type {*[]}
    */
-  var ComposeMailingCtrl = ['$filter', '$q', '$scope', 'CampaignMessageFactory', 'HeaderFactory', 'MailingHelperFactory', 'MailingDetailFactory', 'NotificationFactory', 'WizardStepFactory',
+  var ComposeMailingCtrl = ['$filter', '$q', '$scope', 'CampaignMessageFactory', 'HeaderFactory', 'MailingHelperFactory', 'MailingDetailFactory', 'NotificationFactory', 'WizardStepFactory', 'FormValidationFactory',
     /**
      * @param $filter
      * @param $q
@@ -944,7 +961,7 @@
      * @param {NotificationFactory} Notification
      * @param {WizardStepFactory} Wizard
      */
-      function ($filter, $q, $scope, CampaignMessage, Header, Helper, Mailing, Notification, Wizard) {
+      function ($filter, $q, $scope, CampaignMessage, Header, Helper, Mailing, Notification, Wizard, FormValidation) {
       var self = this;
 
       this.headersLoaded = false;
@@ -979,6 +996,9 @@
         .then(function () {
           self.headers = Header.getHeaders();
           self.headersLoaded = true;
+          
+          setDefaultHeader();
+          
         });
 
       var fromEmailsPromise = Helper.initFromEmails()
@@ -1019,6 +1039,11 @@
           Notification.genericError(response);
         })
         .finally(function () {
+
+          // assign the form to the scope so we can watch it
+          $scope.step2form = self.step2form;
+          FormValidation.setForm(self.step2form);
+
           Wizard.init();
         });
 
@@ -1036,7 +1061,7 @@
         if (!$filter('filter')(this.filters, {id: 'all'})[0]) {
           this.filters.unshift({id: 'all', label: 'All'});
         }
-
+				
         if (!this.mailing.header_id) {
           // Pre-select the filter named 'ATL' (if exists)
           var selectedFilter = $filter('filter')(this.filters, {label: 'ATL'})[0];
@@ -1051,7 +1076,7 @@
         if (this.mailing.from_name && this.fromEmails.indexOf(this.mailing.from_address) === -1) {
           var selectedEmail = $filter('filter')(this.fromEmails, {label: this.mailing.from_address});
 
-          if (selectedEmail.length === 0) this.fromEmails.unshift({label: this.mailing.from_address})
+          if (selectedEmail.length === 0) this.fromEmails.unshift({label: this.mailing.from_address});
         }
       };
 
@@ -1059,6 +1084,26 @@
         this.mailing.from_name = Mailing.getCurrentMailing(true).from_name;
         this.editFromName = false;
       };
+
+
+			/**
+			 * Checks if the user has selected a header already
+			 * If not, pick the first one 
+			 */
+			function setDefaultHeader(){
+				if (!self.mailing.header_id){
+					if (self.headers && (self.headers.length > 0)){
+						self.mailing.header_id = self.headers[0].id;
+					}
+				}
+			}
+			
+			
+      $scope.$watch('step2form.$valid', function(isValid){
+      	FormValidation.setState(isValid);
+      });
+
+      
     }
   ];
 
@@ -1205,7 +1250,8 @@
 
       this.sendTestEmail = function () {
         return Wizard.sendTestEmail();
-      }
+      };
+      
     }];
 
 
@@ -1405,7 +1451,7 @@
           console.log('Total length', totalLength);
 
           element.find('ul').width(totalLength);
-        }
+        };
       }
 
       return {
@@ -1418,7 +1464,8 @@
         },
         templateUrl: paths.TEMPLATES_DIR() + '/simple-image-carousel.html',
         link: link
-      }
+      };
+      
     }];
 
   /**
@@ -1435,7 +1482,7 @@
    *
    * @type {*[]}
    */
-  var smCkEditorDirective = [function () {
+  var smCkEditorDirective = ['paths', function (paths) {
     function link(scope, element, attributes, ngModel) {
       if (!ngModel) return;
 
@@ -1444,7 +1491,7 @@
         allowedContent: 'em;strong;u;s;a[!href,target];ul;ol;li',
         toolbar: []
       };
-
+			
       switch (attributes['smCkEditor']) {
         case 'minimal':
           config.toolbar.push([]);
@@ -1463,8 +1510,10 @@
       }
 
       if (attributes.height) {
-        config.height = attributes.height
+        config.height = attributes.height;
       }
+
+			config.contentsCss = paths.EXT_DIR+'/css/dist/style.css';      
 
       var ck = CKEDITOR.replace(element[0], config);
 
@@ -1481,13 +1530,16 @@
           ck.setData(attributes.placeholder);
         }
       };
+      
     }
-
+    
+    
     return {
       require: '?ngModel',
       restrict: 'A',
       link: link
-    }
+    };
+    
   }];
 
 
@@ -2188,7 +2240,7 @@
    * @alias WizardStepFactory
    * @type {*[]}
    */
-  var WizardStepProvider = ['$location', '$log', '$q', 'CiviApiFactory', 'MailingDetailFactory', 'NotificationFactory', 'paths',
+  var WizardStepProvider = ['$location', '$log', '$q', 'CiviApiFactory', 'MailingDetailFactory', 'NotificationFactory', 'paths', 'FormValidationFactory', 
     /**
      *
      * @param $location
@@ -2199,7 +2251,7 @@
      * @param {NotificationFactory} Notification
      * @param paths
      */
-      function ($location, $log, $q, CiviApi, Mailing, Notification, paths) {
+      function ($location, $log, $q, CiviApi, Mailing, Notification, paths, FormValidation) {
       var constants = {
         steps: {
           FIRST: 1,
@@ -2284,6 +2336,11 @@
       var nextStep = function () {
         if (!nextStepAllowed()) return $q.reject('Next step now allowed!');
 
+      	if (!FormValidation.isValid()){
+      		FormValidation.doValidation();
+      		return $q.reject("Next step not allowed");
+      	};
+      		
         return proceedToStep(currentStep + 1);
       };
 
@@ -2428,6 +2485,11 @@
        */
       var proceedToStep = function (step) {
         Notification.clearPersistentNotifications();
+				
+				// When we load the next stage/form, we should set the form to being invalid by default
+				// Once the form's loaded, Angular will automatically validate the form, and our
+				// watcher will update the FormValidtor service
+				FormValidation.setState(false);
 
         return Mailing.saveProgress()
           .then(function (response) {
@@ -3281,6 +3343,11 @@
       };
     }];
 
+
+
+
+
+
   /**
    * TODO (robin): Implement queued notification service
    *
@@ -3521,6 +3588,62 @@
     }
   ];
 
+	
+	/**
+	 * Provides a method of checking if a form is valid, across controllers
+	 * Set the state to false when a form first loads, then run your validation on the
+	 * form, and finally set the state on this to true if the form is valid
+	 * 
+	 * Other controllers can then call isValid to check the state of the form
+	 * 
+	 * @ngdoc service
+	 * @name FormValidationFactory
+	 * @return {object}
+	 */
+	var FormValidationProvider = [function(){
+		
+		var validState = false;
+		var form = null;
+		
+		var setState = function(state){
+			validState = state;
+		};
+		
+		var isValid = function(){
+			return validState;
+		};
+		
+		var setForm = function(_form){
+			form = _form;
+			if (form){
+				form.$setPristine();
+			}
+		};
+		
+		var doValidation = function(){
+			if (!form){
+				return;
+			}
+			
+			form.$setDirty();
+
+			// I think this is a limitation of Angular1.2
+			// In 1.4 I believe you can just call form.$setDirty() to make all the elements dirty
+			angular.element(form).addClass('ng-dirty');
+			
+		};
+		
+		return {
+			setState : setState,
+			isValid : isValid,
+			setForm : setForm,
+			doValidation : doValidation
+		};
+		
+	}];
+	
+
+
   /**
    * @ngdoc factory
    * @name loggingServices
@@ -3710,7 +3833,8 @@
         var serialisedData = jQuery.param(data);
 
         // TODO (robin): Move this to config
-        var postUrl = '/civicrm/ajax/rest';
+        //var postUrl = '/civicrm/ajax/rest';
+        var postUrl = CRM.API_URL + '/civicrm/ajax/rest';
 
         // Set the headers so AngularJS POSTs the data as form data (and not request payload, which CiviCRM doesn't recognise)
         var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
@@ -3739,5 +3863,6 @@
     .factory('WizardStepFactory', WizardStepProvider)
     .factory('NotificationFactory', NotificationProvider)
     .factory('CiviApiFactory', CiviApiProvider)
+    .factory('FormValidationFactory', FormValidationProvider)
   ;
 })();

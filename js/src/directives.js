@@ -182,7 +182,7 @@
           console.log('Total length', totalLength);
 
           element.find('ul').width(totalLength);
-        }
+        };
       }
 
       return {
@@ -195,7 +195,8 @@
         },
         templateUrl: paths.TEMPLATES_DIR() + '/simple-image-carousel.html',
         link: link
-      }
+      };
+      
     }];
 
   /**
@@ -212,7 +213,7 @@
    *
    * @type {*[]}
    */
-  var smCkEditorDirective = [function () {
+  var smCkEditorDirective = ['paths', function (paths) {
     function link(scope, element, attributes, ngModel) {
       if (!ngModel) return;
 
@@ -221,7 +222,7 @@
         allowedContent: 'em;strong;u;s;a[!href,target];ul;ol;li',
         toolbar: []
       };
-
+			
       switch (attributes['smCkEditor']) {
         case 'minimal':
           config.toolbar.push([]);
@@ -240,8 +241,10 @@
       }
 
       if (attributes.height) {
-        config.height = attributes.height
+        config.height = attributes.height;
       }
+
+			config.contentsCss = paths.EXT_DIR+'/css/dist/style.css';      
 
       var ck = CKEDITOR.replace(element[0], config);
 
@@ -258,13 +261,16 @@
           ck.setData(attributes.placeholder);
         }
       };
+      
     }
-
+    
+    
     return {
       require: '?ngModel',
       restrict: 'A',
       link: link
-    }
+    };
+    
   }];
 
 

@@ -35,6 +35,21 @@ $one-half: 50%;
 $full: 100%;
 $border-radius: 3px;
 
+
+
+// Form Validation
+.ng-invalid.ng-dirty {
+  background: $red;
+}
+
+.ng-dirty {
+  .ng-invalid {
+    background: $red;
+  }
+}
+
+
+
 .sm-container {
   .fa-clock-o {
     color: $orange;
@@ -535,6 +550,7 @@ $border-radius: 3px;
     opacity: 1;
     display: block !important;
   }
+  
 }
 
 #sm-messages-admin-table {

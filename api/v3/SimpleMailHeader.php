@@ -21,7 +21,8 @@ function _civicrm_api3_simple_mail_header_create_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_header_create($params) {
-  return _civicrm_api3_basic_create(_civicrm_api3_get_BAO(__FUNCTION__), $params);
+	$result = _civicrm_api3_basic_create(_civicrm_api3_get_BAO(__FUNCTION__), $params);
+  return $result;
 }
 
 /**
@@ -71,7 +72,6 @@ function civicrm_api3_simple_mail_header_get($params) {
 function civicrm_api3_simple_mail_header_uploadimage($params) {
   try {
     $result = CRM_Simplemail_BAO_SimpleMailHeader::uploadImage($params);
-
     return civicrm_api3_create_success($result['values'], $params, NULL, 'uploadimage');
   } catch (CRM_Extension_Exception $e) {
     return civicrm_api3_create_error($e->getMessage());
