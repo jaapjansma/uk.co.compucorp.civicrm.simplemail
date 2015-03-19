@@ -817,6 +817,9 @@
         } else {
           CiviApi.get(constants.entities.MAILING_GROUP)
             .then(function (response) {
+            	
+            	console.log('mailgroups response', response);
+            	
               // TODO (robin): Move is_hidden filtering to API query
               var groups = $filter('filter')(response.data.values, {is_hidden: 0});
 

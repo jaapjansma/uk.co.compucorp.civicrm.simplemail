@@ -3,10 +3,10 @@
 /* Fonts */
 /* Dimensions */
 .ng-invalid.ng-dirty {
-  background: indianred; }
+  background: #d37070; }
 
 .ng-dirty .ng-invalid {
-  background: indianred; }
+  background: #d37070; }
 
 .sm-container .fa-clock-o {
   color: orange; }

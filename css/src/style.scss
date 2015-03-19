@@ -19,6 +19,7 @@ $blue: #2786c2;
 $light-blue: #609DC3;
 
 $red: indianred;
+$paleRed: lighten($red, 5%);
 
 /* Themed colours */
 $drop-zone: $yellow;
@@ -39,12 +40,12 @@ $border-radius: 3px;
 
 // Form Validation
 .ng-invalid.ng-dirty {
-  background: $red;
+  background: $paleRed;
 }
 
 .ng-dirty {
   .ng-invalid {
-    background: $red;
+    background: $paleRed;
   }
 }
 

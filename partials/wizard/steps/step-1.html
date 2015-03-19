@@ -13,12 +13,12 @@
     <h2>Unsubscribe category</h2>
 
     <div class="field-group">
-      <p>You must select a category that best defines the target audience</p>
+      <p ng-class="{ 'ng-invalid' : create.step1form['mailing-category'].$error.required }">You must select a category that best defines the target audience</p>
 
       <label ng-repeat="category in create.categories" for="mailing-category-{{category.id}}">
         <input ng-disabled="!create.isMailingNotScheduled()" name="mailing-category"
                id="mailing-category-{{category.id}}" value="{{category.id}}"
-               ng-model="create.mailing.category_id" type="radio"/> {{category.title}}
+               ng-model="create.mailing.category_id" type="radio" ng-required="!create.mailing.category_id" /> {{category.title}}
       </label>
    </div>
 
