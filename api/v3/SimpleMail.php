@@ -74,6 +74,19 @@ function civicrm_api3_simple_mail_get($params) {
 
 			$result['extraValues']['contactsCount'] = $contactsCount;
 			
+			// check to see how this script is being requested
+			$isHttpsConnection = !empty($_SERVER['HTTPS']);
+			
+			// if the call to this method is over HTTPS, then we return content to the front end
+			// with HTTPS linked content (in the email body)
+			// And if it's a HTTP call, then return HTTP linked content
+			$emailBody = CRM_Simplemail_BAO_SimpleMail::updateEmailBodyHttps(
+				$result['values'][0]['body_html'],
+				$isHttpsConnection
+			);
+			
+			$result['values'][0]['body_html'] = $emailBody;
+			
 		}
 		
     return civicrm_api3_create_success($result['values'], $params, NULL, 'get', $result['dao'], $result['extraValues']);

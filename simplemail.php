@@ -384,6 +384,13 @@ function simplemail_civicrm_init() {
       define('SM_ASSETS_URL', simplemail_civicrm_getExtensionUrl() . '/assets');
     }
   }
+
+	/**
+	 * Whether emails should have SSL linked content or not
+	 * Generally set this to false because SSL linked content can break mail clients
+	 */
+	define('SM_CONTENT_SSL', false);
+
 }
 
 /**

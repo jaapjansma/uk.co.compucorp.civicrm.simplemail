@@ -220,7 +220,7 @@ class CRM_Simplemail_BAO_SimpleMailHeader extends CRM_Simplemail_DAO_SimpleMailH
         'Image upload URL not set. Please set it up in the administrative settings', 500
       );
     }
-
+		
     return $imageUploadUrl . static::EXT_STORAGE_DIR_NAME . '/' . $field . '/';
   }
 

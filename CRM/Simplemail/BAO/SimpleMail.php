@@ -63,8 +63,10 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     static::sanitiseParams($params);
 
+    // buids the mailing to be sent
+    // things like the email body etc
     $civiMailing = static::createCiviMailing($params);
-
+		
     if ($civiMailing->id) {
       $params['crm_mailing_id'] = $civiMailing->id;
     }
@@ -359,6 +361,35 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 		return $foundContacts;
 		
 	}
+	
+	/**
+	 * Updates an email body and changes all the images to point to HTTPS or vice-versa
+	 * 
+	 * @param string $emailBody		the email body of text to update
+	 * @param boolean $makeHttps	whether the images should be made to point to HTTPS or not (HTTP)
+	 * 
+	 * @return string
+	 */
+	public static function updateEmailBodyHttps($emailBody, $makeHttps = true){		// Should there be SSL content in the email?
+			
+		if ($makeHttps){
+			$from = 'http://';
+			$to = 'https://';
+		} else {
+			$from = 'https://';
+			$to = 'http://';
+		}
+		
+		// match any img tags, and replace the https://  ...
+		$regex = '|(<img.*?src=["]?)'.$from.'|';
+		
+		// ... for http://
+		$emailBody = preg_replace($regex, '$1'.$to, $emailBody);
+		
+		return $emailBody;
+		
+	}
+	
 	
   ///////////////////////
   // Protected Methods //
@@ -770,6 +801,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @return string
    */
   protected static function generateEmailHtml($params) {
+  	
     // Setup paths
     $templateFile = static::getEmailTemplatePath();
 
@@ -821,7 +853,13 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     require $templateFile;
 
-    return ob_get_clean();
+    $emailBody = ob_get_clean();
+		
+		ob_end_clean();
+
+		
+		return $emailBody;
+		
   }
 
   /**
@@ -879,7 +917,9 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   /**
    * Build the params array needed for creating CiviCRM mailing and related things (e.g. jobs), in a format required by
    * the CRM_Mailing_BAO_Mailing::create() method
-   *
+   * 
+	 * This builds things like the email body
+	 * 
    * @param array $params
    *
    * @return array
@@ -912,6 +952,14 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     // Body HTML
     $crmMailingParams['body_html'] = static::generateEmailHtml($params);
+
+		// check if we're allowing SimpleMail to send emails with SSL / HTTPS linked content
+		// this is controlled by SM_CONTENT_SSL
+		// if we're not allowing SSL/HTTPS content then this method rewrites HTTPS to HTTP
+		$crmMailingParams['body_html'] = static::updateEmailBodyHttps(
+			$crmMailingParams['body_html'],
+			SM_CONTENT_SSL
+		);
 
     // Scheduler ID - this is only set when submitting for mass emailing (last page of the wizard)
     if (!empty($params['scheduled_id'])) {
