@@ -810,6 +810,15 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $template->title = empty($params['title']) ? NULL : $params['title'];
     $template->replyAddress = static::getMailToLink($params);
     $template->body = empty($params['body']) ? NULL : $params['body'];
+		
+		$twoColumn = new CRM_Simplemail_BAO_TwoColumn();
+		$template->isTwoColumn = $twoColumn->isTwoColumn($template->body);
+		if ($template->isTwoColumn){
+			list($bodyColumn1, $bodyColumn2) = $twoColumn->getColumns($template->body);
+			$template->bodyColumn1 = $bodyColumn1;
+			$template->bodyColumn2 = $bodyColumn2;
+		}
+		
     $template->contactDetails = isset($params['contact_details']) && $params['contact_details']
       ? $params['contact_details']
       : NULL;
