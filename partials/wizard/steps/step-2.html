@@ -73,6 +73,16 @@
                 placeholder="Dear {contact.display_name}," ng-model="compose.mailing.body" required="required">
       </textarea>
     </div>
+    
+    <div class="field-group clearfix">
+    	<label for="inlineAttachments">Inline Attachments</label>
+    	<ul id="inlineAttachments" ng-repeat="attachment in compose.inlineAttachments">
+    		<li>
+    			<inline-attachment attachment-id="attachment.id" filename="attachment.filename" />
+    		</li>
+    	</ul>
+    	
+    </div>
 
     <div class="cols clearfix">
       <div class="field-group col left one-third" ng-class="{ 'ng-invalid' : compose.step2form['contact-details'].$error.required, 'ng-dirty' : compose.step2form['contact-details'].$dirty}">

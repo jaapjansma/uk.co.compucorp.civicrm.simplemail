@@ -1,6 +1,24 @@
 (function () {
   "use strict";
 
+	var inlineAttachmentDirective = ['paths', '$upload', function(paths, $upload){
+		function link(scope){
+			
+		}
+		
+		return {
+			restrict : 'E',
+			scope : {
+				attachmentId : '=',
+				filename : '=',
+				templateUrl : paths.TEMPLATES_DIR() + '/inlineAttachment.html',
+				link: link
+			}
+		};
+	}];
+
+
+
   /**
    * Directive to create an image uploader, with drag-n-drop support
    *
@@ -20,6 +38,7 @@
    */
   var smImageUploaderDirective = ['paths', function (paths) {
     function link(scope) {
+    	
       scope.$watch(function () {
           return scope.config.required;
         }, function (newVal) {
@@ -34,6 +53,7 @@
         }
       );
     }
+    
 
     return {
       restrict: 'AE',

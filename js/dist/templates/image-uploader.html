@@ -1,5 +1,5 @@
 <p ng-show="model[config.field + '_url'] === undefined && uploader.isHTML5"
-   class="file-drop-zone" ng-file-over ng-file-drop="{field: '{{config.field}}'}">
+   class="file-drop-zone" nv-file-over nv-file-drop uploader="uploader">
   <span>
     {{
       (uploader.isUploading && model.uploadingField === config.field)
@@ -8,16 +8,19 @@
     }}
   </span>
 </p>
-<p style="overflow: hidden" ng-hide="model[config.field + '_url'] === undefined && uploader.isHTML5"
-   class="image-preview">
-  <img class="thumb" ng-hide="model[config.field + '_url'] === undefined" ng-src="{{model[config.field + '_url']}}"/>
+<p style="overflow: hidden" ng-hide="model[config.field + '_url'] === undefined && uploader.isHTML5" class="image-preview">
+  <img class="thumb" ng-hide="model[config.field + '_url'] === undefined" ng-src="{{model[config.field + '_url']}}" />
   <a href class="remove" ng-click="remove()">Remove</a>
 </p>
+
 <input id="{{config.name + '_select'}}"
        name="{{config.name + '_select'}}"
        type="file"
-       ng-file-select="{field: '{{config.field}}'}"/>
+       nv-file-select
+       uploader="uploader"
+       />
+       
 <input id="{{config.name + '_field'}}" name="{{config.name + '_field'}}" ng-required="isRequired" ng-hide="true"
        type="text" ng-model="model[config.field]"/>
-<p ng-show="isRequired && !model[config.field].length && model.submitted" class="error">This is a required
-  field</p>
+       
+<p ng-show="isRequired && !model[config.field].length && model.submitted" class="error">This is a required field</p>

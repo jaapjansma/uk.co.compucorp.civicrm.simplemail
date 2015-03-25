@@ -15,7 +15,8 @@
     'simpleMail.services',
     'simpleMail.directives',
     'simpleMail.constants',
-    'simpleMail.filters'
+    'simpleMail.filters',
+    'angularFileUpload'
   ]);
 
   app.config(['$routeProvider', 'paths', 'ngQuickDateDefaultsProvider', '$provide',

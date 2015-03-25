@@ -70,117 +70,39 @@
     }
   ]);
 
+
   /**
    * Detail page of a header
    */
   controllers.controller('HeaderAdminController', [
-    '$scope', '$http', '$q', '$fileUploader', 'CiviApiFactory', 'loggingServices', 'NotificationFactory', '$routeParams', '$location', '$filter',
-    function ($scope, $http, $q, $fileUploader, civiApi, log, notification, $routeParams, $location, $filter) {
+    '$scope', '$http', '$q', 'FileUploader', 'CiviApiFactory', 'loggingServices', 'NotificationFactory', '$routeParams', '$location', '$filter',
+    function ($scope, $http, $q, FileUploader, civiApi, log, notification, $routeParams, $location, $filter) {
       $scope.header = {};
       $scope.models = {};
       $scope.filters = [];
+      $scope.config = {
+      	field: 'image',
+      	name: 'image',
+      	required: header.show_logo
+    	};
+    	
+    	$scope.logoConfig = {
+    		field: 'logo_image',
+    		name: 'logo_image',
+    		required: header.show_logo
+    	};
 
       $scope.constants = {
         ENTITY_NAME: 'SimpleMailHeader'
       };
 
-      // create a uploader with options
-      var uploader = $scope.imageUploader = $fileUploader.create({
-        scope: $scope,                          // to automatically update the html. Default: $rootScope
-        url: '/civicrm/ajax/rest?entity=SimpleMailHeader&action=uploadimage&json=1&sequential=1',
-        //      queueLimit: 1,
-        autoUpload: true,
-        headers: {
-          'X-Requested-with': 'XMLHttpRequest'
-        },
-        filters: [
-          function (item) {                    // first user filter
-            console.info('filter1');
-            return true;
-          }
-        ]
-      });
-      /*
-       // Fires after adding a single file to the queue
-       uploader.bind('afteraddingfile', function (event, item) {
-       console.info('After adding a file', item);
-       });
+			// Get two FileUploaders. We need two different ones to ensure image (header) uploads go to the right place
+			// and logo uploads go to a different place
+			$scope.headerUploader = getUploader('image');
+			$scope.logoUploader = getUploader('logo_image');
 
-       // Fires when adding a file fails
-       uploader.bind('whenaddingfilefailed', function (event, item) {
-       console.info('When adding a file failed', item);
-       });
 
-       // Fires after adding all dragged/selected images to the queue
-       uploader.bind('afteraddingall', function (event, items) {
-       console.info('After adding all files', items);
-       });
-
-       // Fires before uploading an item
-       uploader.bind('beforeupload', function (event, item) {
-       console.info('Before upload', item);
-       });
-
-       // On file upload progress
-       uploader.bind('progress', function (event, item, progress) {
-       console.info('Progress: ' + progress, item);
-       });
-       */
-      // Fires before uploading an item
-
-      uploader.bind('beforeupload', function
-        (event, item) {
-        console.info('Before upload', item);
-
-        switch (item.field) {
-          case 'image':
-            $scope.header.uploadingField = 'image';
-            item.formData.push({field: 'image'});
-            break;
-
-          case 'logo_image':
-            $scope.header.
-              uploadingField = 'logo_image';
-            item.
-              formData.push({field: 'logo_image'});
-            break;
-
-          default:
-            break;
-        }
-      });
-
-      // On file successfully uploaded
-      uploader.bind('success', function (event, xhr, item, response) {
-        console.info('Success', xhr, item, response);
-
-        // This is to manually delete the existing file from the server's file system, if someone uploads another file
-        // using the 'file' input element instead of the drop zone, so as to not leave orphan files behind
-        $scope.remove(item.field);
-
-        $scope.header[item.field] = response.values[0].imageFileName;
-        $scope.header[item.field + '_url'] = response.values[0].imageUrl;
-
-        $scope.header.uploadingField = null;
-
-        notification.success('Image uploaded');
-      });
-
-      // On upload error
-      uploader.bind('error', function (event, xhr, item, response) {
-        console.info('Error', xhr, item, response);
-      });
-
-      // On file upload complete (whether successful or not)
-      uploader.bind('complete', function (event, xhr, item, response) {
-        console.info('Complete', xhr, item, response);
-      });
-
-      // On upload queue progress
-      uploader.bind('progressall', function (event, progress) {
-        console.info('Total progress: ' + progress);
-      });
-
+     
       $scope.cancel = function () {
         // Delete any images uploaded in case a new header was being added but cancelled without saving
         if (!$scope.header.id) {
@@ -260,7 +182,7 @@
         .then(function (response) {
           console.log('Option Group ID', response);
 
-          return civiApi.get('OptionValue', {option_group_id: response, is_active: '1'})
+          return civiApi.get('OptionValue', {option_group_id: response, is_active: '1'});
         })
         .then(function (response) {
           console.log('Option values retrieved', response);
@@ -407,6 +329,7 @@
             .catch(function (response) {
               notification.error('Failed to update header', response.data.error_message);
             });
+            
         //}
         // TODO (robin): Save filters for new headers as well - may be refactor the logic from above into a controller method
         //else {
@@ -423,8 +346,79 @@
         //    });
         //}
       };
+      
+      
+      /**
+       * A factory style method, which returns you a FileUploader object to be used with
+       * Angular File Upload 
+       */
+      function getUploader(fieldName){
+      	
+	      // create a uploader with options
+	      var uploader = new FileUploader({
+	        scope: $scope,                          // to automatically update the html. Default: $rootScope
+	        url: '/civicrm/ajax/rest?entity=SimpleMailHeader&action=uploadimage&json=1&sequential=1',
+	        autoUpload: true,
+	        headers: {
+	          'X-Requested-with': 'XMLHttpRequest'
+	        },
+	        filters: [{
+	        	name : 'filter1',
+	          fn : function (item) {                    // first user filter
+	            console.info('filter1');
+	            return true;
+	          }
+	        }]
+	      });
+	
+	
+	      // Fires before uploading an item
+	      uploader.onBeforeUploadItem = function (item) {
+	        console.info('Before upload', item);
+	        item.field = fieldName;
+					item.formData.push({field : fieldName});
+					$scope.header.uploadingField = fieldName;
+	      };
+	
+	      // On file successfully uploaded
+	      uploader.onSuccessItem  = function (item, response, status) {
+	        console.info('Success', item, response);
+	
+	        // This is to manually delete the existing file from the server's file system, if someone uploads another file
+	        // using the 'file' input element instead of the drop zone, so as to not leave orphan files behind
+	        $scope.remove(item.field);
+	
+	        $scope.header[item.field] = response.values[0].imageFileName;
+	        $scope.header[item.field + '_url'] = response.values[0].imageUrl;
+	
+	        $scope.header.uploadingField = null;
+	
+	        notification.success('Image uploaded');
+	      };
+	
+	      // On upload error
+	      uploader.onErrorItem = function (item, response, status, headers) {
+	        console.info('Error', item, response);
+	      };
+	
+	      // On file upload complete (whether successful or not)
+	      uploader.onCompleteItem = function (item, response, stauts, headers) {
+	        console.info('Complete', item, response);
+	      };
+	
+	      // On upload queue progress
+	      uploader.onProgressAll = function (progress) {
+	        console.info('Total progress: ' + progress);
+	      };
+      	
+      	
+      	return uploader;
+      }
+      
+      
     }
   ]);
+
 
   /**
    * Admin list and inline editing of messages
