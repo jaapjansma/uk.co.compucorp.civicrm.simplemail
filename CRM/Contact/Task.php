@@ -360,6 +360,22 @@ class CRM_Contact_Task {
       }
       $tasks[$mrmSearchTaskID] = self::$_tasks[$mrmSearchTaskID]['title'];
     }
+
+    //Force adding temporary mail group searchTask
+    /* TODO: we should move this file somewhere more appropriate.
+      It is now not only used to force the SimpleMail search task,
+      but also for other things including removing unwanted options etc. */
+    if (user_access('access CiviCRM')) {
+      $mrmSearchTaskID = null;
+      foreach (self::$_tasks as $key => $value) {
+        if(strpos(self::$_tasks[$key]['title'], 'Add contacts to a new mailing group') !== FALSE){
+          $mrmSearchTaskID = $key;
+          break;
+        }
+      }
+      $tasks[$mrmSearchTaskID] = self::$_tasks[$mrmSearchTaskID]['title'];
+    }
+
     return $tasks;
   }
 
