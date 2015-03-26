@@ -165,6 +165,8 @@
       left: 49%;
       position: relative;
       top: 25%; }
+.sm-container #iaFileControl_attacher {
+  display: none; }
 .sm-container #email-preview {
   background-color: white;
   width: 100%;

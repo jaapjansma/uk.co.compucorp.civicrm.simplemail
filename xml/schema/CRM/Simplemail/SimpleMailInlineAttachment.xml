@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/Simplemail</base>
+  <class>SimpleMailInlineAttachment</class>
+  <name>civicrm_simplemailinlineattachment</name>
+  <comment>Inline attachments for Simple Mail</comment>
+  <add>4.4</add>
+  <log>true</log>
+
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique Attachment ID</comment>
+    <add>4.4</add>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+
+  <field>
+    <name>filename</name>
+    <type>varchar</type>
+    <length>255</length>
+    <comment>Filename</comment>
+    <required>true</required>
+  </field>
+
+  <field>
+    <name>url</name>
+    <type>varchar</type>
+    <length>512</length>
+    <comment>URL to attachment</comment>
+    <required>true</required>
+  </field>
+</table>

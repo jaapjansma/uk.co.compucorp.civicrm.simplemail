@@ -69,19 +69,28 @@
 
     <div class="field-group clearfix" ng-class="{ 'ng-invalid' : compose.step2form.body.$error.required, 'ng-dirty' : compose.step2form.body.$dirty}">
       <label for="body">Main Body</label>
-      <textarea sm-ck-editor name="body" id="body" cols="30" rows="10" class="full-width"
+      <textarea sm-ck-editor name="body" id="body" cols="30" rows="10" class="full-width" editor-instance="compose.editorInstance"
                 placeholder="Dear {contact.display_name}," ng-model="compose.mailing.body" required="required">
       </textarea>
     </div>
     
     <div class="field-group clearfix">
     	<label for="inlineAttachments">Inline Attachments</label>
-    	<ul id="inlineAttachments" ng-repeat="attachment in compose.inlineAttachments">
-    		<li>
-    			<inline-attachment attachment-id="attachment.id" filename="attachment.filename" />
-    		</li>
-    	</ul>
-    	
+    	<div>Supported file types: .jpg .gif .png .pdf .doc .docx .xls .xlsx</div>
+ 			<div>Maximum file size: 10MB</div>
+ 			<inline-attachments
+ 				attachments="compose.inlineAttachments"
+ 				id="inlineAttachments"
+ 				attachments-name="attacher"
+ 				max-size="10000000"
+ 				on-before-upload="inlineAttachmentBeforeUpload(uploadItem)"
+ 				on-complete="inlineAttachmentComplete(uploadItem, response, status, headers)"
+ 				on-error="inlineAttachmentError(uploadItem, response, status, headers)"
+ 				on-insert-attachment="inlineAttachmentInsert(attachment)"
+ 				on-remove-attachment="inlineAttachmentRemove(attachment)"
+ 				on-notify="inlineAttachmentNotification(message)"
+			/>
+			
     </div>
 
     <div class="cols clearfix">

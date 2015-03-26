@@ -1,3 +1,21 @@
-<div class="inline-attachment-filename">File: {{filename}}</div>
-<input type="file" name="fileInput" nv-file-select />
-<div>Delete file</div>
+<ul ng-repeat="attachment in attachments">
+	<li>
+		<div class="inline-attachment-filename">
+			File: {{attachment.filename}}
+		</div>
+		<div ng-show="attachment.uploaded">
+			<button ng-click="removeAttachment({ attachment : attachment })">Remove attachment</button>
+			<button ng-click="insertAttachment({attachment : attachment})">Insert link into email</button>
+		</div>
+	</li>
+</ul>
+
+<div ng-show="uploadProgressInfo" class="iaUploadProgressInfo">{{uploadProgressInfo}}</div>
+
+<div ng-show="errors">
+	Sorry, your file could not be uploaded because {{errors}}
+</div>
+
+<input type="file" name="inlineAttachmentFile" id="{{fileControlId}}" nv-file-select uploader="uploader"/>
+<button ng-click="addAttachment()">Add attachment</button>
+

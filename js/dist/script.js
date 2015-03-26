@@ -955,7 +955,7 @@
    * @name ComposeMailingCtrl
    * @type {*[]}
    */
-  var ComposeMailingCtrl = ['$filter', '$q', '$scope', 'CampaignMessageFactory', 'HeaderFactory', 'MailingHelperFactory', 'MailingDetailFactory', 'NotificationFactory', 'WizardStepFactory', 'FormValidationFactory',
+  var ComposeMailingCtrl = ['$filter', '$q', '$scope', '$timeout', 'CampaignMessageFactory', 'HeaderFactory', 'MailingHelperFactory', 'MailingDetailFactory', 'NotificationFactory', 'WizardStepFactory', 'FormValidationFactory', 'FileUploader',
     /**
      * @param $filter
      * @param $q
@@ -967,7 +967,7 @@
      * @param {NotificationFactory} Notification
      * @param {WizardStepFactory} Wizard
      */
-      function ($filter, $q, $scope, CampaignMessage, Header, Helper, Mailing, Notification, Wizard, FormValidation) {
+    function ($filter, $q, $scope, $timeout, CampaignMessage, Header, Helper, Mailing, Notification, Wizard, FormValidation, FileUploader) {
       var self = this;
 
       this.headersLoaded = false;
@@ -980,8 +980,11 @@
       this.headers = Header.getHeaders();
       this.fromEmails = Helper.getFromEmails();
       this.messages = CampaignMessage.getMessages();
+			this.inlineAttachments = {};
 
       this.regionsTemplatePath = Wizard.getRegionsTemplatePath();
+      
+      this.editorInstance = {};
 
       var promises = [];
 
@@ -1092,6 +1095,105 @@
       };
 
 
+      /**
+       * This method is called when the inlineAttachment directive is about to upload something
+       * but hasn't started yet
+       */
+			$scope.inlineAttachmentBeforeUpload = function(uploadItem){
+				Notification.clearAll();
+				
+				var id = getUniqueId(uploadItem.file.name);
+				
+				self.inlineAttachments[id] = {
+				  id : id,
+					uploaded : false,
+					filename : uploadItem.file.name
+				};
+				
+				uploadItem.id = id;
+				
+			};
+			
+			
+			/**
+			 * This is called when the inlineAttachment directive has an error during uplaod 
+			 */
+			$scope.inlineAttachmentError = function(uploadItem, response, status, headers){
+				delete( self.inlineAttachments[uploadItem.id] );
+			};
+			
+			
+			/**
+			 * This method is called when the inlineAttachment has completed an upload 
+			 */
+			$scope.inlineAttachmentComplete = function(uploadItem, response, status, headers){
+				
+				// check the upload actually was a success by checking the backend's response
+				if (!response){
+					Notification.genericError("There was no response from the server. Please try again");
+					$scope.inlineAttachmentError(uploadItem);
+					return false;
+				}
+				
+				if (response.is_error){
+					Notification.genericError("There was a problem uploading your attachment.<br/>"+response.error_message);
+					$scope.inlineAttachmentError(uploadItem);
+					return false;
+				}
+				
+				var id = uploadItem.id;
+				self.inlineAttachments[id].uploaded = true;
+				self.inlineAttachments[id].url = response.values[0].attachmentUrl;
+				
+				Notification.success("Inline attachment uploaded");
+				
+				return true;
+			};
+
+
+			/**
+			 * A method for the inlineAttachment directive to call when it wants to make a notification 
+			 */
+			$scope.inlineAttachmentNotification = function(message){
+				if (message.type == 'success'){
+					Notification.success(message.text);
+				} else if (message.type == 'alert') {
+					Notification.alert(message.text);
+				} else {
+					Notification.error(message.text);					
+				}
+			};
+			
+
+			/**
+			 * This fires when a user presses the "insert" button in the inlineAttachment directive
+			 * It should insert a link to the attachment into CK Editor 
+			 */
+			$scope.inlineAttachmentInsert = function(attachment){
+			  var result;
+			  
+				if (result = prompt("Inserting inline attachment\n\nPlease enter the text you want as a link:", attachment.filename)){
+					if (self.editorInstance){
+					  
+					  // we use a timeout to break out of the digest/apply cycle
+					  // if you try to make the editorInstance call outside the timeout, you'll experience
+					  // an Angular error. Go on. Try it.
+					  $timeout(function(){
+					    self.editorInstance.insertHtml('<a href="'+attachment.url+'">'+result+'</a>');
+					  }, 0);
+					  
+					}
+				}
+			};
+			
+			
+			$scope.inlineAttachmentRemove = function(attachment){
+			  if (confirm("Are you sure you want to remove the attachment:\n"+attachment.filename)){
+			    delete( self.inlineAttachments[ attachment.id ] );
+			  }
+			};
+
+
 			/**
 			 * Checks if the user has selected a header already
 			 * If not, pick the first one 
@@ -1105,6 +1207,16 @@
 			}
 			
 			
+			/**
+			 * A very unsophisticated way of generating a unique id
+			 * By using the timestamp first and then appending the filename, we can maintain
+			 * the order of elements if they are sorted by time added/uploaded 
+			 */
+			function getUniqueId(suffix){
+			  var ms = new Date().getTime();
+			  return ms+'_'+suffix;
+			}
+			
       $scope.$watch('step2form.$valid', function(isValid){
       	FormValidation.setState(isValid);
       });
@@ -1112,6 +1224,8 @@
       
     }
   ];
+
+
 
   /**
    * Step 3 of the wizard
@@ -1276,19 +1390,137 @@
 (function () {
   "use strict";
 
-	var inlineAttachmentDirective = ['paths', '$upload', function(paths, $upload){
-		function link(scope){
+	var inlineAttachmentDirective = ['$timeout', 'paths', 'FileUploader', function($timeout, paths, FileUploader){
+		function controller($scope){
 			
+			$scope.errors = '';
+			$scope.fileControlId = 'iaFileControl_'+$scope.attachmentsName;
+			$scope.uploadProgressInfo = '';
+			
+			$scope.addAttachment = function(){
+				
+				$scope.uploader.clearQueue();
+				
+				// Older versions of Angular require us to use a timeout
+				$timeout(function(){
+					var fileControl = document.getElementById($scope.fileControlId);
+					angular.element(fileControl).trigger('click');
+				}, 0);
+			};
+			
+		}
+		
+		// Normally you would just use a link function
+		// but we need to use 'compile' to ensure the FileUploader is created before
+		// the directive is rendered, and compiled
+		function compile(element, attrs){
+			return {
+				pre : function(scope){
+					
+					scope.uploader = new FileUploader({
+						url: '/civicrm/ajax/rest?entity=SimpleMail&action=uploadinlineattachment&json=1&sequential=1',
+		        autoUpload: true,
+		        headers: {
+		          'X-Requested-with': 'XMLHttpRequest'
+		        },
+		        filters: [{
+		        	name : 'filetypes',
+		          fn : function (item) {
+		          	
+		            var valid = [
+		            	"image/jpeg",
+		            	"image/gif",
+		            	"image/png",
+		            	"application/msword",
+		            	"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+		            	"application/pdf",
+		            	"application/vnd.ms-excel",
+		            	"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+		            ];
+		            
+		            scope.errors = '';
+		            
+		            if (!scope.errors && valid.indexOf(item.type) < 0){
+		            	scope.errors = 'it has an invalid file type';
+		            }
+		            
+		            if (!scope.errors && item.size > scope.maxSize){
+		            	scope.error = 'it is too large';
+		            }
+		            
+		            if (!scope.errors && item.size <= 0){
+		            	scope.error = 'it does not appear to be valid';
+		            }
+		            
+		            if (scope.errors){
+		            	scope.notify({
+		            		message : {
+			            		type : 'alert',
+			            		text : 'Sorry, your file could not be uploaded because '+scope.errors
+			            	}
+		            	});
+		            	return false;
+		            }
+		            
+		            return true;
+		          }
+		        }]				
+					});
+					
+				},
+				
+				// This is the equivalent of the link function
+				post : function(scope, element, attrs){
+					scope.uploader.onBeforeUploadItem = function(item){
+						scope.uploadBefore({uploadItem : item});
+						scope.uploadProgressInfo = '';
+					};
+					
+					scope.uploader.onProgressItem = function(item, progress){
+						scope.uploadProgressInfo = 'Uploading... '+progress+'%';
+					};
+					
+					scope.uploader.onCompleteItem = function(item, response, status, headers){
+						scope.uploadComplete({
+							uploadItem : item,
+							response : response,
+							status : status,
+							headers : headers
+						});
+						
+						scope.uploadProgressInfo = '';
+						
+					};
+
+					scope.uploader.onErrorItem = function(item, response, status, headers){
+						scope.uploadError({
+							uploadItem : item,
+							response : response,
+							status : status,
+							headers : headers
+						});
+					};
+				}
+				
+			};
 		}
 		
 		return {
 			restrict : 'E',
 			scope : {
-				attachmentId : '=',
-				filename : '=',
-				templateUrl : paths.TEMPLATES_DIR() + '/inlineAttachment.html',
-				link: link
-			}
+				attachments: '=',
+				maxSize: '=',
+				attachmentsName : '@',
+				uploadBefore : '&onBeforeUpload',
+				uploadComplete : '&onComplete', 
+				uploadError: '&onError',
+				insertAttachment : '&onInsertAttachment',
+				removeAttachment : '&onRemoveAttachment',
+				notify : '&onNotify'
+			},
+			templateUrl : paths.TEMPLATES_DIR() + '/inline-attachments.html',
+			controller : controller,
+			compile : compile
 		};
 	}];
 
@@ -1494,6 +1726,7 @@
       
     }];
 
+
   /**
    * A directive to make the CK Editor work in AngularJS app
    *
@@ -1508,7 +1741,7 @@
    *
    * @type {*[]}
    */
-  var smCkEditorDirective = ['paths', function (paths) {
+  var smCkEditorDirective = ['paths', '$timeout', function (paths, $timeout) {
     function link(scope, element, attributes, ngModel) {
       if (!ngModel) return;
 
@@ -1544,7 +1777,7 @@
 			//config.contentsCss = paths.EXT_DIR+'/css/dist/style.css';      
 
       var ck = CKEDITOR.replace(element[0], config);
-
+      
       ck.on('pasteState', function () {
         scope.$apply(function () {
           ngModel.$setViewValue(ck.getData());
@@ -1559,13 +1792,25 @@
         }
       };
       
+      // We need to surround this with an IF statement because scope.editorInstance is not immediately available
+      // when this function runs. Later becomes available (ie NOT undefined) so we can then set the value
+      if (scope.editorInstance){
+        scope.editorInstance = ck;
+      }
+      
     }
     
+    function controller($scope){
+    }
     
     return {
       require: '?ngModel',
       restrict: 'A',
-      link: link
+      scope : {
+        editorInstance : '='
+      },
+      link: link,
+      controller : controller
     };
     
   }];
@@ -1721,6 +1966,7 @@
     .directive('smClickOnce', smClickOnceDirective)
     .directive('smDisabled', smDisabled)
     .directive('smLoaded', smLoadedDirective)
+    .directive('inlineAttachments', inlineAttachmentDirective)
   ;
 
 })();

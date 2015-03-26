@@ -201,7 +201,7 @@
    * @name ComposeMailingCtrl
    * @type {*[]}
    */
-  var ComposeMailingCtrl = ['$filter', '$q', '$scope', 'CampaignMessageFactory', 'HeaderFactory', 'MailingHelperFactory', 'MailingDetailFactory', 'NotificationFactory', 'WizardStepFactory', 'FormValidationFactory',
+  var ComposeMailingCtrl = ['$filter', '$q', '$scope', '$timeout', 'CampaignMessageFactory', 'HeaderFactory', 'MailingHelperFactory', 'MailingDetailFactory', 'NotificationFactory', 'WizardStepFactory', 'FormValidationFactory', 'FileUploader',
     /**
      * @param $filter
      * @param $q
@@ -213,7 +213,7 @@
      * @param {NotificationFactory} Notification
      * @param {WizardStepFactory} Wizard
      */
-      function ($filter, $q, $scope, CampaignMessage, Header, Helper, Mailing, Notification, Wizard, FormValidation) {
+    function ($filter, $q, $scope, $timeout, CampaignMessage, Header, Helper, Mailing, Notification, Wizard, FormValidation, FileUploader) {
       var self = this;
 
       this.headersLoaded = false;
@@ -226,8 +226,11 @@
       this.headers = Header.getHeaders();
       this.fromEmails = Helper.getFromEmails();
       this.messages = CampaignMessage.getMessages();
+			this.inlineAttachments = {};
 
       this.regionsTemplatePath = Wizard.getRegionsTemplatePath();
+      
+      this.editorInstance = {};
 
       var promises = [];
 
@@ -338,6 +341,105 @@
       };
 
 
+      /**
+       * This method is called when the inlineAttachment directive is about to upload something
+       * but hasn't started yet
+       */
+			$scope.inlineAttachmentBeforeUpload = function(uploadItem){
+				Notification.clearAll();
+				
+				var id = getUniqueId(uploadItem.file.name);
+				
+				self.inlineAttachments[id] = {
+				  id : id,
+					uploaded : false,
+					filename : uploadItem.file.name
+				};
+				
+				uploadItem.id = id;
+				
+			};
+			
+			
+			/**
+			 * This is called when the inlineAttachment directive has an error during uplaod 
+			 */
+			$scope.inlineAttachmentError = function(uploadItem, response, status, headers){
+				delete( self.inlineAttachments[uploadItem.id] );
+			};
+			
+			
+			/**
+			 * This method is called when the inlineAttachment has completed an upload 
+			 */
+			$scope.inlineAttachmentComplete = function(uploadItem, response, status, headers){
+				
+				// check the upload actually was a success by checking the backend's response
+				if (!response){
+					Notification.genericError("There was no response from the server. Please try again");
+					$scope.inlineAttachmentError(uploadItem);
+					return false;
+				}
+				
+				if (response.is_error){
+					Notification.genericError("There was a problem uploading your attachment.<br/>"+response.error_message);
+					$scope.inlineAttachmentError(uploadItem);
+					return false;
+				}
+				
+				var id = uploadItem.id;
+				self.inlineAttachments[id].uploaded = true;
+				self.inlineAttachments[id].url = response.values[0].attachmentUrl;
+				
+				Notification.success("Inline attachment uploaded");
+				
+				return true;
+			};
+
+
+			/**
+			 * A method for the inlineAttachment directive to call when it wants to make a notification 
+			 */
+			$scope.inlineAttachmentNotification = function(message){
+				if (message.type == 'success'){
+					Notification.success(message.text);
+				} else if (message.type == 'alert') {
+					Notification.alert(message.text);
+				} else {
+					Notification.error(message.text);					
+				}
+			};
+			
+
+			/**
+			 * This fires when a user presses the "insert" button in the inlineAttachment directive
+			 * It should insert a link to the attachment into CK Editor 
+			 */
+			$scope.inlineAttachmentInsert = function(attachment){
+			  var result;
+			  
+				if (result = prompt("Inserting inline attachment\n\nPlease enter the text you want as a link:", attachment.filename)){
+					if (self.editorInstance){
+					  
+					  // we use a timeout to break out of the digest/apply cycle
+					  // if you try to make the editorInstance call outside the timeout, you'll experience
+					  // an Angular error. Go on. Try it.
+					  $timeout(function(){
+					    self.editorInstance.insertHtml('<a href="'+attachment.url+'">'+result+'</a>');
+					  }, 0);
+					  
+					}
+				}
+			};
+			
+			
+			$scope.inlineAttachmentRemove = function(attachment){
+			  if (confirm("Are you sure you want to remove the attachment:\n"+attachment.filename)){
+			    delete( self.inlineAttachments[ attachment.id ] );
+			  }
+			};
+
+
 			/**
 			 * Checks if the user has selected a header already
 			 * If not, pick the first one 
@@ -351,6 +453,16 @@
 			}
 			
 			
+			/**
+			 * A very unsophisticated way of generating a unique id
+			 * By using the timestamp first and then appending the filename, we can maintain
+			 * the order of elements if they are sorted by time added/uploaded 
+			 */
+			function getUniqueId(suffix){
+			  var ms = new Date().getTime();
+			  return ms+'_'+suffix;
+			}
+			
       $scope.$watch('step2form.$valid', function(isValid){
       	FormValidation.setState(isValid);
       });
@@ -358,6 +470,8 @@
       
     }
   ];
+
+
 
   /**
    * Step 3 of the wizard

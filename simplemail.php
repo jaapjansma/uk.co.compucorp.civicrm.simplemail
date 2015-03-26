@@ -148,6 +148,11 @@ function simplemail_civicrm_entityTypes(&$entityTypes) {
     'class' => 'CRM_Simplemail_DAO_SimpleMailHeaderFilter',
     'table' => 'civicrm_simplemailheaderfilter'
   );
+  $entityTypes[] = array(
+    'name'  => 'SimpleMailInlineAttachment',
+    'class' => 'CRM_Simplemail_DAO_SimpleMailInlineAttachment',
+    'table' => 'civicrm_simplemailinlineattachment'
+  );
 }
 
 /**

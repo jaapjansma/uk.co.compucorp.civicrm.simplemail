@@ -2,6 +2,7 @@
 
 <tables xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="SimpleMailHeader.xml" parse="xml" />
+  <xi:include href="SimpleMailInlineAttachment.xml" parse="xml" />
   <xi:include href="SimpleMailMessage.xml" parse="xml" />
   <xi:include href="SimpleMail.xml" parse="xml" />
   <xi:include href="SimpleMailHeaderFilter.xml" parse="xml" />

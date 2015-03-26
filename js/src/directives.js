@@ -1,19 +1,137 @@
 (function () {
   "use strict";
 
-	var inlineAttachmentDirective = ['paths', '$upload', function(paths, $upload){
-		function link(scope){
+	var inlineAttachmentDirective = ['$timeout', 'paths', 'FileUploader', function($timeout, paths, FileUploader){
+		function controller($scope){
 			
+			$scope.errors = '';
+			$scope.fileControlId = 'iaFileControl_'+$scope.attachmentsName;
+			$scope.uploadProgressInfo = '';
+			
+			$scope.addAttachment = function(){
+				
+				$scope.uploader.clearQueue();
+				
+				// Older versions of Angular require us to use a timeout
+				$timeout(function(){
+					var fileControl = document.getElementById($scope.fileControlId);
+					angular.element(fileControl).trigger('click');
+				}, 0);
+			};
+			
+		}
+		
+		// Normally you would just use a link function
+		// but we need to use 'compile' to ensure the FileUploader is created before
+		// the directive is rendered, and compiled
+		function compile(element, attrs){
+			return {
+				pre : function(scope){
+					
+					scope.uploader = new FileUploader({
+						url: '/civicrm/ajax/rest?entity=SimpleMail&action=uploadinlineattachment&json=1&sequential=1',
+		        autoUpload: true,
+		        headers: {
+		          'X-Requested-with': 'XMLHttpRequest'
+		        },
+		        filters: [{
+		        	name : 'filetypes',
+		          fn : function (item) {
+		          	
+		            var valid = [
+		            	"image/jpeg",
+		            	"image/gif",
+		            	"image/png",
+		            	"application/msword",
+		            	"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+		            	"application/pdf",
+		            	"application/vnd.ms-excel",
+		            	"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+		            ];
+		            
+		            scope.errors = '';
+		            
+		            if (!scope.errors && valid.indexOf(item.type) < 0){
+		            	scope.errors = 'it has an invalid file type';
+		            }
+		            
+		            if (!scope.errors && item.size > scope.maxSize){
+		            	scope.error = 'it is too large';
+		            }
+		            
+		            if (!scope.errors && item.size <= 0){
+		            	scope.error = 'it does not appear to be valid';
+		            }
+		            
+		            if (scope.errors){
+		            	scope.notify({
+		            		message : {
+			            		type : 'alert',
+			            		text : 'Sorry, your file could not be uploaded because '+scope.errors
+			            	}
+		            	});
+		            	return false;
+		            }
+		            
+		            return true;
+		          }
+		        }]				
+					});
+					
+				},
+				
+				// This is the equivalent of the link function
+				post : function(scope, element, attrs){
+					scope.uploader.onBeforeUploadItem = function(item){
+						scope.uploadBefore({uploadItem : item});
+						scope.uploadProgressInfo = '';
+					};
+					
+					scope.uploader.onProgressItem = function(item, progress){
+						scope.uploadProgressInfo = 'Uploading... '+progress+'%';
+					};
+					
+					scope.uploader.onCompleteItem = function(item, response, status, headers){
+						scope.uploadComplete({
+							uploadItem : item,
+							response : response,
+							status : status,
+							headers : headers
+						});
+						
+						scope.uploadProgressInfo = '';
+						
+					};
+
+					scope.uploader.onErrorItem = function(item, response, status, headers){
+						scope.uploadError({
+							uploadItem : item,
+							response : response,
+							status : status,
+							headers : headers
+						});
+					};
+				}
+				
+			};
 		}
 		
 		return {
 			restrict : 'E',
 			scope : {
-				attachmentId : '=',
-				filename : '=',
-				templateUrl : paths.TEMPLATES_DIR() + '/inlineAttachment.html',
-				link: link
-			}
+				attachments: '=',
+				maxSize: '=',
+				attachmentsName : '@',
+				uploadBefore : '&onBeforeUpload',
+				uploadComplete : '&onComplete', 
+				uploadError: '&onError',
+				insertAttachment : '&onInsertAttachment',
+				removeAttachment : '&onRemoveAttachment',
+				notify : '&onNotify'
+			},
+			templateUrl : paths.TEMPLATES_DIR() + '/inline-attachments.html',
+			controller : controller,
+			compile : compile
 		};
 	}];
 
@@ -219,6 +337,7 @@
       
     }];
 
+
   /**
    * A directive to make the CK Editor work in AngularJS app
    *
@@ -233,7 +352,7 @@
    *
    * @type {*[]}
    */
-  var smCkEditorDirective = ['paths', function (paths) {
+  var smCkEditorDirective = ['paths', '$timeout', function (paths, $timeout) {
     function link(scope, element, attributes, ngModel) {
       if (!ngModel) return;
 
@@ -269,7 +388,7 @@
 			//config.contentsCss = paths.EXT_DIR+'/css/dist/style.css';      
 
       var ck = CKEDITOR.replace(element[0], config);
-
+      
       ck.on('pasteState', function () {
         scope.$apply(function () {
           ngModel.$setViewValue(ck.getData());
@@ -284,13 +403,25 @@
         }
       };
       
+      // We need to surround this with an IF statement because scope.editorInstance is not immediately available
+      // when this function runs. Later becomes available (ie NOT undefined) so we can then set the value
+      if (scope.editorInstance){
+        scope.editorInstance = ck;
+      }
+      
     }
     
+    function controller($scope){
+    }
     
     return {
       require: '?ngModel',
       restrict: 'A',
-      link: link
+      scope : {
+        editorInstance : '='
+      },
+      link: link,
+      controller : controller
     };
     
   }];
@@ -446,6 +577,7 @@
     .directive('smClickOnce', smClickOnceDirective)
     .directive('smDisabled', smDisabled)
     .directive('smLoaded', smLoadedDirective)
+    .directive('inlineAttachments', inlineAttachmentDirective)
   ;
 
 })();

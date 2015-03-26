@@ -390,6 +390,43 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 		
 	}
 	
+
+
+  public static function uploadInlineAttachment($params) {
+
+    if (!$_FILES){
+      throw new CRM_Extension_Exception('Sorry, the file you uploaded was too large or invalid. Code 1', 500);
+    }
+    
+    if (empty($_FILES['file']['size'])){
+      throw new CRM_Extension_Exception('Sorry, the file you uploaded was too large or invalid. Code 2', 500);
+    }
+
+    $tempFile = $_FILES['file']['tmp_name'];
+
+    $fileName = CRM_Utils_File::makeFileName($_FILES['file']['name']);
+    $dirName = CRM_Simplemail_BAO_SimpleMailHelper::getUploadDirPath($params['field']);
+
+    // Create the upload directory, if it doesn't already exist
+    CRM_Utils_File::createDir($dirName);
+
+    $file = $dirName . $fileName;
+
+    // Move the uploaded file to the upload directory
+    if (move_uploaded_file($tempFile, $file)) {
+      $imageUrl = CRM_Simplemail_BAO_SimpleMailHelper::getUploadUrl($fileName, $params['field']);
+
+      $result['values'] = array(
+        array('url' => $imageUrl, 'filename' => $fileName)
+      );
+
+      return $result;
+    } else {
+      throw new CRM_Extension_Exception('Failed to move the uploaded file', 500);
+    }
+  }
+
+
 	
   ///////////////////////
   // Protected Methods //
