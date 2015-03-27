@@ -39,4 +39,9 @@ CKEDITOR.editorConfig = function( config ) {
 	// The extra plugins config
 	// http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-extraPlugins
 	config.extraPlugins = 'undo';
+
+    // Enable browser native spell checking
+    config.disableNativeSpellChecker = false;
+    // Also disabled these as advised by http://ckeditor.com/forums/CKEditor-3.x/How-disable-context-menu-3.1
+    config.removePlugins = 'liststyle,tabletools,scayt,menubutton,contextmenu';
 };
