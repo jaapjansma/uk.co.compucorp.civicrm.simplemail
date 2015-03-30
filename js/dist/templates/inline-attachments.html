@@ -4,7 +4,7 @@
 			File: {{attachment.filename}}
 		</div>
 		<div ng-show="attachment.uploaded">
-			<button ng-click="removeAttachment({ attachment : attachment })">Remove attachment</button>
+			<button ng-click="removeAttachment(attachment)">Remove attachment</button>
 			<button ng-click="insertAttachment({attachment : attachment})">Insert link into email</button>
 		</div>
 	</li>

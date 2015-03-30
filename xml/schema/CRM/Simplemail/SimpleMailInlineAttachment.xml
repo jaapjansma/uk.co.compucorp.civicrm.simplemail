@@ -21,6 +21,13 @@
   </primaryKey>
 
   <field>
+    <name>simplemail_id</name>
+    <type>int unsigned</type>
+    <comment>Foreign Key to the Simplemail table</comment>
+    <required>true</required>
+  </field>
+
+  <field>
     <name>filename</name>
     <type>varchar</type>
     <length>255</length>

@@ -119,3 +119,19 @@ CREATE TABLE `civicrm_simplemailheaderfilter` (
   ENGINE =InnoDB
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_unicode_ci;
+
+
+
+CREATE TABLE `civicrm_simplemailinlineattachment` (
+  `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `simplemail_id` INT UNSIGNED NOT NULL,
+  `filename`      VARCHAR(255) NOT NULL,
+  `url` VARCHAR(512),
+  PRIMARY KEY (`id`),
+  INDEX simplemail_id_idx(simplemail_id),
+  FOREIGN KEY (simplemail_id) REFERENCES civicrm_simplemail(id) ON DELETE CASCADE ON UPDATE CASCADE
+)
+  ENGINE =InnoDB
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_unicode_ci;
+

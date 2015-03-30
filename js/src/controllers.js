@@ -201,7 +201,11 @@
    * @name ComposeMailingCtrl
    * @type {*[]}
    */
-  var ComposeMailingCtrl = ['$filter', '$q', '$scope', '$timeout', 'CampaignMessageFactory', 'HeaderFactory', 'MailingHelperFactory', 'MailingDetailFactory', 'NotificationFactory', 'WizardStepFactory', 'FormValidationFactory', 'FileUploader',
+  var ComposeMailingCtrl = [
+    '$filter', '$q', '$scope', '$timeout', 'CampaignMessageFactory',
+    'HeaderFactory', 'MailingHelperFactory', 'MailingDetailFactory',
+    'NotificationFactory', 'WizardStepFactory', 'FormValidationFactory',
+    'FileUploader', 'InlineAttachmentFactory',
     /**
      * @param $filter
      * @param $q
@@ -213,7 +217,7 @@
      * @param {NotificationFactory} Notification
      * @param {WizardStepFactory} Wizard
      */
-    function ($filter, $q, $scope, $timeout, CampaignMessage, Header, Helper, Mailing, Notification, Wizard, FormValidation, FileUploader) {
+    function ($filter, $q, $scope, $timeout, CampaignMessage, Header, Helper, Mailing, Notification, Wizard, FormValidation, FileUploader, InlineAttachments) {
       var self = this;
 
       this.headersLoaded = false;
@@ -233,10 +237,33 @@
       this.editorInstance = {};
 
       var promises = [];
+      var inlineAttachmentsPromise;
 
       var mailingPromise = Mailing.init()
         .then(function () {
           self.mailing = Mailing.getCurrentMailing();
+
+          inlineAttachmentsPromise = InlineAttachments.get( Mailing.getCurrentMailing().id )
+            .then(function(result){
+              if (!result){
+                Notification.alert("There was a problem retrieving your inline attachments");
+                return;
+              }
+              self.inlineAttachments = {};
+              
+              for (var index in result){
+                var row = result[index];
+                row.uploaded = true;      // tells the front end that this is a valid upload
+                
+                self.inlineAttachments[row.id] = row;
+              }
+              
+            })
+            .catch(function(error){
+              console.log('Inline Attachments error: ', error);
+            });
+
+          
         });
 
       var headerFiltersPromise = Helper.initHeaderFilters()
@@ -281,8 +308,9 @@
         .then(function () {
           self.messages = CampaignMessage.getMessages();
         });
+      
 
-      promises.push(mailingPromise, headerFiltersPromise, headersPromise, fromEmailsPromise, campaignMessagesPromise);
+      promises.push(mailingPromise, headerFiltersPromise, headersPromise, fromEmailsPromise, campaignMessagesPromise, inlineAttachmentsPromise);
 
       $q.all(promises)
         .then(function () {
@@ -358,6 +386,10 @@
 				
 				uploadItem.id = id;
 				
+				uploadItem.formData.push({
+          simplemail_id : self.mailing.id,
+				});
+				
 			};
 			
 			
@@ -388,9 +420,15 @@
 				}
 				
 				var id = uploadItem.id;
-				self.inlineAttachments[id].uploaded = true;
-				self.inlineAttachments[id].url = response.values[0].attachmentUrl;
+				var responseData = response.values[0];
 				
+				self.inlineAttachments[ responseData.databaseId ] = self.inlineAttachments[id];
+        self.inlineAttachments[ responseData.databaseId ].id = responseData.databaseId;
+        self.inlineAttachments[ responseData.databaseId ].uploaded = true;
+        self.inlineAttachments[ responseData.databaseId ].url = responseData.url;;
+				
+				delete(self.inlineAttachments[id]);
+
 				Notification.success("Inline attachment uploaded");
 				
 				return true;
@@ -433,12 +471,14 @@
 			};
 			
 			
-			$scope.inlineAttachmentRemove = function(attachment){
-			  if (confirm("Are you sure you want to remove the attachment:\n"+attachment.filename)){
-			    delete( self.inlineAttachments[ attachment.id ] );
-			  }
+			$scope.inlineAttachmentRemove = function(attachment, response){
+			  if (response.is_error){
+			    Notification.alert("Failed to remove attachment. "+response.error_message);
+        } else {
+          Notification.success("Attachment removed");
+          delete( self.inlineAttachments[ attachment.id ] );
+        }
 			};
-
 
 			/**
 			 * Checks if the user has selected a header already

@@ -1402,6 +1402,53 @@
     }];
 
 
+  /**
+   * Provides a simple interface to deal with inline attachments
+   */
+  var InlineAttachmentProvider = ['$q', 'CiviApiFactory',
+    function($q, civiApi){
+      
+      var constants = {
+        entities : {
+          INLINE_ATTACHMENT : 'SimpleMailInlineAttachment'
+        }
+      };
+      
+      return {
+        
+        get : function(mailingId){
+          var dfr = $q.defer();
+          var data = {
+            id : mailingId
+          };
+          
+          civiApi.post(constants.entities.INLINE_ATTACHMENT, data, 'getall')
+            .then(function(response){
+              if (!response || !response.data || !response.data.values){
+                dfr.reject("Error retrieving attachments");
+              }
+              
+              dfr.resolve(response.data.values);
+            })
+            .catch(function(response){
+              dfr.reject(response);
+            });
+          
+          return dfr.promise;
+        },
+        
+        remove : function(id){
+          var data = {
+            id : id
+          };
+          
+          return civiApi.post(constants.entities.INLINE_ATTACHMENT, data, 'remove');
+        }
+        
+      };
+      
+    }
+  ];
 
 
 
@@ -1926,5 +1973,6 @@
     .factory('NotificationFactory', NotificationProvider)
     .factory('CiviApiFactory', CiviApiProvider)
     .factory('FormValidationFactory', FormValidationProvider)
+    .factory('InlineAttachmentFactory', InlineAttachmentProvider)
   ;
 })();

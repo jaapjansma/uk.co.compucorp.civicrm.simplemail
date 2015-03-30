@@ -290,7 +290,7 @@ function civicrm_api3_simple_mail_clearsearchcontacts($params) {
 
 function civicrm_api3_simple_mail_uploadinlineattachment($params) {
   try {
-    $result = CRM_Simplemail_BAO_SimpleMail::uploadInlineAttachment($params);
+    $result = CRM_Simplemail_BAO_SimpleMailInlineAttachment::upload($params);
     return civicrm_api3_create_success($result['values'], $params, NULL, 'uploadinlineattachment');
   } catch (CRM_Extension_Exception $e) {
     return civicrm_api3_create_error($e->getMessage());

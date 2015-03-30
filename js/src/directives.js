@@ -1,139 +1,161 @@
 (function () {
   "use strict";
 
-	var inlineAttachmentDirective = ['$timeout', 'paths', 'FileUploader', function($timeout, paths, FileUploader){
-		function controller($scope){
-			
-			$scope.errors = '';
-			$scope.fileControlId = 'iaFileControl_'+$scope.attachmentsName;
-			$scope.uploadProgressInfo = '';
-			
-			$scope.addAttachment = function(){
-				
-				$scope.uploader.clearQueue();
-				
-				// Older versions of Angular require us to use a timeout
-				$timeout(function(){
-					var fileControl = document.getElementById($scope.fileControlId);
-					angular.element(fileControl).trigger('click');
-				}, 0);
-			};
-			
+	var inlineAttachmentDirective = ['$timeout', 'paths', 'FileUploader', 'CiviApiFactory', 'InlineAttachmentFactory',
+    function($timeout, paths, FileUploader, civiApi, InlineAttachment){
+  		function controller($scope){
+  			
+  			$scope.errors = '';
+  			$scope.fileControlId = 'iaFileControl_'+$scope.attachmentsName;
+  			$scope.uploadProgressInfo = '';
+  			
+  			$scope.addAttachment = function(){
+  				
+  				$scope.uploader.clearQueue();
+  				
+  				// Older versions of Angular require us to use a timeout
+  				$timeout(function(){
+  					var fileControl = document.getElementById($scope.fileControlId);
+  					angular.element(fileControl).trigger('click');
+  				}, 0);
+  			};
+  			
+  			$scope.removeAttachment = function(attachment){
+          if (confirm("Are you sure you want to remove the attachment:\n"+attachment.filename)){
+            InlineAttachment.remove(attachment.id)
+              .then(function (response) {
+                $scope.notifyRemoveAttachment({attachment : attachment, response : response.data});
+              })
+              .catch(function (response) {
+                $scope.notifyRemoveAttachment({
+                  attachment : attachment,
+                  response : {
+                    is_error : 1,
+                    error_message : response
+                  }
+                });
+                
+              });
+  			  }
+  			  
+  			};
+  			
+  		}
+  		
+  		// Normally you would just use a link function
+  		// but we need to use 'compile' to ensure the FileUploader is created before
+  		// the directive is rendered, and compiled
+  		function compile(element, attrs){
+  			return {
+  				pre : function(scope){
+  					
+  					scope.uploader = new FileUploader({
+  						url: '/civicrm/ajax/rest?entity=SimpleMail&action=uploadinlineattachment&json=1&sequential=1',
+  		        autoUpload: true,
+  		        headers: {
+  		          'X-Requested-with': 'XMLHttpRequest'
+  		        },
+  		        filters: [{
+  		        	name : 'filetypes',
+  		          fn : function (item) {
+  		          	
+  		            var valid = [
+  		            	"image/jpeg",
+  		            	"image/gif",
+  		            	"image/png",
+  		            	"application/msword",
+  		            	"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  		            	"application/pdf",
+  		            	"application/vnd.ms-excel",
+  		            	"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  		            ];
+  		            
+  		            scope.errors = '';
+  		            
+  		            if (!scope.errors && valid.indexOf(item.type) < 0){
+  		            	scope.errors = 'it has an invalid file type';
+  		            }
+  		            
+  		            if (!scope.errors && item.size > scope.maxSize){
+  		            	scope.error = 'it is too large';
+  		            }
+  		            
+  		            if (!scope.errors && item.size <= 0){
+  		            	scope.error = 'it does not appear to be valid';
+  		            }
+  		            
+  		            if (scope.errors){
+  		            	scope.notify({
+  		            		message : {
+  			            		type : 'alert',
+  			            		text : 'Sorry, your file could not be uploaded because '+scope.errors
+  			            	}
+  		            	});
+  		            	return false;
+  		            }
+  		            
+  		            return true;
+  		          }
+  		        }]				
+  					});
+  					
+  				},
+  				
+  				// This is the equivalent of the link function
+  				post : function(scope, element, attrs){
+  					scope.uploader.onBeforeUploadItem = function(item){
+  						scope.uploadBefore({uploadItem : item});
+  						scope.uploadProgressInfo = '';
+  					};
+  					
+  					scope.uploader.onProgressItem = function(item, progress){
+  						scope.uploadProgressInfo = 'Uploading... '+progress+'%';
+  					};
+  					
+  					scope.uploader.onCompleteItem = function(item, response, status, headers){
+  						scope.uploadComplete({
+  							uploadItem : item,
+  							response : response,
+  							status : status,
+  							headers : headers
+  						});
+  						
+  						scope.uploadProgressInfo = '';
+  						
+  					};
+  
+  					scope.uploader.onErrorItem = function(item, response, status, headers){
+  						scope.uploadError({
+  							uploadItem : item,
+  							response : response,
+  							status : status,
+  							headers : headers
+  						});
+  					};
+  				}
+  				
+  			};
+  		}
+  		
+  		return {
+  			restrict : 'E',
+  			scope : {
+  				attachments: '=',
+  				maxSize: '=',
+  				attachmentsName : '@',
+  				uploadBefore : '&onBeforeUpload',
+  				uploadComplete : '&onComplete', 
+  				uploadError: '&onError',
+  				insertAttachment : '&onInsertAttachment',
+  				notifyRemoveAttachment : '&onRemoveAttachment',
+  				notify : '&onNotify'
+  			},
+  			templateUrl : paths.TEMPLATES_DIR() + '/inline-attachments.html',
+  			controller : controller,
+  			compile : compile
+  		};
 		}
-		
-		// Normally you would just use a link function
-		// but we need to use 'compile' to ensure the FileUploader is created before
-		// the directive is rendered, and compiled
-		function compile(element, attrs){
-			return {
-				pre : function(scope){
-					
-					scope.uploader = new FileUploader({
-						url: '/civicrm/ajax/rest?entity=SimpleMail&action=uploadinlineattachment&json=1&sequential=1',
-		        autoUpload: true,
-		        headers: {
-		          'X-Requested-with': 'XMLHttpRequest'
-		        },
-		        filters: [{
-		        	name : 'filetypes',
-		          fn : function (item) {
-		          	
-		            var valid = [
-		            	"image/jpeg",
-		            	"image/gif",
-		            	"image/png",
-		            	"application/msword",
-		            	"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-		            	"application/pdf",
-		            	"application/vnd.ms-excel",
-		            	"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-		            ];
-		            
-		            scope.errors = '';
-		            
-		            if (!scope.errors && valid.indexOf(item.type) < 0){
-		            	scope.errors = 'it has an invalid file type';
-		            }
-		            
-		            if (!scope.errors && item.size > scope.maxSize){
-		            	scope.error = 'it is too large';
-		            }
-		            
-		            if (!scope.errors && item.size <= 0){
-		            	scope.error = 'it does not appear to be valid';
-		            }
-		            
-		            if (scope.errors){
-		            	scope.notify({
-		            		message : {
-			            		type : 'alert',
-			            		text : 'Sorry, your file could not be uploaded because '+scope.errors
-			            	}
-		            	});
-		            	return false;
-		            }
-		            
-		            return true;
-		          }
-		        }]				
-					});
-					
-				},
-				
-				// This is the equivalent of the link function
-				post : function(scope, element, attrs){
-					scope.uploader.onBeforeUploadItem = function(item){
-						scope.uploadBefore({uploadItem : item});
-						scope.uploadProgressInfo = '';
-					};
-					
-					scope.uploader.onProgressItem = function(item, progress){
-						scope.uploadProgressInfo = 'Uploading... '+progress+'%';
-					};
-					
-					scope.uploader.onCompleteItem = function(item, response, status, headers){
-						scope.uploadComplete({
-							uploadItem : item,
-							response : response,
-							status : status,
-							headers : headers
-						});
-						
-						scope.uploadProgressInfo = '';
-						
-					};
-
-					scope.uploader.onErrorItem = function(item, response, status, headers){
-						scope.uploadError({
-							uploadItem : item,
-							response : response,
-							status : status,
-							headers : headers
-						});
-					};
-				}
-				
-			};
-		}
-		
-		return {
-			restrict : 'E',
-			scope : {
-				attachments: '=',
-				maxSize: '=',
-				attachmentsName : '@',
-				uploadBefore : '&onBeforeUpload',
-				uploadComplete : '&onComplete', 
-				uploadError: '&onError',
-				insertAttachment : '&onInsertAttachment',
-				removeAttachment : '&onRemoveAttachment',
-				notify : '&onNotify'
-			},
-			templateUrl : paths.TEMPLATES_DIR() + '/inline-attachments.html',
-			controller : controller,
-			compile : compile
-		};
-	}];
+	];
 
 
 

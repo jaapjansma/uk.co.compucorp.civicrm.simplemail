@@ -342,6 +342,8 @@ function simplemail_civicrm_alterAPIPermissions($entity, $action, &$params, &$pe
       'update' => $permissionKeys
     );
 
+    //$permissions['simple_mail_inline']
+
     $permissions['option_group'] = $permissions['option_value'] = array('get' => $permissionKeys);
   }
 }

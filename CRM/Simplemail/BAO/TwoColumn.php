@@ -23,18 +23,9 @@ class CRM_Simplemail_BAO_TwoColumn {
 		$colA = '';
 		$colB = '';
 		
-		error_log("Debug two col. Text:");
-		error_log($text);
-
 		$text = preg_replace('|<br[^>]*>|i', "\n", $text);
 
-		error_log("Debug two col. Replaced text:");
-		error_log($text);
-		
 		$text = static::textWrap($text, $this->maxLineLength);
-		
-		error_log("Debug two col. Wrapped text:");
-		error_log($text);
 		
 		$lines = explode("\n", $text);
 		$halfLines = ceil(count($lines) / 2);

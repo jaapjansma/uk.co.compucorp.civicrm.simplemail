@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
+echo "EXTROOT"
 EXTROOT=$(cd `dirname $0`/..; pwd)
+
+echo "CIVIROOT"
 CIVIROOT="$1"
+
+echo "XMLBUILD"
 XMLBUILD="$EXTROOT/build/xml/schema"
 
 if [ -z "$CIVIROOT" -o ! -d "$CIVIROOT" ]; then
