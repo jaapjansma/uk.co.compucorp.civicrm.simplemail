@@ -530,248 +530,112 @@
               <tr>
                 <td width="100%" class="image180">
                   
-                  <?php if ($template->isTwoColumn): ?>
+                	<!-- CONTENT -->
+                	<!-- Single column -->
+                	<!-- Col 1 Image 1 -->
+                  <table width="<?php echo ($template->isTwoColumn ? '600' :'345') ?>" border="0" cellpadding="0" cellspacing="0" align="left"
+                         style="border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;"
+                         class="table66">
+               	
+                    <tbody>
 
-
-                  	<!-- CONTENT -->
-                  	<!-- Two column -->
-                  	<!-- Col 1 Image 1 -->
-	                  <table width="600" border="0" cellpadding="0" cellspacing="0" align="left"
-	                         style="border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;"
-	                         class="full">
-                 	
-	                    <tbody>
+	                    <?php if ($template->title): ?>
+	                      <tr>
+	                        <td valign="middle" width="100%" style="text-align: left; font-family: Verdana, Arial, sans-serif; font-size: 24px; color: rgb(99, 95, 95); line-height: 32px; font-weight: 100; text-transform: uppercase;">
+	                          <!--[if !mso]><!--><span style="font-family: 'proxima_novalight', Verdana; font-weight: normal;"><!--<![endif]--><?php echo $template->title; ?><!--[if !mso]><!--></span><!--<![endif]-->
+	                        </td>
+	                      </tr>
+	                      <tr>
+	                        <td width="100%" height="14"></td>
+	                      </tr>
+	                    <?php endif; ?>
 	
-		                    <?php if ($template->title): ?>
-		                      <tr>
-		                        <td valign="middle" width="100%" style="text-align: left; font-family: Verdana, Arial, sans-serif; font-size: 24px; color: rgb(99, 95, 95); line-height: 32px; font-weight: 100; text-transform: uppercase;">
-		                          <!--[if !mso]><!--><span style="font-family: 'proxima_novalight', Verdana; font-weight: normal;"><!--<![endif]--><?php echo $template->title; ?><!--[if !mso]><!--></span><!--<![endif]-->
-		                        </td>
-		                      </tr>
-		                      <tr>
-		                        <td width="100%" height="14"></td>
-		                      </tr>
-		                    <?php endif; ?>
-		                    
-	                    </tbody>
-                  	</table>
+	                    <?php if ($template->body): ?>
 
-	                  <table width="285" border="0" cellpadding="6" cellspacing="0" align="left"
-	                         style="border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;"
-	                         class="table50">
-	                    <tbody>
-	
-	                      <!-- Body Column 1 -->
+	                      <!-- Body -->
+												
 		                      <tr>
 		                        <td valign="middle" width="100%" style="text-align: left; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: rgb(119, 115, 115); line-height: 22px;">
 		                          <!--[if !mso]><!--><span
-		                            style="font-family: 'proxima_nova_rgregular', Verdana; font-weight: normal;"><!--<![endif]--><?php echo $template->bodyColumn1; ?><!--[if !mso]><!--></span><!--<![endif]-->
+		                            style="font-family: 'proxima_nova_rgregular', Verdana; font-weight: normal;"><!--<![endif]--><?php echo $template->body; ?><!--[if !mso]><!--></span><!--<![endif]-->
 		                        </td>
 		                      </tr>
-	                      <!-- End Body Column 1-->
-	                    
-	                    </tbody>
-                  	</table>
-
-	                  <table width="285" border="0" cellpadding="6" cellspacing="0" align="left"
-	                         style="border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;"
-	                         class="table50">
-	                    <tbody>
-	
-	                      <!-- Body Column 2 -->
-		                      <tr>
-		                        <td valign="middle" width="100%" style="text-align: left; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: rgb(119, 115, 115); line-height: 22px;">
-		                          <!--[if !mso]><!--><span
-		                            style="font-family: 'proxima_nova_rgregular', Verdana; font-weight: normal;"><!--<![endif]--><?php echo $template->bodyColumn2; ?><!--[if !mso]><!--></span><!--<![endif]-->
-		                        </td>
-		                      </tr>
-	                      <!-- End Body Column 2 -->
-	                    
-	                    </tbody>
-                  	</table>
-									</td>
-								</tr>
-								<tr>
-									<td width="100%">
-
-				            <!-- Space -->
-				            <table width="100%" border="0" cellpadding="0" cellspacing="0" align="center" class="full">
-				              <tbody>
-				              	<tr>
-				                	<td width="100%" height="28"></td>
-				              	</tr>
-				              </tbody>
-				            </table>
-				            <!-- End Space -->
-										
-	                  <!-- Contact  -->
-	                  <table width="600" bgcolor="#fffdee" border="0" cellpadding="18" cellspacing="0" align="leftt"
-	                         style="background-color: #fffdee; border: 2px solid #fbf0dd; border-collapse:collapse;
-	                         mso-table-lspace:0pt; mso-table-rspace:0pt;" class="full">
-	                    <tbody>
-	
-	                    <?php if ($template->contactDetails): ?>
-	                      <tr>
-	                        <td valign="middle" width="100%" style="text-align: left; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: rgb(119, 115, 115); line-height: 22px;">
-	                          <!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgregular', Verdana; font-weight: normal;"><!--<![endif]-->
-	                            <strong>Contact Details</strong><br>
-	                            <?php echo $template->contactDetails; ?>
-	
-	                            <!--[if !mso]><!-->
-	                            </span><!--<![endif]-->
-	                            <?php if ($template->replyAddress): ?>
-	                             <table width="100%" border="0" cellpadding="0" cellspacing="0" align="center" class="full">
-	                                <tbody>
-	                                <tr>
-	                                  <td width="100%" height="10"></td>
-	                                </tr>
-	                                </tbody>
-	                              </table>
-	
-	                              <table width="100" align="left">
-	                                <tbody>
-	                                <tr>
-	                                  <td width="100%" bgcolor="#85ca83" style="text-align: center; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: white; line-height: 22px; font-weight: bold; background-color: rgb(133, 202, 131);">
-	                                    <!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgbold', Verdana; font-weight: normal;"><!--<![endif]--><a style="text-transform: uppercase; text-decoration: none; color: white;" href="<?php echo $template->replyAddress; ?>">Reply</a><!--[if !mso]><!--></span><!--<![endif]-->
-	                                  </td>
-	                                </tr>
-	                                </tbody>
-	                              </table>
-	                            <?php endif; ?>
-	                        </td>
-	                      </tr>
-	                    <?php endif; ?>
-	
-	                    <?php if ($template->logo): ?>
-	                      <tr>
-	                        <td valign="middle" width="100%">
-	                          <span style="display: block;"><div class="pic180"><img src="<?php echo $template->logo; ?>" width="180" height="auto" border="0" alt=""/></div></span>
-	                        </td>
-	                      </tr>
-	                    <?php endif; ?>
-	
-	                    <?php if ($template->campaignMessage): ?>
-	                      <tr>
-	                        <td valign="middle" width="100%" style="text-align: left; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: rgb(119, 115, 115); line-height: 22px;">
-	                          <!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgregular', Verdana; font-weight: normal;"><!--<![endif]--><?php echo $template->campaignMessage; ?><!--[if !mso]><!--></span><!--<![endif]-->
-	                        </td>
-	                      </tr>
-	                    <?php endif; ?>
-	                    </tbody>
-	                  </table>
-										<!-- End contact -->
-
-                  	
-                  <?php else: ?>
-                  
-                  	<!-- CONTENT -->
-                  	<!-- Single column -->
-                  	<!-- Col 1 Image 1 -->
-	                  <table width="345" border="0" cellpadding="0" cellspacing="0" align="left"
-	                         style="border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;"
-	                         class="table66">
-                 	
-	                    <tbody>
-	
-		                    <?php if ($template->title): ?>
-		                      <tr>
-		                        <td valign="middle" width="100%" style="text-align: left; font-family: Verdana, Arial, sans-serif; font-size: 24px; color: rgb(99, 95, 95); line-height: 32px; font-weight: 100; text-transform: uppercase;">
-		                          <!--[if !mso]><!--><span style="font-family: 'proxima_novalight', Verdana; font-weight: normal;"><!--<![endif]--><?php echo $template->title; ?><!--[if !mso]><!--></span><!--<![endif]-->
-		                        </td>
-		                      </tr>
-		                      <tr>
-		                        <td width="100%" height="14"></td>
-		                      </tr>
-		                    <?php endif; ?>
-		
-		                    <?php if ($template->body): ?>
-	
-		                      <!-- Body -->
-													
-			                      <tr>
-			                        <td valign="middle" width="100%" style="text-align: left; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: rgb(119, 115, 115); line-height: 22px;">
-			                          <!--[if !mso]><!--><span
-			                            style="font-family: 'proxima_nova_rgregular', Verdana; font-weight: normal;"><!--<![endif]--><?php echo $template->body; ?><!--[if !mso]><!--></span><!--<![endif]-->
-			                        </td>
-			                      </tr>
-		                      
-		                      <!-- End Body -->
 	                      
-		                    <?php endif; ?>
-	                    
-	                    </tbody>
-                  	</table>
+	                      <!-- End Body -->
+                      
+	                    <?php endif; ?>
+                    
+                    </tbody>
+                	</table>
 
-	                  <!-- Space -->
-	                  <table width="25" border="0" cellpadding="0" cellspacing="0" align="left"
-	                         style="border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;" class="showMob">
-	                    <tbody>
-	                    <tr>
-	                      <td width="100%" height="30"></td>
-	                    </tr>
-	                    </tbody>
-	                  </table>
-	                  <!-- End Space -->
+                  <!-- Space -->
+                  <table width="25" border="0" cellpadding="0" cellspacing="0" align="left"
+                         style="border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;" class="showMob">
+                    <tbody>
+                    <tr>
+                      <td width="100%" height="30"></td>
+                    </tr>
+                    </tbody>
+                  </table>
+                  <!-- End Space -->
 
-	                  <!-- SIDEBAR -->
-	                  <!-- Col 3 Image 3 -->
-	                  <table width="180" bgcolor="#fffdee" border="0" cellpadding="18" cellspacing="0" align="right"
-	                         style="background-color: #fffdee; border: 2px solid #fbf0dd; border-collapse:collapse;
-	                         mso-table-lspace:0pt; mso-table-rspace:0pt;" class="table33">
-	                    <tbody>
-	
-	                    <?php if ($template->contactDetails): ?>
-	                      <tr>
-	                        <td valign="middle" width="100%" style="text-align: left; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: rgb(119, 115, 115); line-height: 22px;">
-	                          <!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgregular', Verdana; font-weight: normal;"><!--<![endif]-->
-	                            <strong>Contact Details</strong><br>
-	                            <?php echo $template->contactDetails; ?>
-	
-	                            <!--[if !mso]><!-->
-	                            </span><!--<![endif]-->
-	                            <?php if ($template->replyAddress): ?>
-	                             <table width="100%" border="0" cellpadding="0" cellspacing="0" align="center" class="full">
-	                                <tbody>
-	                                <tr>
-	                                  <td width="100%" height="10"></td>
-	                                </tr>
-	                                </tbody>
-	                              </table>
-	
-	                              <table width="100" align="left">
-	                                <tbody>
-	                                <tr>
-	                                  <td width="100%" bgcolor="#85ca83" style="text-align: center; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: white; line-height: 22px; font-weight: bold; background-color: rgb(133, 202, 131);">
-	                                    <!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgbold', Verdana; font-weight: normal;"><!--<![endif]--><a style="text-transform: uppercase; text-decoration: none; color: white;" href="<?php echo $template->replyAddress; ?>">Reply</a><!--[if !mso]><!--></span><!--<![endif]-->
-	                                  </td>
-	                                </tr>
-	                                </tbody>
-	                              </table>
-	                            <?php endif; ?>
-	                        </td>
-	                      </tr>
-	                    <?php endif; ?>
-	
-	                    <?php if ($template->logo): ?>
-	                      <tr>
-	                        <td valign="middle" width="100%">
-	                          <span style="display: block;"><div class="pic180"><img src="<?php echo $template->logo; ?>" width="180" height="auto" border="0" alt=""/></div></span>
-	                        </td>
-	                      </tr>
-	                    <?php endif; ?>
-	
-	                    <?php if ($template->campaignMessage): ?>
-	                      <tr>
-	                        <td valign="middle" width="100%" style="text-align: left; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: rgb(119, 115, 115); line-height: 22px;">
-	                          <!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgregular', Verdana; font-weight: normal;"><!--<![endif]--><?php echo $template->campaignMessage; ?><!--[if !mso]><!--></span><!--<![endif]-->
-	                        </td>
-	                      </tr>
-	                    <?php endif; ?>
-	                    </tbody>
-	                  </table>
+                  <!-- SIDEBAR -->
+                  <!-- Col 3 Image 3 -->
+                  <table width="<?php echo ($template->isTwoColumn ? '600' :'180') ?>" bgcolor="#fffdee" border="0" cellpadding="18" cellspacing="0" align="right"
+                         style="background-color: #fffdee; border: 2px solid #fbf0dd; border-collapse:collapse;
+                         mso-table-lspace:0pt; mso-table-rspace:0pt;" class="table33">
+                    <tbody>
+
+                    <?php if ($template->contactDetails): ?>
+                      <tr>
+                        <td valign="middle" width="100%" style="text-align: left; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: rgb(119, 115, 115); line-height: 22px;">
+                          <!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgregular', Verdana; font-weight: normal;"><!--<![endif]-->
+                            <strong>Contact Details</strong><br>
+                            <?php echo $template->contactDetails; ?>
+
+                            <!--[if !mso]><!-->
+                            </span><!--<![endif]-->
+                            <?php if ($template->replyAddress): ?>
+                             <table width="100%" border="0" cellpadding="0" cellspacing="0" align="center" class="full">
+                                <tbody>
+                                <tr>
+                                  <td width="100%" height="10"></td>
+                                </tr>
+                                </tbody>
+                              </table>
+
+                              <table width="100" align="left">
+                                <tbody>
+                                <tr>
+                                  <td width="100%" bgcolor="#85ca83" style="text-align: center; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: white; line-height: 22px; font-weight: bold; background-color: rgb(133, 202, 131);">
+                                    <!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgbold', Verdana; font-weight: normal;"><!--<![endif]--><a style="text-transform: uppercase; text-decoration: none; color: white;" href="<?php echo $template->replyAddress; ?>">Reply</a><!--[if !mso]><!--></span><!--<![endif]-->
+                                  </td>
+                                </tr>
+                                </tbody>
+                              </table>
+                            <?php endif; ?>
+                        </td>
+                      </tr>
+                    <?php endif; ?>
+
+                    <?php if ($template->logo): ?>
+                      <tr>
+                        <td valign="middle" width="100%">
+                          <span style="display: block;"><div class="pic180"><img src="<?php echo $template->logo; ?>" width="180" height="auto" border="0" alt=""/></div></span>
+                        </td>
+                      </tr>
+                    <?php endif; ?>
+
+                    <?php if ($template->campaignMessage): ?>
+                      <tr>
+                        <td valign="middle" width="100%" style="text-align: left; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: rgb(119, 115, 115); line-height: 22px;">
+                          <!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgregular', Verdana; font-weight: normal;"><!--<![endif]--><?php echo $template->campaignMessage; ?><!--[if !mso]><!--></span><!--<![endif]-->
+                        </td>
+                      </tr>
+                    <?php endif; ?>
+                    </tbody>
+                  </table>
                   
-                  <?php endif; // isTwoColumn if?>
-                
                 </td>
               </tr>
               </tbody>
