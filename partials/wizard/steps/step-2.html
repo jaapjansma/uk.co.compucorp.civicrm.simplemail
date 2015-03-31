@@ -74,13 +74,14 @@
       </textarea>
     </div>
     
-    <div class="field-group clearfix">
+    <div class="field-group clearfix inlineAttachmentsContainer">
     	<label for="inlineAttachments">Inline Attachments</label>
     	<div>Supported file types: .jpg .gif .png .pdf .doc .docx .xls .xlsx</div>
  			<div>Maximum file size: 10MB</div>
  			<inline-attachments
  				attachments="compose.inlineAttachments"
  				id="inlineAttachments"
+ 				class="inlineAttachments"
  				attachments-name="attacher"
  				max-size="10000000"
  				on-before-upload="inlineAttachmentBeforeUpload(uploadItem)"

@@ -81,4 +81,51 @@
       ]);
     }
   ]);
+
+
+
+  /**
+   * A special filter that takes an object to be sorted, and sorts on the specified field
+   * by first converting that field to an int
+   * 
+   * For example:
+   * 
+   * myItems = {
+   *    { id : "1", name : "spoon"},
+   *    { id : "2", name : "book"}
+   * }
+   * 
+   * ng-repat="item in myItems | orderObjectByInt:'id'"
+   * 
+   * This will convert 'id' into an int, then sort the object by the integer version of the id's
+   * 
+   */
+  app.filter('orderObjectByInt', function() {
+    return function(items, field, reverse) {
+      var filtered = [];
+
+      angular.forEach(items, function(item) {
+        filtered.push(item);
+      });
+
+      filtered.sort(function (a, b) {
+        var iA = parseInt(a[field]);
+        var iB = parseInt(b[field]);
+        
+        if (iA > iB){
+          return 1;
+        } else if (iA < iB){
+          return -1;
+        }
+        
+        return 0;
+      });
+
+      if(reverse) filtered.reverse();
+
+      return filtered;
+    };
+  });
+
+  
 })();

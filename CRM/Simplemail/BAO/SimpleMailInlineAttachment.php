@@ -116,7 +116,7 @@ class CRM_Simplemail_BAO_SimpleMailInlineAttachment extends CRM_Simplemail_DAO_S
    * @param Array $params   should contain one key called 'id' and a value which matches the id of the attachment you wish to delete
    */
   public static function remove($params){
-    if (!static::authorised(SM_PERMISSION_DELETE)) {
+    if (!CRM_Core_Permission::check(SM_PERMISSION_DELETE)) {
       throw new CRM_Extension_Exception('Sorry! You do not have permission to delete attachments', 500);
     }
     

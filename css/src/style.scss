@@ -313,10 +313,6 @@ $border-radius: 3px;
     }
   }
 
-  #iaFileControl_attacher {
-    display: none;
-  }
-
   #email-preview {
     background-color: white;
     width: 100%;
@@ -554,6 +550,65 @@ $border-radius: 3px;
   .ng-enter-active, .ng-leave {
     opacity: 1;
     display: block !important;
+  }
+  
+  .inlineAttachmentsContainer {
+    margin: 1rem 0 0 0;
+  }
+  
+  .inlineAttachments {
+    
+    input[type="file"] {
+      //display: none;
+    }
+    
+    label {
+      display: inline;
+    }
+    
+    .clear {
+      clear: both;
+    }
+    
+    ul {
+      list-style-type: none;
+    }
+    
+    li {
+      clear: both;
+      padding: 0.2rem 0;
+      margin: 0.2rem 0;
+      border: 1px solid #e0e0e0;
+      width: 460px;
+    }
+    
+    button.removeAttachment {
+      background: none;
+      color: #ff0000;
+      border: 0;
+    }
+    
+    .inline-attachment-filename {
+      display: inline-block;
+      width: 300px;
+      text-overflow: ellipsis;
+    }
+    
+    .ia-buttons {
+      margin: 0;
+      padding: 0;
+      text-align: left;
+      display: inline-block;
+      
+      .insert {
+        border: 0;
+        color: #0000ff;
+        background: none;
+        cursor: pointer;
+      }
+      
+    }
+    
   }
   
 }

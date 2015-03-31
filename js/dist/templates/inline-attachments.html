@@ -1,14 +1,18 @@
-<ul ng-repeat="attachment in attachments">
-	<li>
+<ul>
+	<li ng-repeat="attachment in attachments | orderObjectByInt:'id'">
+	  <div class="ia-buttons">
+      <button ng-click="removeAttachment(attachment)" class="removeAttachment" title="Remove attachment" aria-label="Remove attachment">&#x2716;</button>
+	  </div>
 		<div class="inline-attachment-filename">
 			File: {{attachment.filename}}
 		</div>
-		<div ng-show="attachment.uploaded">
-			<button ng-click="removeAttachment(attachment)">Remove attachment</button>
-			<button ng-click="insertAttachment({attachment : attachment})">Insert link into email</button>
+		<div ng-show="attachment.uploaded" class="ia-buttons">
+			<button ng-click="insertAttachment({attachment : attachment})" class="insert">Insert link into email</button>
 		</div>
 	</li>
 </ul>
+
+<div class="clear"></div>
 
 <div ng-show="uploadProgressInfo" class="iaUploadProgressInfo">{{uploadProgressInfo}}</div>
 
@@ -16,6 +20,8 @@
 	Sorry, your file could not be uploaded because {{errors}}
 </div>
 
+<label for="{{fileControlId}}">Add attachment:</label>
 <input type="file" name="inlineAttachmentFile" id="{{fileControlId}}" nv-file-select uploader="uploader"/>
+<!--
 <button ng-click="addAttachment()">Add attachment</button>
-
+-->

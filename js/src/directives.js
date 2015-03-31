@@ -9,8 +9,9 @@
   			$scope.fileControlId = 'iaFileControl_'+$scope.attachmentsName;
   			$scope.uploadProgressInfo = '';
   			
+  			/* This was a nice feature, but triggering a click on the file control doesn't always cause
+  			 * the file dialog to trigger, so we're using the browser's default "choose file" button
   			$scope.addAttachment = function(){
-  				
   				$scope.uploader.clearQueue();
   				
   				// Older versions of Angular require us to use a timeout
@@ -19,6 +20,7 @@
   					angular.element(fileControl).trigger('click');
   				}, 0);
   			};
+  			*/
   			
   			$scope.removeAttachment = function(attachment){
           if (confirm("Are you sure you want to remove the attachment:\n"+attachment.filename)){

@@ -165,8 +165,6 @@
       left: 49%;
       position: relative;
       top: 25%; }
-.sm-container #iaFileControl_attacher {
-  display: none; }
 .sm-container #email-preview {
   background-color: white;
   width: 100%;
@@ -318,6 +316,38 @@
 .sm-container .ng-enter-active, .sm-container .ng-leave {
   opacity: 1;
   display: block !important; }
+.sm-container .inlineAttachmentsContainer {
+  margin: 1rem 0 0 0; }
+.sm-container .inlineAttachments label {
+  display: inline; }
+.sm-container .inlineAttachments .clear {
+  clear: both; }
+.sm-container .inlineAttachments ul {
+  list-style-type: none; }
+.sm-container .inlineAttachments li {
+  clear: both;
+  padding: 0.2rem 0;
+  margin: 0.2rem 0;
+  border: 1px solid #e0e0e0;
+  width: 460px; }
+.sm-container .inlineAttachments button.removeAttachment {
+  background: none;
+  color: #ff0000;
+  border: 0; }
+.sm-container .inlineAttachments .inline-attachment-filename {
+  display: inline-block;
+  width: 300px;
+  text-overflow: ellipsis; }
+.sm-container .inlineAttachments .ia-buttons {
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  display: inline-block; }
+  .sm-container .inlineAttachments .ia-buttons .insert {
+    border: 0;
+    color: #0000ff;
+    background: none;
+    cursor: pointer; }
 
 #sm-messages-admin-table textarea, #sm-messages-admin-table input[type="text"] {
   width: 100%; }
