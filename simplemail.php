@@ -176,13 +176,13 @@ function simplemail_civicrm_searchTasks($objectType, &$tasks) {
  */
 function simplemail_civicrm_navigationMenu(&$params) {
 
-	/* Added by Scott 10-12-2014 
-	 * Only provides this extension's menu if a customised one does not already exist */
-	foreach ($params as $parameter) {
-		if ($parameter['attributes']['name'] == 'MailJet') {
-			return;
-		}
-	}
+    /* Added by Scott 10-12-2014
+     * Only provides this extension's menu if a customised one does not already exist */
+    foreach ($params as $parameter) {
+        if ($parameter['attributes']['name'] == 'MailJet') {
+            return;
+        }
+    }
 
   //  Get the maximum key of $params
   $maxKey = _getMenuKeyMax($params);
@@ -276,6 +276,7 @@ function simplemail_civicrm_permission(&$permissions) {
   $permissions['access CiviSimpleMail'] = $prefix . ts('access CiviSimpleMail');
   $permissions['delete CiviSimpleMail'] = $prefix . ts('delete CiviSimpleMail');
   $permissions['access admin CiviSimpleMail'] = $prefix . ts('access admin CiviSimpleMail');
+  $permissions['access LegacyMailUi']  = $prefix . ts('access legacy mail UI') ;
 }
 
 /**
@@ -385,11 +386,11 @@ function simplemail_civicrm_init() {
     }
   }
 
-	/**
-	 * Whether emails should have SSL linked content or not
-	 * Generally set this to false because SSL linked content can break mail clients
-	 */
-	define('SM_CONTENT_SSL', false);
+    /**
+     * Whether emails should have SSL linked content or not
+     * Generally set this to false because SSL linked content can break mail clients
+     */
+    define('SM_CONTENT_SSL', false);
 
 }
 
