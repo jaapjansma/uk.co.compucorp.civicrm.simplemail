@@ -244,7 +244,8 @@ function civicrm_api3_simple_mail_iscreatedfromsearch($params) {
 function civicrm_api3_simple_mail_getsearchcontacts($params){
 	try {
 		$result = CRM_Simplemail_BAO_SimpleMail::getSearchContacts();
-		return civicrm_api3_create_success($result['values'], $params, NULL, 'getsearchcontacts');
+    $dao = '';
+		return civicrm_api3_create_success(true, $params, NULL, 'getsearchcontacts', $dao, $result);
 	} catch (CRM_Extension_Exception $e){
 		return civicrm_api3_create_error($e->getMessage());
 	}

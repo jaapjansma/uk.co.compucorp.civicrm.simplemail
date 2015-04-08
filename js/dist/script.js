@@ -3631,6 +3631,7 @@
 
         // The mailing isn't new (i.e. mailing ID exists in the URL) - populate current mailing using the API
         if (!isNewMailing()) {
+          // This is NOT a new mailing
           CiviApi.get(constants.entities.MAILING, {id: getMailingIdFromUrl()})
             .then(function (response) {
               if (response.data.values.length === 0) return $q.reject('Mailing not found!');
@@ -3650,6 +3651,7 @@
               deferred.reject(response);
             });
         } else {
+          // This IS a new mailing
           CiviApi.post('SimpleMail', getCurrentMailing(), 'iscreatedfromsearch')
             .then(function (response) {
 
@@ -3660,7 +3662,7 @@
 
 								CiviApi.post('SimpleMail', getCurrentMailing(), 'getsearchcontacts')
 									.then(function(response){
-										contactsCount = response.data.values.length;
+										contactsCount = response.data.contactCount;
 			              deferred.resolve();
 									});
 							
