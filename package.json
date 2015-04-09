@@ -1,7 +1,7 @@
 {
-	"name" : "simplemail",
+  "name": "simplemail",
   "devDependencies": {
-    "gulp": "^3.8.10",
+    "gulp": "^3.8.11",
     "gulp-autoprefixer": "^1.0.0",
     "gulp-concat": "^2.4.0",
     "gulp-notify": "^1.6.0",

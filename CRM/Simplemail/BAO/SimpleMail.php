@@ -22,10 +22,34 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   const MAILING_GROUP_TYPE_EXCLUDE = 'Exclude';
 
   /**
-   * Status of mailing when it's not yet been scheduled - more correctly, when a mailing job for the mailing has never
-   * been created
+   * Status of mailing when it has been scheduled
+   */
+  const MAILING_STATUS_SCHEDULED = 'Scheduled';
+
+  /**
+   * status of mailing when it is currently running
+   */
+  const MAILING_STATUS_RUNNING = 'Running';
+
+  /**
+   * Status of mailing when it is currently paused
+   */
+  const MAILING_STATUS_PAUSED = 'Paused';
+
+  /**
+   * Yes, incorrectly spelt because that's the way it is in Civi!
+   */
+  const MAILING_STATUS_CANCELLED = 'Canceled';
+
+  /**
+   * Status of mailing when it's not yet been scheduled - more accurately, when a mailing job for the mailing has never
+   * been created. Note that this is a calculated value (further down this class), and CiviCRM does not store this.
    */
   const MAILING_STATUS_NOT_SCHEDULED = 'Not Scheduled';
+
+  const ACTION_ALLOWED_UPDATE = 'update';
+  const ACTION_ALLOWED_DELETE = 'delete';
+  const ACTION_ALLOWED_CANCEL = 'cancel';
 
   /**
    * Params that are required when submitting an email for mass mailing (i.e. when being scheduled).
@@ -44,6 +68,13 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     )
   );
 
+  /**
+   * This is used for storing mailing jobs between method calls
+   *
+   * @var null
+   */
+  private static $jobs = NULL;
+
   /////////////////
   // API Methods //
   /////////////////
@@ -54,9 +85,15 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    *
    * @param array $params key-value pairs
    *
-   * @return CRM_Simplemail_DAO_SimpleMail|NULL
+   * @return \CRM_Simplemail_DAO_SimpleMail|NULL
+   * @throws \CRM_Extension_Exception
    */
   public static function create($params) {
+    if (!static::isActionAllowed(static::ACTION_ALLOWED_UPDATE, $params)) {
+      throw new CRM_Extension_Exception('Cannot update a scheduled mailing',
+        405);
+    }
+
     if (simplemail_civicrm_getFromSessionScope('createdFromSearch')) {
       static::createSmartContactGroupForSearchContacts();
     }
@@ -66,7 +103,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     // buids the mailing to be sent
     // things like the email body etc
     $civiMailing = static::createCiviMailing($params);
-		
+
     if ($civiMailing->id) {
       $params['crm_mailing_id'] = $civiMailing->id;
     }
@@ -78,7 +115,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     $hook = empty($params['id']) ? 'create' : 'edit';
 
-    CRM_Utils_Hook::pre($hook, $entityName, CRM_Utils_Array::value('id', $params), $params);
+    CRM_Utils_Hook::pre($hook, $entityName,
+      CRM_Utils_Array::value('id', $params), $params);
     $instance = new static;
     $instance->copyValues($params);
     $instance->save();
@@ -96,16 +134,25 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    */
   public function delete() {
     if (!static::authorised(SM_PERMISSION_DELETE)) {
-      throw new CRM_Extension_Exception('Sorry! You do not have permission to delete mailings', 500);
+      throw new CRM_Extension_Exception('Sorry! You do not have permission to delete mailings',
+        500);
+    }
+    if (!static::isActionAllowed(static::ACTION_ALLOWED_DELETE,
+      $this->toArray())
+    ) {
+      throw new CRM_Extension_Exception('Cannot delete a scheduled/running mailing',
+        405);
     }
     if (!$this->crm_mailing_id) {
       throw new CRM_Extension_Exception(
-        'Failed to delete mailing it does not have a corresponding CiviCRM mailing associated', 500
+        'Failed to delete mailing it does not have a corresponding CiviCRM mailing associated',
+        500
       );
     }
 
     // Delete the inline attachments first, because they are tied to a cascade delete on the simple mailing table
-    $attachments = CRM_Simplemail_BAO_SimpleMailInlineAttachment::removeAll((int) $this->id);
+    $attachments =
+      CRM_Simplemail_BAO_SimpleMailInlineAttachment::removeAll((int) $this->id);
 
     $civiMailing = new CRM_Mailing_BAO_Mailing();
     $civiMailing->id = (int) $this->crm_mailing_id;
@@ -119,8 +166,13 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @throws CRM_Extension_Exception
    */
   public static function cancelMassEmail($params) {
+    if (!static::isActionAllowed(static::ACTION_ALLOWED_CANCEL, $params)) {
+      throw new CRM_Extension_Exception('Cannot cancel the mailing',
+        405);
+    }
     if (empty($params['crm_mailing_id'])) {
-      throw new CRM_Extension_Exception('Failed to cancel mass mailing as CiviCRM mailing ID not available', 500);
+      throw new CRM_Extension_Exception('Failed to cancel mass mailing as CiviCRM mailing ID not available',
+        500);
     }
 
     static::cancelMailingJobs($params['crm_mailing_id']);
@@ -151,12 +203,15 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
          *    update method was used after the create() method below, the mailing job's scheduled date would be updated
          *    unnecessarily.
         */
-      static::updateScheduledMailingJobs($params);
+      // Update: This is no longer needed since updating an already scheduled
+      // or running mailing is no longer allowed
+//      static::updateScheduledMailingJobs($params);
 
       // This wouldn't have been needed if CRM_Mailing_BAO_Mailing::create() was able to run getRecipients() itself
       // towards the end, which unfortunately fails due to a bug in the add() method where it instantiates the DAO
       // instead of the BAO!
-      static::createRecipients((int) $params['crm_mailing_id'], static::shouldRemoveDuplicateEmails($params));
+      static::createRecipients((int) $params['crm_mailing_id'],
+        static::shouldRemoveDuplicateEmails($params));
 
       $dao = static::create($params);
 
@@ -189,7 +244,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @throws CRM_Extension_Exception
    */
   public static function getMailing($params) {
-    $whereClause = isset($params['id']) ? 'sm.id = ' . (int) $params['id'] : 'true';
+    $whereClause =
+      isset($params['id']) ? 'sm.id = ' . (int) $params['id'] : 'true';
 
     $query
       = "
@@ -231,7 +287,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       while ($dao->fetch()) {
         $mailing = $dao->toArray();
 
-        $mailing['status'] = $mailing['status'] ?: static::MAILING_STATUS_NOT_SCHEDULED;
+        $mailing['status'] =
+          $mailing['status'] ?: static::MAILING_STATUS_NOT_SCHEDULED;
 
         $groups = explode(',', $mailing['recipient_group_entities']);
 
@@ -242,7 +299,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
           $id = strtok($group, ':');
           $isHidden = strtok(':');
           $groupTypes = strtok(':');
-          $groupTypes = explode(CRM_Core_DAO::VALUE_SEPARATOR, substr($groupTypes, 1, -1));
+          $groupTypes =
+            explode(CRM_Core_DAO::VALUE_SEPARATOR, substr($groupTypes, 1, -1));
 
           if ($isHidden) {
             $hiddenGroupIds[] = $id;
@@ -269,13 +327,17 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     } catch (Exception $e) {
       $dao = isset($dao) ? $dao : NULL;
 
-      throw new CRM_Extension_Exception('Failed to retrieve mailings: ' . $e->getMessage(), 500, array('dao' => $dao));
+      throw new CRM_Extension_Exception('Failed to retrieve mailings: '
+        . $e->getMessage(), 500, array('dao' => $dao));
     }
 
     return array(
       'values'      => $mailings,
       'dao'         => $dao,
-      'extraValues' => array('userId' => CRM_Core_Session::singleton()->get('userID'))
+      'extraValues' => array(
+        'userId' => CRM_Core_Session::singleton()
+          ->get('userID')
+      )
     );
   }
 
@@ -288,7 +350,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   public static function sendTestEmail($params) {
     if (empty($params['crmMailingId'])) {
       throw new CRM_Extension_Exception(
-        'Failed to send test email as CiviCRM mailing ID not provided', 405, array('dao' => NULL)
+        'Failed to send test email as CiviCRM mailing ID not provided', 405,
+        array('dao' => NULL)
       );
     }
 
@@ -297,15 +360,18 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     if ($params['groupId'] || $params['emails']) {
       if ($params['groupId']) {
-        $jobs[] = static::sendTestEmailToGroup($params['crmMailingId'], $params['groupId']);
+        $jobs[] = static::sendTestEmailToGroup($params['crmMailingId'],
+          $params['groupId']);
       }
       if ($params['emails']) {
-        $jobs[] = static::sendTestEmailToIndividuals($params['crmMailingId'], $params['emails']);
+        $jobs[] = static::sendTestEmailToIndividuals($params['crmMailingId'],
+          $params['emails']);
       }
     }
     else {
       throw new CRM_Extension_Exception(
-        'Failed to send test email as no recipient provided', 405, array('dao' => NULL)
+        'Failed to send test email as no recipient provided', 405,
+        array('dao' => NULL)
       );
     }
 
@@ -321,87 +387,96 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @return array
    */
   public static function isCreatedFromSearch() {
-    $createdFromSearch = simplemail_civicrm_getFromSessionScope('createdFromSearch');
+    $createdFromSearch =
+      simplemail_civicrm_getFromSessionScope('createdFromSearch');
 
     return array('values' => array(array('answer' => $createdFromSearch)));
   }
 
-	
-	public static function getSearchContacts(){
-		$contactIds = simplemail_civicrm_getFromSessionScope('contactIds');
-    $contactCount = simplemail_civicrm_getFromSessionScope('contactCountFromSearch');
-		return array(
-	    'contactIds' => $contactIds,
-	    'contactCount' => $contactCount
-    );
-	}
 
-	public static function getMailingContacts($entityId, $mailingId){
-		
-		$retry = 0;
-		$foundContacts = false;
-		
-		do {
-			$sql = "
+  public static function getSearchContacts() {
+    $contactIds = simplemail_civicrm_getFromSessionScope('contactIds');
+    $contactCount =
+      simplemail_civicrm_getFromSessionScope('contactCountFromSearch');
+    return array(
+      'contactIds'   => $contactIds,
+      'contactCount' => $contactCount
+    );
+  }
+
+  public static function getMailingContacts($entityId, $mailingId) {
+
+    $retry = 0;
+    $foundContacts = FALSE;
+
+    do {
+      $sql = "
 				SELECT COUNT(*) AS total
 				FROM civicrm_group_contact_cache
-				WHERE group_id = '".(int) $entityId."'
+				WHERE group_id = '" . (int) $entityId . "'
 			";
-			
-			try {
-				$dao = CRM_Core_DAO::executeQuery($sql);
-				$dao->fetch();
-				$row = $dao->toArray();
-				
-				if ($row['total'] == 0){
-					CRM_Mailing_BAO_Mailing::getRecipients($mailingId, $mailingId, null, null, true, true);
-				} else {
-					$foundContacts = $row['total'];
-				}
-			} catch (Exception $e){
-				throw new CRM_Extension_Exception("Error finding contacts: ".$e->getMessage(), 500, array('dao' => $dao));
-			}
-			
-			$retry++;
-		} while (($retry <= 1) && !$foundContacts);
-		
-		return $foundContacts;
-		
-	}
-	
-	/**
-	 * Updates an email body and changes all the images to point to HTTPS or vice-versa
-	 * 
-	 * @param string $emailBody		the email body of text to update
-	 * @param boolean $makeHttps	whether the images should be made to point to HTTPS or not (HTTP)
-	 * 
-	 * @return string
-	 */
-	public static function updateEmailBodyHttps($emailBody, $makeHttps = true){		// Should there be SSL content in the email?
-			
-		if ($makeHttps){
-			$from = 'http://';
-			$to = 'https://';
-		} else {
-			$from = 'https://';
-			$to = 'http://';
-		}
-		
-		// match any img tags, and replace the https://  ...
-		$regex = '|(<img.*?src=["]?)'.$from.'|';
-		
-		// ... for http://
-		$emailBody = preg_replace($regex, '$1'.$to, $emailBody);
-		
-		return $emailBody;
-		
-	}
-	
+
+      try {
+        $dao = CRM_Core_DAO::executeQuery($sql);
+        $dao->fetch();
+        $row = $dao->toArray();
+
+        if ($row['total'] == 0) {
+          CRM_Mailing_BAO_Mailing::getRecipients($mailingId, $mailingId, NULL,
+            NULL, TRUE, TRUE);
+        }
+        else {
+          $foundContacts = $row['total'];
+        }
+      } catch (Exception $e) {
+        throw new CRM_Extension_Exception("Error finding contacts: "
+          . $e->getMessage(), 500, array('dao' => $dao));
+      }
+
+      $retry++;
+    } while (($retry <= 1) && !$foundContacts);
+
+    return $foundContacts;
+
+  }
+
+  /**
+   * Updates an email body and changes all the images to point to HTTPS or vice-versa
+   *
+   * @param string  $emailBody the email body of text to update
+   * @param boolean $makeHttps whether the images should be made to point to HTTPS or not (HTTP)
+   *
+   * @return string
+   */
+  public static function updateEmailBodyHttps(
+    $emailBody,
+    $makeHttps = TRUE
+  ) {        // Should there be SSL content in the email?
+
+    if ($makeHttps) {
+      $from = 'http://';
+      $to = 'https://';
+    }
+    else {
+      $from = 'https://';
+      $to = 'http://';
+    }
+
+    // match any img tags, and replace the https://  ...
+    $regex = '|(<img.*?src=["]?)' . $from . '|';
+
+    // ... for http://
+    $emailBody = preg_replace($regex, '$1' . $to, $emailBody);
+
+    return $emailBody;
+
+  }
 
 
 
 
-	
+
+
   ///////////////////////
   // Protected Methods //
   ///////////////////////
@@ -426,11 +501,15 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    */
   protected static function updateRecipientGroups($params) {
     if (!empty($params['recipient_group_entity_ids'])) {
-      static::updateMailingRecipientGroups((int) $params['crm_mailing_id'], $params['recipient_group_entity_ids']);
+      static::updateMailingRecipientGroups((int) $params['crm_mailing_id'],
+        $params['recipient_group_entity_ids']);
     }
 
-    if ($smartContactGroupId = simplemail_civicrm_getFromSessionScope('smartGroupId')) {
-      static::createMailingGroupForSmartContactGroup((int) $params['crm_mailing_id'], $smartContactGroupId);
+    if ($smartContactGroupId =
+      simplemail_civicrm_getFromSessionScope('smartGroupId')
+    ) {
+      static::createMailingGroupForSmartContactGroup((int) $params['crm_mailing_id'],
+        $smartContactGroupId);
 
       // Clearing the session scope will essentially clear the smart contact group ID from the session, which will make
       // sure that we only create mailing group for the smart contact group only once, as otherwise duplicates would get
@@ -452,24 +531,30 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     foreach (static::$requiredParams as $param => $name) {
       // Process the 'at least one' clause
       if (is_array($name)) {
-        $allEmpty = true;
+        $allEmpty = TRUE;
         foreach ($name as $eitherParam => $eitherName) {
           if (!empty($params[$eitherParam])) {
-            $allEmpty = false;
+            $allEmpty = FALSE;
             break;
           }
         }
 
-        if ($allEmpty) $errors[] = '<li>Neither of these provided: ' . implode(', ', $name) . '</li>';
+        if ($allEmpty) {
+          $errors[] =
+            '<li>Neither of these provided: ' . implode(', ', $name) . '</li>';
+        }
       }
       // Process the usual required param
-      else if (empty($params[$param])) {
-        $errors[] = '<li>' . ucfirst($name) . ' not provided</li>';
+      else {
+        if (empty($params[$param])) {
+          $errors[] = '<li>' . ucfirst($name) . ' not provided</li>';
+        }
       }
     }
 
     if ($errors) {
-      throw new CRM_Extension_Exception('<ul>' . implode('', $errors) . '</ul>');
+      throw new CRM_Extension_Exception('<ul>' . implode('', $errors)
+        . '</ul>');
     }
   }
 
@@ -520,13 +605,17 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   protected static function updateMailingCategoryContacts($params) {
     if (empty($params['category_id'])) {
       throw new CRM_Extension_Exception(
-        'Failed to update mailing category as category ID not provided', 405, array('dao' => NULL)
+        'Failed to update mailing category as category ID not provided', 405,
+        array('dao' => NULL)
       );
     }
 
-    if (empty($params['recipient_group_entity_ids']) && empty($params['hidden_recipient_group_entity_ids'])) {
+    if (empty($params['recipient_group_entity_ids'])
+      && empty($params['hidden_recipient_group_entity_ids'])
+    ) {
       throw new CRM_Extension_Exception(
-        'Failed to update mailing category as neither recipient nor smart group ID not provided', 405,
+        'Failed to update mailing category as neither recipient nor smart group ID not provided',
+        405,
         array('dao' => NULL)
       );
     }
@@ -542,7 +631,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       ? array()
       : $params['hidden_recipient_group_entity_ids'];
 
-    $groupIds = implode(', ', array_merge($groupEntityIds + $hiddenGroupEntityIds));
+    $groupIds =
+      implode(', ', array_merge($groupEntityIds + $hiddenGroupEntityIds));
 
     $query =
       "SELECT GROUP_CONCAT(DISTINCT contact_id) contact_ids
@@ -567,7 +657,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     );
 
     /** @var array IDs of contacts included in the mailing *category* currently selected $existingContactIds */
-    $existingContactIds = $dao->fetch() ? explode(',', $dao->contact_ids) : array();
+    $existingContactIds =
+      $dao->fetch() ? explode(',', $dao->contact_ids) : array();
 
     /** @var array IDs of contacts which are included in the mailing recipient group but not in the category (i.e.
      * which need to be added to the category) $newContactIds */
@@ -576,7 +667,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     // Add contacts currently in the mailing groups (normal as well as smart groups), but not already in mailing
     // category group, to the mailing category group
     if ($newContactIds && $newContactIds[0]) {
-      $result = CRM_Contact_BAO_GroupContact::addContactsToGroup($newContactIds, $params['category_id']);
+      $result = CRM_Contact_BAO_GroupContact::addContactsToGroup($newContactIds,
+        $params['category_id']);
     }
 
     // Set the group type to 'NULL' for mailing groups which are set as 'Include'. This is to ensure that there is
@@ -614,7 +706,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
         $smartGroups[] = $dao->toArray();
       }
       else {
-        $groupTypes = explode(CRM_Core_DAO::VALUE_SEPARATOR, substr($dao->group_type, 1, -1));
+        $groupTypes = explode(CRM_Core_DAO::VALUE_SEPARATOR,
+          substr($dao->group_type, 1, -1));
         if (in_array(SM_MAILING_CATEGORY_GROUP_TYPE_VALUE, $groupTypes)) {
           $category = $dao->toArray();
         }
@@ -630,6 +723,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   /**
    * Update scheduled jobs for the mailing
    *
+   * @deprecated Once scheduled, the mailing should not be allowed to be updated
+   *
    * @param $params
    *
    * @throws CRM_Extension_Exception
@@ -637,15 +732,19 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   protected static function updateScheduledMailingJobs($params) {
     if (empty($params['scheduled_date'])) {
       throw new CRM_Extension_Exception(
-        'Failed to update scheduled job(s) for the mailing as scheduled date not provided', 405, array('dao' => NULL)
+        'Failed to update scheduled job(s) for the mailing as scheduled date not provided',
+        405, array('dao' => NULL)
       );
     }
 
-    static::rescheduleMailingJobs($params['crm_mailing_id'], $params['scheduled_date']);
+    static::rescheduleMailingJobs($params['crm_mailing_id'],
+      $params['scheduled_date']);
   }
 
   /**
    * Reschedule jobs for a mailing given by CiviCRM mailing ID
+   *
+   * @deprecated Once scheduled, the mailing should not be allowed to be updated
    *
    * @param int    $crmMailingId The ID of CiviCRM mailing for which the jobs need to be rescheduled
    * @param string $date         Date to reschedule to
@@ -798,7 +897,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    */
   protected static function getEmailTemplatePath() {
     // TODO (robin): Probably add template dir as a constant
-    $templateDir = simplemail_civicrm_getExtensionDir() . 'email-templates' . DIRECTORY_SEPARATOR;
+    $templateDir = simplemail_civicrm_getExtensionDir() . 'email-templates'
+      . DIRECTORY_SEPARATOR;
     $templateFileName = 'wave.html';
 
     return $templateDir . $templateFileName;
@@ -812,7 +912,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @return string
    */
   protected static function generateEmailHtml($params) {
-  	
+
     // Setup paths
     $templateFile = static::getEmailTemplatePath();
 
@@ -821,18 +921,20 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $template->title = empty($params['title']) ? NULL : $params['title'];
     $template->replyAddress = static::getMailToLink($params);
     $template->body = empty($params['body']) ? NULL : $params['body'];
-		
-		$twoColumn = new CRM_Simplemail_BAO_TwoColumn();
-		$template->isTwoColumn = $twoColumn->isTwoColumn($template->body);
-		if ($template->isTwoColumn){
-			list($bodyColumn1, $bodyColumn2) = $twoColumn->getColumns($template->body);
-			$template->bodyColumn1 = $bodyColumn1;
-			$template->bodyColumn2 = $bodyColumn2;
-		}
-		
-    $template->contactDetails = isset($params['contact_details']) && $params['contact_details']
-      ? $params['contact_details']
-      : NULL;
+
+    $twoColumn = new CRM_Simplemail_BAO_TwoColumn();
+    $template->isTwoColumn = $twoColumn->isTwoColumn($template->body);
+    if ($template->isTwoColumn) {
+      list($bodyColumn1, $bodyColumn2) =
+        $twoColumn->getColumns($template->body);
+      $template->bodyColumn1 = $bodyColumn1;
+      $template->bodyColumn2 = $bodyColumn2;
+    }
+
+    $template->contactDetails =
+      isset($params['contact_details']) && $params['contact_details']
+        ? $params['contact_details']
+        : NULL;
     // TODO (robin): Make this dynamic as useful when testing on a dev box
     $template->unsubscribeLink = static::getOptOutLink();
 
@@ -846,11 +948,13 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
       if ($header->fetch()) {
         $template->headerImage = $header->image
-          ? CRM_Simplemail_BAO_SimpleMailHeader::getImageUrl($header->image, 'image')
+          ? CRM_Simplemail_BAO_SimpleMailHeader::getImageUrl($header->image,
+            'image')
           : NULL;
 
         $template->logo = $header->show_logo && $header->logo_image
-          ? CRM_Simplemail_BAO_SimpleMailHeader::getImageUrl($header->logo_image, 'logo_image')
+          ? CRM_Simplemail_BAO_SimpleMailHeader::getImageUrl($header->logo_image,
+            'logo_image')
           : NULL;
       }
     }
@@ -874,12 +978,12 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     require $templateFile;
 
     $emailBody = ob_get_clean();
-		
-		ob_end_clean();
 
-		
-		return $emailBody;
-		
+    ob_end_clean();
+
+
+    return $emailBody;
+
   }
 
   /**
@@ -890,12 +994,15 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @return string
    */
   protected static function getMailToLink($params) {
-    if (empty($params['reply_address']) || empty($params['subject']) || empty($params['id'])) {
+    if (empty($params['reply_address']) || empty($params['subject'])
+      || empty($params['id'])
+    ) {
       return NULL;
     }
 
     $subject = rawurlencode($params['subject']);
-    $subject .= rawurlencode(' -- Membership ID: ') . '{contact.external_identifier} ';
+    $subject .= rawurlencode(' -- Membership ID: ')
+      . '{contact.external_identifier} ';
     $subject .= rawurlencode(' -- Mailing ID: ' . $params['id']);
 
     $mailToLink = $params['reply_address'];
@@ -911,7 +1018,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @return string
    */
   protected function getOptOutLink() {
-    return CRM_Core_Config::singleton()->userFrameworkBaseURL . 'node/5?cid1={contact.contact_id}&{contact.checksum}';
+    return CRM_Core_Config::singleton()->userFrameworkBaseURL
+    . 'node/5?cid1={contact.contact_id}&{contact.checksum}';
   }
 
   /**
@@ -925,11 +1033,13 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $crmMailingParams = static::buildCiviMailingParams($params);
 
     $crmMailingId = array(
-      'mailing_id' => isset($params['crm_mailing_id']) ? $params['crm_mailing_id'] : NULL
+      'mailing_id' => isset($params['crm_mailing_id'])
+        ? $params['crm_mailing_id'] : NULL
     );
 
     // Create or update CiviCRM mailing - a mailing job would be created (scheduled) if scheduled date has been set
-    $crmMailing = CRM_Mailing_BAO_Mailing::create($crmMailingParams, $crmMailingId);
+    $crmMailing =
+      CRM_Mailing_BAO_Mailing::create($crmMailingParams, $crmMailingId);
 
     return $crmMailing;
   }
@@ -937,9 +1047,9 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   /**
    * Build the params array needed for creating CiviCRM mailing and related things (e.g. jobs), in a format required by
    * the CRM_Mailing_BAO_Mailing::create() method
-   * 
-	 * This builds things like the email body
-	 * 
+   *
+   * This builds things like the email body
+   *
    * @param array $params
    *
    * @return array
@@ -961,7 +1071,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
         $fromEmail = $match[2];
       }
 
-      $crmMailingParams['from_name'] = empty($params['from_name']) ? $fromName : $params['from_name'];
+      $crmMailingParams['from_name'] =
+        empty($params['from_name']) ? $fromName : $params['from_name'];
       $crmMailingParams['from_email'] = $fromEmail;
     }
 
@@ -973,13 +1084,13 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     // Body HTML
     $crmMailingParams['body_html'] = static::generateEmailHtml($params);
 
-		// check if we're allowing SimpleMail to send emails with SSL / HTTPS linked content
-		// this is controlled by SM_CONTENT_SSL
-		// if we're not allowing SSL/HTTPS content then this method rewrites HTTPS to HTTP
-		$crmMailingParams['body_html'] = static::updateEmailBodyHttps(
-			$crmMailingParams['body_html'],
-			SM_CONTENT_SSL
-		);
+    // check if we're allowing SimpleMail to send emails with SSL / HTTPS linked content
+    // this is controlled by SM_CONTENT_SSL
+    // if we're not allowing SSL/HTTPS content then this method rewrites HTTPS to HTTP
+    $crmMailingParams['body_html'] = static::updateEmailBodyHttps(
+      $crmMailingParams['body_html'],
+      SM_CONTENT_SSL
+    );
 
     // Scheduler ID - this is only set when submitting for mass emailing (last page of the wizard)
     if (!empty($params['scheduled_id'])) {
@@ -989,10 +1100,12 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     // Scheduled date - this is being defaulted to null so as to disallow the core mailing BAO from scheduling the
     // mailing with default date (in v4.4.6), which is incorrect for SimpleMail's setup as the mailing isn't scheduled
     // until the last step of the wizard at which point it is set
-    $crmMailingParams['scheduled_date'] = empty($params['scheduled_date']) ? NULL : $params['scheduled_date'];
+    $crmMailingParams['scheduled_date'] =
+      empty($params['scheduled_date']) ? NULL : $params['scheduled_date'];
 
     // Approval date - this is being defaulted to null because of the same reason above
-    $crmMailingParams['approval_date'] = empty($params['approval_date']) ? NULL : $params['approval_date'];
+    $crmMailingParams['approval_date'] =
+      empty($params['approval_date']) ? NULL : $params['approval_date'];
 
     // Approval status ID - this is only set when submitting for mass emailing (last page of the wizard)
     if (!empty($params['approval_status_id'])) {
@@ -1016,8 +1129,12 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @param int  $crmMailingId
    * @param bool $removeDuplicateEmails
    */
-  protected static function createRecipients($crmMailingId, $removeDuplicateEmails) {
-    CRM_Mailing_BAO_Mailing::getRecipients($crmMailingId, $crmMailingId, NULL, NULL, TRUE, $removeDuplicateEmails);
+  protected static function createRecipients(
+    $crmMailingId,
+    $removeDuplicateEmails
+  ) {
+    CRM_Mailing_BAO_Mailing::getRecipients($crmMailingId, $crmMailingId, NULL,
+      NULL, TRUE, $removeDuplicateEmails);
   }
 
   /**
@@ -1027,22 +1144,31 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @param $params
    */
   protected static function sanitiseParams(&$params) {
-    if (!empty($params['id'])) $params['id'] = (int) $params['id'];
-    if (!empty($params['crm_mailing_id'])) $params['crm_mailing_id'] = (int) $params['crm_mailing_id'];
+    if (!empty($params['id'])) {
+      $params['id'] = (int) $params['id'];
+    }
+    if (!empty($params['crm_mailing_id'])) {
+      $params['crm_mailing_id'] = (int) $params['crm_mailing_id'];
+    }
 
     if (!empty($params['from_name'])) {
-      $params['from_address'] = preg_replace('/\".+\"/', '"' . $params['from_name'] . '"', $params['from_address']);
+      $params['from_address'] =
+        preg_replace('/\".+\"/', '"' . $params['from_name'] . '"',
+          $params['from_address']);
     }
     if (!empty($params['body'])) {
       // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
-      $params['body'] = html_entity_decode($params['body'], ENT_NOQUOTES, 'UTF-8');
+      $params['body'] =
+        html_entity_decode($params['body'], ENT_NOQUOTES, 'UTF-8');
     }
     if (!empty($params['contact_details'])) {
       // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
-      $params['contact_details'] = html_entity_decode($params['contact_details']);
+      $params['contact_details'] =
+        html_entity_decode($params['contact_details']);
 
       // Replace nbsp; with space as otherwise it will make MySQL save fail
-      $params['contact_details'] = str_replace("\xA0", ' ', $params['contact_details']);
+      $params['contact_details'] =
+        str_replace("\xA0", ' ', $params['contact_details']);
     }
     if (!empty($params['from_address'])) {
       // Decode the encoded HTML entities (due to sending data via HTTP POST) back to HTML for saving into the DB
@@ -1057,7 +1183,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     if (!empty($params['scheduled_date'])) {
       // This will get rid of the double timezone specification error (where sometimes the timezone is also included
       // wrapped up in braces towards the end)
-      $dateTime = new DateTime(preg_replace('/\(.+?\)/', '', $params['scheduled_date']));
+      $dateTime =
+        new DateTime(preg_replace('/\(.+?\)/', '', $params['scheduled_date']));
       $params['scheduled_date'] = $dateTime->format('YmdHis');
     }
     if (!empty($params['approval_date'])) {
@@ -1079,11 +1206,122 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   // Private Methods //
   /////////////////////
 
+  private static function isActionAllowed($action, $params) {
+    switch ($action) {
+      case static::ACTION_ALLOWED_UPDATE:
+        return static::isUpdateActionAllowed($params);
+
+      case static::ACTION_ALLOWED_DELETE:
+        return static::isDeleteActionAllowed($params);
+
+      case static::ACTION_ALLOWED_CANCEL:
+        return static::isCancelActionAllowed($params);
+    }
+
+    return TRUE;
+  }
+
+  private static function isUpdateActionAllowed($params) {
+    if (static::isScheduled($params) || static::isRunning($params)) {
+      return FALSE;
+    }
+
+    return TRUE;
+  }
+
+  private static function isDeleteActionAllowed($params) {
+    if (static::isScheduled($params) || static::isRunning($params)) {
+      return FALSE;
+    }
+
+    return TRUE;
+  }
+
+  private static function isCancelActionAllowed($params) {
+    if (static::isScheduled($params) || static::isRunning($params)) {
+      return TRUE;
+    }
+
+    return FALSE;
+  }
+
+  /**
+   * @param $params
+   *
+   * @return bool
+   */
+  private static function isScheduled($params) {
+    if ($jobs = static::getMailingJobs($params)) {
+      foreach ($jobs as $job) {
+        if ($job['status'] === static::MAILING_STATUS_SCHEDULED) {
+          return TRUE;
+        }
+      }
+    }
+
+    return FALSE;
+  }
+
+  /**
+   * @param $params
+   *
+   * @return bool
+   */
+  private static function isRunning($params) {
+    if ($jobs = static::getMailingJobs($params)) {
+      foreach ($jobs as $job) {
+        if ($job['status'] === static::MAILING_STATUS_RUNNING) {
+          return TRUE;
+        }
+      }
+    }
+
+    return FALSE;
+  }
+
+  private static function getMailingJobs($params) {
+    if (is_array(static::$jobs)) {
+      return static::$jobs;
+    }
+
+    static::$jobs = array();
+
+    if (!$params['crm_mailing_id']) {
+      return static::$jobs;
+    }
+
+    $jobBao = new CRM_Mailing_BAO_MailingJob();
+
+    // This needs to be done as there can only be one query per DAO (see docs for reset()) - without this, the DAO
+    // object was keeping residual data from previous operations elsewhere on the same DAO, making the below operations
+    // unpredictable and fail
+    $jobBao->reset();
+
+    // This is needed as the reset() above clears the query completely
+    $jobBao->selectAdd('*');
+
+    $jobBao->mailing_id = $params['crm_mailing_id'];
+    $jobBao->is_test = 0;
+
+    if ($jobBao->find()) {
+      while ($jobBao->fetch()) {
+        static::$jobs[] = $jobBao->toArray();
+      }
+    }
+
+    $jobBao->free();
+
+    return static::$jobs;
+  }
+
   /**
    * @param int   $crmMailingId
    * @param array $newGroupEntityIds
    */
-  private static function updateMailingRecipientGroups($crmMailingId, $newGroupEntityIds) {
+  private static function updateMailingRecipientGroups(
+    $crmMailingId,
+    $newGroupEntityIds
+  ) {
     list($existingGroups) = static::getRecipientGroups($crmMailingId);
 
     $existingGroupsWithEntityIdAsKeys = array();
@@ -1093,8 +1331,10 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     $existingGroupEntityIds = array_keys($existingGroupsWithEntityIdAsKeys);
 
-    $removedGroupEntityIds = array_diff($existingGroupEntityIds, $newGroupEntityIds);
-    $addedGroupEntityIds = array_diff($newGroupEntityIds, $existingGroupEntityIds);
+    $removedGroupEntityIds =
+      array_diff($existingGroupEntityIds, $newGroupEntityIds);
+    $addedGroupEntityIds =
+      array_diff($newGroupEntityIds, $existingGroupEntityIds);
 
     // Add new groups
     foreach ($addedGroupEntityIds as $entityId) {
@@ -1113,7 +1353,10 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @param $crmMailingId
    * @param $smartContactGroupId
    */
-  private static function createMailingGroupForSmartContactGroup($crmMailingId, $smartContactGroupId) {
+  private static function createMailingGroupForSmartContactGroup(
+    $crmMailingId,
+    $smartContactGroupId
+  ) {
     static::createMailingGroup($crmMailingId, $smartContactGroupId);
   }
 
@@ -1122,7 +1365,11 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @param        $entityId
    * @param string $groupType
    */
-  private static function createMailingGroup($crmMailingId, $entityId, $groupType = 'Include') {
+  private static function createMailingGroup(
+    $crmMailingId,
+    $entityId,
+    $groupType = 'Include'
+  ) {
     $group = new CRM_Mailing_DAO_MailingGroup();
 
     $group->reset();
@@ -1165,7 +1412,9 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
         // create a static grp if only a subset of result set was selected:
         $randID = md5(time());
         $grpTitle = "Hidden Group {$randID}";
-        $grpID = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Group', $grpTitle, 'id', 'title');
+        $grpID =
+          CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Group', $grpTitle, 'id',
+            'title');
 
         if (!$grpID) {
           $groupParams = array(
@@ -1178,7 +1427,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
           $group = CRM_Contact_BAO_Group::create($groupParams);
           $grpID = $group->id;
 
-          CRM_Contact_BAO_GroupContact::addContactsToGroup($contactIds, $group->id);
+          CRM_Contact_BAO_GroupContact::addContactsToGroup($contactIds,
+            $group->id);
 
           $newGroupTitle = "Hidden Group {$grpID}";
           $groupParams = array(
@@ -1198,7 +1448,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
         // Get the saved search ID
         $ssId = simplemail_civicrm_getFromSessionScope('ssId');
         $formValues = simplemail_civicrm_getFromSessionScope('formValues');
-        $customSearchId = simplemail_civicrm_getFromSessionScope('customSearchId');
+        $customSearchId =
+          simplemail_civicrm_getFromSessionScope('customSearchId');
         $context = simplemail_civicrm_getFromSessionScope('context');
 
         $hiddenSmartParams = array(
@@ -1209,7 +1460,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
           'search_context'   => $context,
         );
 
-        list($smartGroupId, $savedSearchId) = CRM_Contact_BAO_Group::createHiddenSmartGroup($hiddenSmartParams);
+        list($smartGroupId, $savedSearchId) =
+          CRM_Contact_BAO_Group::createHiddenSmartGroup($hiddenSmartParams);
 
         // Set the saved search ID
         if (!$ssId) {
