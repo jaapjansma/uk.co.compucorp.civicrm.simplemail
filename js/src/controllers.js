@@ -483,9 +483,18 @@
 			$scope.inlineAttachmentInsert = function(attachment){
 			  var result;
 			  
-				if (result = prompt("Inserting inline attachment\n\nPlease enter the text you want as a link:", attachment.filename)){
-					if (self.editorInstance){
-					  
+        if (!self.editorInstance){
+          Notification.alert("There does not appear to be an instance of CKEditor available");
+          return;
+        }
+        
+			  var selection = self.editorInstance.getSelection();
+			  var selectedText = selection.getSelectedText();
+			  
+			  if (!selectedText || selectedText.length <= 0){
+          
+  				if (result = prompt("Inserting inline attachment\n\nPlease enter the text you want as a link:", attachment.filename)){
+  					  
 					  // we use a timeout to break out of the digest/apply cycle
 					  // if you try to make the editorInstance call outside the timeout, you'll experience
 					  // an Angular error. Go on. Try it.
@@ -493,8 +502,18 @@
 					    self.editorInstance.insertHtml('<a href="'+attachment.url+'">'+result+'</a>');
 					  }, 0);
 					  
-					}
-				}
+					  moveEditorCursor(1);
+					  
+  				}
+  				
+        } else {
+          // someone HAS selected text
+          $timeout(function(){
+            self.editorInstance.insertHtml('<a href="'+attachment.url+'">'+selectedText+'</a>');
+          }, 0);
+          
+          moveEditorCursor(1);
+        }
 			};
 			
 			
@@ -506,6 +525,19 @@
           delete( self.inlineAttachments[ attachment.id ] );
         }
 			};
+
+      
+      /**
+       * Moves the cursor x amount characters to the right in CKEditor
+       */
+      function moveEditorCursor(amountRight){
+        var selection = self.editorInstance.getSelection();
+        var ranges = selection.getRanges();
+        var range = ranges[0];
+        
+        range.setEnd(range.endContainer, range.endOffset+amountRight);
+      }
+
 
 			/**
 			 * Checks if the user has selected a header already
