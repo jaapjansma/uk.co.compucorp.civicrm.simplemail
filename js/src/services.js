@@ -1204,6 +1204,7 @@
        */
       var resetCurrentMailing = function () {
         setCurrentMailing({}, true);
+        contactsCount = 0;
         initialised = false;
       };
 

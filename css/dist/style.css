@@ -325,13 +325,14 @@
 .sm-container .inlineAttachments .clear {
   clear: both; }
 .sm-container .inlineAttachments ul {
-  list-style-type: none; }
+  list-style-type: none;
+  margin: 0; }
 .sm-container .inlineAttachments li {
   clear: both;
   padding: 0.2rem 0;
   margin: 0.2rem 0;
   border: 1px solid #e0e0e0;
-  width: 460px; }
+  width: 470px; }
 .sm-container .inlineAttachments button.removeAttachment {
   background: none;
   color: #ff0000;

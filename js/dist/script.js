@@ -1046,9 +1046,11 @@
         .then(function () {
           self.mailing = Mailing.getCurrentMailing();
           
+          /* Another way of setting the default value in the CKEditor / email body
           if (self.mailing.body.length <= 0){
             self.mailing.body = 'Dear {contact.display_name},<br/><br/><br/><br/><br/><br/>{signature}';
           }
+          */
           
           inlineAttachmentsPromise = InlineAttachments.get( Mailing.getCurrentMailing().id )
             .then(function(result){
@@ -3555,6 +3557,7 @@
        */
       var resetCurrentMailing = function () {
         setCurrentMailing({}, true);
+        contactsCount = 0;
         initialised = false;
       };
 
