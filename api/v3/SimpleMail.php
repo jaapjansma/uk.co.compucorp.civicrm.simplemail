@@ -87,6 +87,16 @@ function civicrm_api3_simple_mail_get($params) {
 			
 			$result['values'][0]['body_html'] = $emailBody;
 			
+      // also generate urls to reports for these mailings
+      foreach ($result['values'] as &$value){
+  
+        // part of this code was taken straight from sites/all/modules/civicrm/CRM/Mailing/BAO/Mailing.php
+        // but it doesn't quite fit our needs
+        //$value['report_url'] = CRM_Utils_System::url('civicrm/mailing/report', 'reset=1&html=1&mid=' . $value['crm_mailing_id']);
+        $value['report_url'] = '/civicrm/mailing/report?reset=1&html=1&mid=' . $value['crm_mailing_id'];
+      }
+      
+      
 		}
 		
     return civicrm_api3_create_success($result['values'], $params, NULL, 'get', $result['dao'], $result['extraValues']);

@@ -651,8 +651,8 @@
     'angularFileUpload'
   ]);
 
-  app.config(['$routeProvider', 'paths', 'ngQuickDateDefaultsProvider', '$provide',
-    function ($routeProvider, paths, ngQuickDate, $provide) {
+  app.config(['$routeProvider', 'paths', 'ngQuickDateDefaultsProvider', '$provide', '$compileProvider',
+    function ($routeProvider, paths, ngQuickDate, $provide, $compileProvider) {
       ngQuickDate.set({        
 //        closeButtonHtml: "<i class='fa fa-times'></i>",
 //        buttonIconHtml: "<i class='fa fa-clock-o'></i>",
@@ -711,6 +711,9 @@
           return $delegate;
         }
       ]);
+      
+      $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|mailto|javascript):/);
+      
     }
   ]);
 
