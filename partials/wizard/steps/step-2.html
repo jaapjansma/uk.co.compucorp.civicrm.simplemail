@@ -70,8 +70,13 @@
     <div class="field-group clearfix" ng-class="{ 'ng-invalid' : compose.step2form.body.$error.required, 'ng-dirty' : compose.step2form.body.$dirty}">
       <label for="body">Main Body</label>
       <textarea sm-ck-editor name="body" id="body" cols="30" rows="10" class="full-width" editor-instance="compose.editorInstance"
-                placeholder="Dear {contact.display_name}," ng-model="compose.mailing.body" required="required">
+                ng-model="compose.mailing.body" required="required">
       </textarea>
+    </div>
+    
+    <div class="field-group clearfix social_links">
+      <label for="social_link">Social networking links:</label>
+      <select ng-model="compose.mailing.social_link" name="social_link" id="social_link" ng-options="item.value as item.label for item in compose.socialLinkLocations" />
     </div>
     
     <div class="field-group clearfix inlineAttachmentsContainer">

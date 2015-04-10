@@ -552,6 +552,12 @@ $border-radius: 3px;
     display: block !important;
   }
   
+  .social_links {
+    label {
+      display: inline;
+    }
+  }
+  
   .inlineAttachmentsContainer {
     margin: 1rem 0 0 0;
   }

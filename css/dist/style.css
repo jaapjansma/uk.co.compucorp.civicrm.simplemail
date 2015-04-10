@@ -316,6 +316,8 @@
 .sm-container .ng-enter-active, .sm-container .ng-leave {
   opacity: 1;
   display: block !important; }
+.sm-container .social_links label {
+  display: inline; }
 .sm-container .inlineAttachmentsContainer {
   margin: 1rem 0 0 0; }
 .sm-container .inlineAttachments label {

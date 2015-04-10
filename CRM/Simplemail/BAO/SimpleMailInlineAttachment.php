@@ -16,10 +16,10 @@ class CRM_Simplemail_BAO_SimpleMailInlineAttachment extends CRM_Simplemail_DAO_S
 
     
 
-    $originalFilename = static::cleanFilename($_FILES['file']['name']);
+    $originalFilename = CRM_Simplemail_BAO_SimpleMailHelper::cleanFilename($_FILES['file']['name']);
     
     $fileName = CRM_Utils_File::makeFileName(
-      static::cleanFilename($_FILES['file']['name'])
+      CRM_Simplemail_BAO_SimpleMailHelper::cleanFilename($_FILES['file']['name'])
     );
     
     $dirName = CRM_Simplemail_BAO_SimpleMailHelper::getUploadDirPath(static::DIRECTORY);
@@ -92,21 +92,6 @@ class CRM_Simplemail_BAO_SimpleMailInlineAttachment extends CRM_Simplemail_DAO_S
     
     return $results;
     
-  }
-  
-  
-  /**
-   * Pass in a filename that has typically come from the frontend through this method
-   * It will remove any "illegal" characters
-   * May need to consider stripping things like ><| too
-   */
-  public static function cleanFilename($filename){
-    $result = $filename;
-    
-    $result = filter_var($result, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW);
-    $result = basename($result);
-    
-    return $result;
   }
   
   

@@ -738,6 +738,8 @@
     }
   ];
 
+
+
   /**
    * @ngdoc service
    * @name MailingHelperFactory
@@ -795,6 +797,30 @@
        */
       var headerFiltersInitialised = false;
 
+      
+      /**
+       * Should contain a list of different countries/locations that should map to Option Values in Civi
+       * For example: this will contain a list such as [UK, Ireland, Japan]
+       * Then there should be a corresponding Option Group that contains the titles [UK, Ireland, Japan]
+       * @type {Array} 
+       */
+      var socialLinkLocations = [];
+      
+      /**
+       * This contains a full list of all the social links we have, grouped by Option Group name.
+       * So you should have something like:
+       * socialLinks = {
+       *    facebook : { .... },
+       *    twitter : { ... },
+       * ]
+       */
+      var socialLinks = [];
+      
+      /**
+       * If you have more Option Groups to contain other social media links, add them to this array 
+       */
+      var socialLinkGroups = ['email_social_facebook_links', 'email_social_twitter_links'];
+
       ////////////////////
       // Public Methods //
       ////////////////////
@@ -844,6 +870,7 @@
         return deferred.promise;
       };
 
+
       /**
        * @ngdoc method
        * @name MailingHelperFactory#initFromEmails
@@ -875,6 +902,7 @@
 
         return deferred.promise;
       };
+
 
       /**
        * @ngdoc method
@@ -908,7 +936,73 @@
 
         return deferred.promise;
       };
+      
+      
+      /**
+       * Requests from the API all the social media links we may want to put into an email
+       * It looks specifically at the Option Groups you've specified in socialLinkGroups above 
+       */
+      var initSocialLinks = function(){
+        var deferredMaster = $q.defer();
+        
+        var promises = [];
+        
+        // Loop through all the socialLinkGroups
+        for (var socialLinkGroupIndex in socialLinkGroups){
+        
+          // We create a deferred object for each API request we're going to make, because we're making quite
+          // a few
+          var dfr = $q.defer();
+          var groupName = socialLinkGroups[ socialLinkGroupIndex ];
+          
+          
+          // We need to create a new scope to store the group name and the deferred object
+          // otherwise these values are overwritten each iteration of the for loop
+          (function(group, deferredObject){
+          
+            // Ask the API for the id of the Option Group called groupName (above)
+            CiviApi.getValue(
+              constants.entities.OPTION_GROUP,
+              {name : groupName, return: 'id'},
+              {cached : true}
+            ).then(function(response){
+              return response.data.result;
+            }).then(function(groupId){
+              
+              // Now we have the group id for the Option Group called groupName, we need to get
+              // all the options belonging to that group
+              return CiviApi.get(
+                constants.entities.OPTION_VALUE,
+                {option_group_id: groupId, is_active: 1},
+                {cached: true}
+              ).then(function(response){
+                socialLinks[group] = response.data.values;
+                deferredObject.resolve();
+              });
+              
+            }).catch(function(response){
+              deferredObject.reject(response);
+            });
+            
+          })(groupName, dfr);
+          
+          
+          // Store the promise of this deferred object. We store this in an array because we're expecting
+          // quite a few deferred objects
+          promises.push(dfr.promise);
+          
+        }
+        
+        // Resolve the master deferred object when all the deferred objects/promises are complete
+        $q.all(promises).then(function(){
+          deferredMaster.resolve();
+        });
+        
+        return deferredMaster.promise;
+      };
 
+      
+      
       // Getters and Setters //
 
       /**
@@ -946,18 +1040,44 @@
       var getHeaderFilters = function () {
         return headerFilters;
       };
-
+      
+      var getSocialLinks = function(){
+        return socialLinks;
+      };
+      
+      
+      /**
+       * This will return a short list of common "locations" from the socialLinks object
+       * So you should receive a list like: [UK, Japan, Ireland] 
+       */ 
+      var getSocialLinkLocations = function(){
+        if (socialLinkLocations.length <= 0){
+          var firstGroup = socialLinkGroups[0];
+          
+          for (var index in socialLinks[firstGroup]){
+            var item = socialLinks[firstGroup][index];
+            socialLinkLocations.push(item.label);
+          }
+        }
+        
+        return socialLinkLocations;
+      };
+      
       return {
         initMailingGroups: initMailingGroups,
         initFromEmails: initFromEmails,
         initHeaderFilters: initHeaderFilters,
+        initSocialLinks: initSocialLinks,
         getMailingCategories: getMailingCategories,
         getMailingGroups: getMailingGroups,
         getFromEmails: getFromEmails,
-        getHeaderFilters: getHeaderFilters
+        getHeaderFilters: getHeaderFilters,
+        getSocialLinks : getSocialLinks,
+        getSocialLinkLocations : getSocialLinkLocations
       };
     }
   ];
+
 
   /**
    * @ngdoc service
@@ -1136,7 +1256,7 @@
             // Else, save the changes
             return CiviApi.create(constants.entities.MAILING, currentMailing)
               .then(function (response) {
-                return CiviApi.get(constants.entities.MAILING, {id: response.data.values[0].id})
+                return CiviApi.get(constants.entities.MAILING, {id: response.data.values[0].id});
               })
               .then(function (response) {
                 if (response.data.values.length === 0) {
@@ -1310,7 +1430,7 @@
           CiviApi.get(constants.entities.MAILING, {id: getMailingIdFromUrl()})
             .then(function (response) {
               if (response.data.values.length === 0) return $q.reject('Mailing not found!');
-
+              
               setCurrentMailing(response.data.values[0], true);
 
               var createdFromSearch = response.data.values[0].hidden_recipient_group_entity_ids.length ? true : false;

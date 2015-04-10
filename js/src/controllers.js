@@ -224,12 +224,14 @@
       this.editFromName = false;
       this.selectedMessage = '';
       this.selectedFilterId = null;
+      this.selectedSocialLink = null;
 
       this.mailing = Mailing.getCurrentMailing();
       this.filters = Helper.getHeaderFilters();
       this.headers = Header.getHeaders();
       this.fromEmails = Helper.getFromEmails();
       this.messages = CampaignMessage.getMessages();
+      this.socialLinkLocations = [];
 			this.inlineAttachments = {};
 
       this.regionsTemplatePath = Wizard.getRegionsTemplatePath();
@@ -242,7 +244,11 @@
       var mailingPromise = Mailing.init()
         .then(function () {
           self.mailing = Mailing.getCurrentMailing();
-
+          
+          if (self.mailing.body.length <= 0){
+            self.mailing.body = 'Dear {contact.display_name},<br/><br/><br/><br/><br/><br/>{signature}';
+          }
+          
           inlineAttachmentsPromise = InlineAttachments.get( Mailing.getCurrentMailing().id )
             .then(function(result){
               if (!result){
@@ -309,14 +315,28 @@
           self.messages = CampaignMessage.getMessages();
         });
       
+      
+      var socialLinksPromise = Helper.initSocialLinks()
+        .then(function(){
+          
+          var locations = Helper.getSocialLinkLocations();
+          for (var index in locations){
+            self.socialLinkLocations.push({
+              label : locations[index],
+              value : locations[index]
+            });
+          }
+          
+        });
 
-      promises.push(mailingPromise, headerFiltersPromise, headersPromise, fromEmailsPromise, campaignMessagesPromise, inlineAttachmentsPromise);
+      promises.push(mailingPromise, headerFiltersPromise, headersPromise, fromEmailsPromise, campaignMessagesPromise, inlineAttachmentsPromise, socialLinksPromise);
 
       $q.all(promises)
         .then(function () {
           self.initHeaderFilter();
           self.initFromName();
           self.updateSelectedMessage();
+          self.updateSelectedSocialLink();
         })
         .catch(function (response) {
           Notification.genericError(response);
@@ -368,7 +388,12 @@
         this.editFromName = false;
       };
 
-
+      this.updateSelectedSocialLink = function(){
+        if (!self.mailing.social_link){
+          self.mailing.social_link = self.socialLinkLocations[0].value;
+        }
+      };
+      
       /**
        * This method is called when the inlineAttachment directive is about to upload something
        * but hasn't started yet
@@ -549,6 +574,7 @@
         });
     }
   ];
+
 
   /**
    * Step 4 of the wizard

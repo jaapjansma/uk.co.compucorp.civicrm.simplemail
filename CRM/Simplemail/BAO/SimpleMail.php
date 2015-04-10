@@ -195,8 +195,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       = "
     SELECT
       sm.id, sm.crm_mailing_id, sm.from_address, sm.header_id, sm.title, sm.body, sm.contact_details, sm.message_id, sm.reply_address,
-      cm.name, cm.subject, cm.body_html, cm.from_name, cm.created_id, cm.created_date, cm.scheduled_id, cm.scheduled_date, cm .dedupe_email,
-      MIN(j.start_date) start_date, MAX(j.end_date) end_date, j.status,
+      cm.name, cm.subject, cm.body_html, cm.from_name, cm.created_id, cm.created_date, cm.scheduled_id, cm.scheduled_date, cm.dedupe_email,
+      MIN(j.start_date) start_date, MAX(j.end_date) end_date, j.status, sm.social_link,
       c.sort_name,
       GROUP_CONCAT(DISTINCT CONCAT(g.id, ':', g.is_hidden, ':', g.group_type)) recipient_group_entities
 
@@ -804,6 +804,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     return $templateDir . $templateFileName;
   }
 
+
   /**
    * Generate email HTML body using the email template and mailing data
    *
@@ -830,6 +831,11 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 			$template->bodyColumn2 = $bodyColumn2;
 		}
 		
+    $template->facebookUrl = static::getOptionValue('email_social_facebook_links', $params['social_link']);
+    $template->twitterUrl = static::getOptionValue('email_social_twitter_links', $params['social_link']);
+    
+    static::updateSignature($template->body);
+    
     $template->contactDetails = isset($params['contact_details']) && $params['contact_details']
       ? $params['contact_details']
       : NULL;
@@ -881,7 +887,88 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 		return $emailBody;
 		
   }
-
+  
+  /**
+   * Searches the email body for signature tags {signature} or {xxx_signature} and replaces
+   * it with a graphic that is of the user's signature
+   */
+  protected static function updateSignature(&$body){
+    $matches = array();
+    $total = preg_match_all('/\{(.*)signature\}/', $body, $matches);
+    
+    if (!$total){
+      return;
+    }
+    
+    $sigMatches = array_unique($matches[0]);
+    $sigNames = array_unique($matches[1]);
+    
+    foreach ($sigMatches as $index => $match){
+      $name = $sigNames[$index];
+      if (strlen($name) > 0){
+        // trim the trailing underscore
+        $name = substr($name, 0, -1);
+      }
+      $filename = CRM_Simplemail_BAO_SimpleMailHelper::getSignatureFilename($name);
+      
+      $replacement = (!empty($filename) ? '<img src="'.$filename.'" />' : '');
+      $body = str_replace($sigMatches[$index], $replacement, $body);
+      
+    }
+    
+  }
+  
+  
+  /**
+   * Uses the Civi API to retrieve an option value from the specified option group
+   * For example, there may be an Option Group called: email_social_facebook_links
+   * And contained within that group is an Option Value with the name 'UK'
+   * 
+   * So you would pass in the parameteres:
+   * $optionGroupName = 'email_social_facebook_links'
+   * $optionValueName = 'UK'
+   * 
+   * @return {String}
+   */
+  protected static function getOptionValue($optionGroupName, $optionValueName){
+    $optionGroupResult = civicrm_api('OptionGroup', 'getvalue', array(
+      'version' => '3',
+      'name' => $optionGroupName,
+      'return' => 'id'
+    ));
+    
+    if (!$optionGroupResult){
+      throw new CRM_Extension_Exception("Error finding option group ($optionGroupName)");
+    }
+    
+    $optionValueResult = civicrm_api('OptionValue','get',array(
+      'version' => '3',
+      'option_group_id' => $optionGroupResult,
+      'name' => $optionValueName,
+      'is_active' => '1'
+    ));
+    
+    if (!$optionValueResult){
+      throw new CRM_Extension_Exception("Error finding option value ($optionValueName)");
+    }
+    
+    if ($optionValueResult['is_error'] || count($optionValueResult['values']) <= 0){
+      throw new CRM_Extension_Exception("No option found with value ($optionValueName)");
+    }
+    
+    // Get the values array from the result
+    $values = $optionValueResult['values'];
+    
+    // the $values array is an associative array and we don't know the key,
+    /// so use "each" to extract the kv pair
+    list($key, $value) = each($values);
+    $firstResult = $value;
+    
+    // return the actual value that is stored in the OptionValue
+    return $firstResult['value'];
+  }
+  
+  
   /**
    * Generate the link for mailto for the reply button in the template
    *
@@ -1006,7 +1093,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     else {
       $crmMailingParams['dedupe_email'] = 0;
     }
-
+    
     return $crmMailingParams;
   }
 
