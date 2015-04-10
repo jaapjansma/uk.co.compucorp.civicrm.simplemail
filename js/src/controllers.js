@@ -149,6 +149,8 @@
 
       var promises = [];
 
+      Wizard.deinit();
+
       var mailingPromise = Mailing.init()
         .then(function () {
           self.mailing = Mailing.getCurrentMailing();
