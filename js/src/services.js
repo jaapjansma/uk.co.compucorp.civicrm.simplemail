@@ -77,7 +77,7 @@
             deferred.resolve();
           })
           .catch(function (response) {
-            deferred.reject();
+                deferred.reject(response);
             $log.error('Failed to initialise mailings', response);
           });
 
@@ -114,7 +114,7 @@
             Notification.success('Mailing deleted');
           })
           .catch(function (response) {
-            Notification.error('Failed to delete the mailing');
+                Notification.error('Failed to delete the mailing', response);
             $log.error('Failed to delete the mailing:', response);
 
             return $q.reject();
@@ -154,10 +154,8 @@
             Notification.success('Mailing cancelled');
           })
           .catch(function (response) {
-            Notification.error('Failed to cancel the mailing');
+                Notification.error('Failed to cancel the mailing', response);
             $log.error('Failed to cancel the mailing:', response);
-
-            return $q.reject();
           })
           .finally(function() {
             Notification.clear(notificationInstance);
