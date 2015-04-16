@@ -552,6 +552,12 @@ $border-radius: 3px;
     display: block !important;
   }
   
+  .social_links {
+    label {
+      display: inline;
+    }
+  }
+  
   .inlineAttachmentsContainer {
     margin: 1rem 0 0 0;
   }
@@ -572,6 +578,7 @@ $border-radius: 3px;
     
     ul {
       list-style-type: none;
+      margin: 0;
     }
     
     li {
@@ -579,7 +586,7 @@ $border-radius: 3px;
       padding: 0.2rem 0;
       margin: 0.2rem 0;
       border: 1px solid #e0e0e0;
-      width: 460px;
+      width: 470px;
     }
     
     button.removeAttachment {

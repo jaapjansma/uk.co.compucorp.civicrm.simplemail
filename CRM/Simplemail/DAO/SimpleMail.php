@@ -135,6 +135,12 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
    */
   public $message_id;
   /**
+   * The index of the social sites to link to from an email
+   *
+   * @var int
+   */
+  public $social_link;
+  /**
    * class constructor
    *
    * @return civicrm_simplemail
@@ -235,6 +241,12 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
           'description' => 'The ID of the campaign message',
           'FKClassName' => 'CRM_Simplemail_DAO_SimpleMailMessage',
         ) ,
+        'social_link' => array(
+          'name' => 'social_link',
+          'type' => CRM_Utils_Type::T_STRING,
+          'title' => ts('Social Link') ,
+          'description' => 'The index of the social sites to link to from an email',
+        ) ,
       );
     }
     return self::$_fields;
@@ -258,6 +270,7 @@ class CRM_Simplemail_DAO_SimpleMail extends CRM_Core_DAO
         'body' => 'body',
         'contact_details' => 'contact_details',
         'message_id' => 'message_id',
+        'social_link' => 'social_link',
       );
     }
     return self::$_fieldKeys;

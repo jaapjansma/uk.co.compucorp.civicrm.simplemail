@@ -110,4 +110,13 @@
     <onDelete>SET NULL</onDelete>
   </foreignKey>
 
+  <field>
+    <name>social_link</name>
+    <type>varchar</type>
+    <title>Social Link</title>
+    <comment>The name of the social sites to link to from an email</comment>
+    <add>4.4</add>
+  </field>
+
+
 </table>

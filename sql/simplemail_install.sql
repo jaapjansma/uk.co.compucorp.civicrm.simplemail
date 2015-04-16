@@ -77,7 +77,8 @@ CREATE TABLE `civicrm_simplemail` (
   `title`           VARCHAR(64) COMMENT 'Title/strapline for the email (in the title region)',
   `body`            TEXT COMMENT 'Body of the email',
   `contact_details` TEXT COMMENT 'Contact details',
-  `message_id`      INT UNSIGNED COMMENT 'The ID of the campaign message'
+  `message_id`      INT UNSIGNED COMMENT 'The ID of the campaign message',
+  `social_link`     VARCHAR(80) COMMENT 'The title of the social sites to link to from an email'
   ,
   PRIMARY KEY (`id`)
 
