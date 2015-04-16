@@ -1160,9 +1160,13 @@
 
       // TODO (robin): Could this be refactored so that the view interpolates the result of this method? This might mean invoking it is no longer needed in the above then() method
       this.updateSelectedMessage = function () {
-        if (this.mailing.message_id) {
-          this.selectedMessage = $filter('filter')(this.messages, {id: this.mailing.message_id})[0];
+        
+        // Not an ideal thing to do, but we set the default value of the "campaign message" drop down to ID 5
+        if (!this.mailing.message_id){
+          this.mailing.message_id = 5;
         }
+        
+        this.selectedMessage = $filter('filter')(this.messages, {id: this.mailing.message_id})[0];
       };
 
       /**

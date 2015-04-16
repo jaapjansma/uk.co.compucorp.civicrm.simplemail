@@ -1,28 +1,30 @@
 <div ng-controller="CreateMailingCtrl as create">
   <form sm-loaded="steps.isInitialised()" class="crm-form-block" name="create.step1form">
   
-  <h2>Title</h2>
+  <h2>Title *</h2>
   
-    <div class="field-group">
-      <label for="mailing-name">
-		Please choose a meaningful title for this email to make it easier to search for it in the future
-      </label>
-      <input name="mailing-name" id="mailing-name" type="text" class="two-thirds" ng-model="create.mailing.name" required="required" />
-    </div>
+  <div class="field-group">
+    <label for="mailing-name">
+      Please choose a meaningful title for this email to make it easier to search for it in the future (max 128 characters)
+    </label>
+    <input name="mailing-name" id="mailing-name" maxlength="128" type="text" class="two-thirds" ng-model="create.mailing.name" required="required" />
+  </div>
 
-    <h2>Unsubscribe category</h2>
+  <h2>Unsubscribe category *</h2>
 
-    <div class="field-group">
-      <p ng-class="{ 'ng-invalid' : create.step1form['mailing-category'].$error.required }">You must select a category that best defines the target audience</p>
+  <div class="field-group">
+    <p ng-class="{ 'ng-invalid' : create.step1form['mailing-category'].$error.required }">
+      You must select a category that best defines the target audience
+    </p>
 
-      <label ng-repeat="category in create.categories" for="mailing-category-{{category.id}}">
-        <input ng-disabled="!create.isMailingNotScheduled()" name="mailing-category"
-               id="mailing-category-{{category.id}}" value="{{category.id}}"
-               ng-model="create.mailing.category_id" type="radio" ng-required="!create.mailing.category_id" /> {{category.title}}
-      </label>
-   </div>
+    <label ng-repeat="category in create.categories" for="mailing-category-{{category.id}}">
+      <input ng-disabled="!create.isMailingNotScheduled()" name="mailing-category"
+             id="mailing-category-{{category.id}}" value="{{category.id}}"
+             ng-model="create.mailing.category_id" type="radio" ng-required="!create.mailing.category_id" /> {{category.title}}
+    </label>
+  </div>
 
-    <h2>Mailing recipients (filters)</h2>
+  <h2>Mailing recipients (filters)</h2>
 
     <p ng-if="create.fromSearch" class="status">This mailing contains {{create.contactsCount}} recipient(s) from search results</p>
     <p ng-if="!create.fromSearch && create.contactsCount > 0" class="status">This mailing contains {{create.contactsCount}} recipient(s)</p>

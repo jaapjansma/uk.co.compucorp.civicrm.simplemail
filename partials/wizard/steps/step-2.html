@@ -1,6 +1,6 @@
 <div ng-controller="ComposeMailingCtrl as compose">
   <form sm-loaded="steps.isInitialised()" class="crm-form-block" name="compose.step2form">
-    <h2>Select header image:</h2>
+    <h2>Select header image: *</h2>
 
     <div class="field-group clearfix">
       <ui-select ng-model="compose.selectedFilterId" theme="select2">
@@ -42,33 +42,32 @@
       </div>
 
       <div class="col one-half field-group right">
-        <label for="reply-address">Reply To</label>
+        <label for="reply-address">Reply To *</label>
         <input class="full-width" id="reply-address" ng-model="compose.mailing.reply_address" type="text" required="required" />
       </div>
     </div>
 
-	<h2>Subject</h2>
+	<h2>Subject *</h2>
 	
-    <div class="field-group clearfix">
-      <label for="subject">Choosing an appropriate subject is important</label>
-      <input id="subject" name="subject" type="text" class="full-width" ng-model="compose.mailing.subject" required="required" />
-    </div>
+  <div class="field-group clearfix">
+    <label for="subject">Choosing an appropriate subject is important (max 128 characters)</label>
+    <input id="subject" name="subject" type="text" maxlength="128" class="full-width" ng-model="compose.mailing.subject" required="required" />
+  </div>
 
-    <h2>Compose:</h2>
+  <h2>Compose:</h2>
+  <p>Your email will be automatically formatted. To see the email structure, click view region demonstration:</p>
 
-    <p>Your email will be automatically formatted. To see the email structure, click view region demonstration:</p>
+  <p>
+    <a target="_blank" ng-href="{{compose.regionsTemplatePath}}">View region demonstration (open in a new window)</a>
+  </p>
 
-    <p>
-      <a target="_blank" ng-href="{{compose.regionsTemplatePath}}">View region demonstration (open in a new window)</a>
-    </p>
-
-    <div class="field-group clearfix">
-      <label for="title">Title/Strapline</label>
-      <input id="title" name="title" type="text" class="full-width" ng-model="compose.mailing.title"/>
-    </div>
+  <div class="field-group clearfix">
+    <label for="title">Headline (max 64 characters)</label>
+    <input id="title" name="title" type="text" maxlength="64" class="full-width" ng-model="compose.mailing.title"/>
+  </div>
 
     <div class="field-group clearfix" ng-class="{ 'ng-invalid' : compose.step2form.body.$error.required, 'ng-dirty' : compose.step2form.body.$dirty}">
-      <label for="body">Main Body</label>
+      <label for="body">Main Body *</label>
       <textarea sm-ck-editor name="body" id="body" cols="30" rows="10" class="full-width" editor-instance="compose.editorInstance"
                 placeholder="Dear {contact.display_name}," ng-model="compose.mailing.body" required="required">
       </textarea>
@@ -102,7 +101,7 @@
 
     <div class="cols clearfix">
       <div class="field-group col left one-third" ng-class="{ 'ng-invalid' : compose.step2form['contact-details'].$error.required, 'ng-dirty' : compose.step2form['contact-details'].$dirty}">
-        <label for="contact-details">Contact details</label>
+        <label for="contact-details">Contact details *</label>
         <textarea sm-ck-editor="minimal" data-height="105" name="contact-details" id="contact-details"
                   class="full-width" cols="50" rows="3" ng-model="compose.mailing.contact_details" required="required">
         </textarea>
