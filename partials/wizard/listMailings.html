@@ -76,7 +76,13 @@
     <tr ng-repeat="mailing in filteredMailings = (mailings | filterMailings:mailingFilters)" ng-class-even="'even-row'"
         ng-class-odd="'odd-row'">
       <td class="id">{{mailing.id}}</td>
-      <td class="name">{{mailing.name}}</td>
+      
+      <td class="name">
+        <a href="javascript:popUp('{{mailing.report_url}}')">
+          {{mailing.name}}
+        </a>
+      </td>
+      
       <td class="current-status">
         <i class="fa fa-2x"
            ng-class="{Scheduled: 'fa-clock-o', Complete: 'fa-check-circle-o', 'Not Scheduled': 'fa-pencil', Canceled: 'fa-times-circle-o', Running: 'fa-paper-plane', Paused: 'fa-flag'}[mailing.status]"

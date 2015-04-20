@@ -398,11 +398,12 @@ function simplemail_civicrm_init() {
     }
   }
 
-    /**
-     * Whether emails should have SSL linked content or not
-     * Generally set this to false because SSL linked content can break mail clients
-     */
-    define('SM_CONTENT_SSL', false);
+
+  /**
+   * Whether emails should have SSL linked content or not
+   * Generally set this to false because SSL linked content can break mail clients
+   */
+  define('SM_CONTENT_SSL', false);
 
 }
 

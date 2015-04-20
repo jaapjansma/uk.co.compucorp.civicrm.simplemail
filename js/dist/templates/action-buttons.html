@@ -10,7 +10,7 @@
     <a href sm-click-once="cancel()">Cancel</a>
   </li>
   <li><a href sm-click-once="duplicate()">Duplicate</a></li>
-  <li ng-if="mailing.status !== constants.RUNNING"><a href sm-click-once="delete()">Delete</a></li>
+  <li ng-if="(mailing.status !== constants.RUNNING) && (mailing.status !== constants.SENT)"><a href sm-click-once="delete()">Delete</a></li>
   <li ng-if="mailing.start_date">
     <a ng-href="/civicrm/mailing/report?mid={{mailing.crm_mailing_id}}&reset=1">Report</a>
   </li>

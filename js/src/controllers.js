@@ -149,6 +149,8 @@
 
       var promises = [];
 
+      Wizard.deinit();
+
       var mailingPromise = Mailing.init()
         .then(function () {
           self.mailing = Mailing.getCurrentMailing();
@@ -224,12 +226,14 @@
       this.editFromName = false;
       this.selectedMessage = '';
       this.selectedFilterId = null;
+      this.selectedSocialLink = null;
 
       this.mailing = Mailing.getCurrentMailing();
       this.filters = Helper.getHeaderFilters();
       this.headers = Header.getHeaders();
       this.fromEmails = Helper.getFromEmails();
       this.messages = CampaignMessage.getMessages();
+      this.socialLinkLocations = [];
 			this.inlineAttachments = {};
 
       this.regionsTemplatePath = Wizard.getRegionsTemplatePath();
@@ -242,7 +246,13 @@
       var mailingPromise = Mailing.init()
         .then(function () {
           self.mailing = Mailing.getCurrentMailing();
-
+          
+          /* Another way of setting the default value in the CKEditor / email body
+          if (self.mailing.body.length <= 0){
+            self.mailing.body = 'Dear {contact.display_name},<br/><br/><br/><br/><br/><br/>{signature}';
+          }
+          */
+          
           inlineAttachmentsPromise = InlineAttachments.get( Mailing.getCurrentMailing().id )
             .then(function(result){
               if (!result){
@@ -309,14 +319,28 @@
           self.messages = CampaignMessage.getMessages();
         });
       
+      
+      var socialLinksPromise = Helper.initSocialLinks()
+        .then(function(){
+          
+          var locations = Helper.getSocialLinkLocations();
+          for (var index in locations){
+            self.socialLinkLocations.push({
+              label : locations[index],
+              value : locations[index]
+            });
+          }
+          
+        });
 
-      promises.push(mailingPromise, headerFiltersPromise, headersPromise, fromEmailsPromise, campaignMessagesPromise, inlineAttachmentsPromise);
+      promises.push(mailingPromise, headerFiltersPromise, headersPromise, fromEmailsPromise, campaignMessagesPromise, inlineAttachmentsPromise, socialLinksPromise);
 
       $q.all(promises)
         .then(function () {
           self.initHeaderFilter();
           self.initFromName();
           self.updateSelectedMessage();
+          self.updateSelectedSocialLink();
         })
         .catch(function (response) {
           Notification.genericError(response);
@@ -332,9 +356,13 @@
 
       // TODO (robin): Could this be refactored so that the view interpolates the result of this method? This might mean invoking it is no longer needed in the above then() method
       this.updateSelectedMessage = function () {
-        if (this.mailing.message_id) {
-          this.selectedMessage = $filter('filter')(this.messages, {id: this.mailing.message_id})[0];
+        
+        // Not an ideal thing to do, but we set the default value of the "campaign message" drop down to ID 5
+        if (!this.mailing.message_id){
+          this.mailing.message_id = 5;
         }
+        
+        this.selectedMessage = $filter('filter')(this.messages, {id: this.mailing.message_id})[0];
       };
 
       /**
@@ -368,7 +396,12 @@
         this.editFromName = false;
       };
 
-
+      this.updateSelectedSocialLink = function(){
+        if (!self.mailing.social_link){
+          self.mailing.social_link = self.socialLinkLocations[0].value;
+        }
+      };
+      
       /**
        * This method is called when the inlineAttachment directive is about to upload something
        * but hasn't started yet
@@ -456,9 +489,18 @@
 			$scope.inlineAttachmentInsert = function(attachment){
 			  var result;
 			  
-				if (result = prompt("Inserting inline attachment\n\nPlease enter the text you want as a link:", attachment.filename)){
-					if (self.editorInstance){
-					  
+        if (!self.editorInstance){
+          Notification.alert("There does not appear to be an instance of CKEditor available");
+          return;
+        }
+        
+			  var selection = self.editorInstance.getSelection();
+			  var selectedText = selection.getSelectedText();
+			  
+			  if (!selectedText || selectedText.length <= 0){
+          
+  				if (result = prompt("Inserting inline attachment\n\nPlease enter the text you want as a link:", attachment.filename)){
+  					  
 					  // we use a timeout to break out of the digest/apply cycle
 					  // if you try to make the editorInstance call outside the timeout, you'll experience
 					  // an Angular error. Go on. Try it.
@@ -466,8 +508,18 @@
 					    self.editorInstance.insertHtml('<a href="'+attachment.url+'">'+result+'</a>');
 					  }, 0);
 					  
-					}
-				}
+					  moveEditorCursor(1);
+					  
+  				}
+  				
+        } else {
+          // someone HAS selected text
+          $timeout(function(){
+            self.editorInstance.insertHtml('<a href="'+attachment.url+'">'+selectedText+'</a>');
+          }, 0);
+          
+          moveEditorCursor(1);
+        }
 			};
 			
 			
@@ -479,6 +531,19 @@
           delete( self.inlineAttachments[ attachment.id ] );
         }
 			};
+
+      
+      /**
+       * Moves the cursor x amount characters to the right in CKEditor
+       */
+      function moveEditorCursor(amountRight){
+        var selection = self.editorInstance.getSelection();
+        var ranges = selection.getRanges();
+        var range = ranges[0];
+        
+        range.setEnd(range.endContainer, range.endOffset+amountRight);
+      }
+
 
 			/**
 			 * Checks if the user has selected a header already
@@ -549,6 +614,7 @@
         });
     }
   ];
+
 
   /**
    * Step 4 of the wizard

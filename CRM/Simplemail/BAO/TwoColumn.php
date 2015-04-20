@@ -12,11 +12,7 @@ class CRM_Simplemail_BAO_TwoColumn {
 		$characterCount = strlen($text);
 		$lineCount += ceil( $characterCount / $this->maxLineLength );
 		
-		error_log('Debug TwoColumn. Line count');
-		error_log($lineCount);
-		
 		return ($lineCount > $this->maxLines);
-		
 	}
 	
 	public function getColumns($text){
