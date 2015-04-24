@@ -1046,7 +1046,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $optionValueResult = civicrm_api('OptionValue','get',array(
       'version' => '3',
       'option_group_id' => $optionGroupResult,
-      'name' => $optionValueName,
+      'label' => $optionValueName,
       'is_active' => '1'
     ));
     
