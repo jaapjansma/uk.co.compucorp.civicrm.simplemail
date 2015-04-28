@@ -346,7 +346,8 @@ function simplemail_civicrm_alterAPIPermissions($entity, $action, &$params, &$pe
     );
 
     $permissions['simple_mail_inline_attachment'] = array(
-      'remove' => $permissionKeys
+      'remove' => $permissionKeys,
+      'getall' => $permissionKeys
     );
 
     //$permissions['simple_mail_inline']
