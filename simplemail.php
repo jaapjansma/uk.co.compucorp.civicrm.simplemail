@@ -329,7 +329,8 @@ function simplemail_civicrm_alterAPIPermissions($entity, $action, &$params, &$pe
         'sendtestemail'       => $permissionKeys,
         'duplicatemassemail'  => $permissionKeys,
         'iscreatedfromsearch' => $permissionKeys,
-        'uploadinlineattachment' => $permissionKeys
+        'uploadinlineattachment' => $permissionKeys,
+        'clearsearchcontacts' => $permissionKeys
       ) + $standardActions;
 
     $permissions['simple_mail_header'] = array(
