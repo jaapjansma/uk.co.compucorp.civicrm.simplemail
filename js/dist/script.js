@@ -3649,6 +3649,10 @@
             // Else, save the changes
             return CiviApi.create(constants.entities.MAILING, currentMailing)
               .then(function (response) {
+                if (response.data.values.length === 0) {
+                  return $q.reject('API responded with no values.');
+                }
+
                 return CiviApi.get(constants.entities.MAILING, {id: response.data.values[0].id});
               })
               .then(function (response) {
