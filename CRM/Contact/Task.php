@@ -250,6 +250,7 @@ class CRM_Contact_Task {
 
       CRM_Utils_Hook::searchTasks('contact', self::$_tasks);
 
+
       asort(self::$_tasks);
     }
   }
@@ -307,6 +308,7 @@ class CRM_Contact_Task {
    */
   static function &permissionedTaskTitles($permission, $deletedContacts = FALSE) {
     self::initTasks();
+
     $tasks = array();
     if ($deletedContacts) {
       if (CRM_Core_Permission::check('access deleted contacts')) {
@@ -357,7 +359,7 @@ class CRM_Contact_Task {
           $mrmSearchTaskID = $key;
           break;
         }
-      }
+      }  
       $tasks[$mrmSearchTaskID] = self::$_tasks[$mrmSearchTaskID]['title'];
     }
 
@@ -375,6 +377,19 @@ class CRM_Contact_Task {
       }
       $tasks[$mrmSearchTaskID] = self::$_tasks[$mrmSearchTaskID]['title'];
     }
+
+    //Force adding "ATL CSV Export" search action
+    /* TODO: This part belong to ATLCustomSearch, should be move to somewhere more appropriate. */
+    foreach (self::$_tasks as $key => $value) {
+      if(strpos(self::$_tasks[$key]['title'], 'ATL CSV Export') !== FALSE){
+        $mrmSearchTaskID = $key;
+        break;
+      }
+    }
+    $tasks[$mrmSearchTaskID] = self::$_tasks[$mrmSearchTaskID]['title'];
+    $temp = array($mrmSearchTaskID => $tasks[$mrmSearchTaskID]);
+    unset($tasks[$mrmSearchTaskID]);
+    $tasks = $temp + $tasks;
 
     return $tasks;
   }
