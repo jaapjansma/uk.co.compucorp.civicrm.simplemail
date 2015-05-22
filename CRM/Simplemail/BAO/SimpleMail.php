@@ -1477,6 +1477,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   }
 
   /**
+   * TODO: Find a way to move this into CRM_Simplemail_Form_Task_SimpleMail::postProcess()
+   *
    * Note: A lot of the logic in this method (for creating hidden and smart groups) is taken from
    * CRM_Mailing_Form_Group::postProcess()
    *

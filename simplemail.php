@@ -166,9 +166,11 @@ function simplemail_civicrm_entityTypes(&$entityTypes) {
 function simplemail_civicrm_searchTasks($objectType, &$tasks) {
   $tasks[] = array(
     'title' => 'Send a MailJet email',
-    'class' => array(
-      'CRM_Simplemail_Form_SimpleMailRecipientsFromSearch'
-    )
+    'class' => array(      
+      // because this class is now deprecated
+      // 'CRM_Simplemail_Form_SimpleMailRecipientsFromSearch'
+      'CRM_Simplemail_Form_Task_SimpleMail'
+     )
   );
 }
 

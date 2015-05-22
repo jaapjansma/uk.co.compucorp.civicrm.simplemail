@@ -3,6 +3,10 @@
 require_once 'CRM/Core/Form.php';
 
 /**
+ * FIXME: This class is now redundant - do not use this as it's been superseded by CRM_Simplemail_Form_Task_SimpleMail, which is the correct way to achieve what this class was doing
+ *
+ * @deprecated
+ *
  * Form controller class
  *
  * @see http://wiki.civicrm.org/confluence/display/CRMDOC43/QuickForm+Reference
