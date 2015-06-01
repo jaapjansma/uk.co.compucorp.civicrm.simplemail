@@ -1255,14 +1255,14 @@
             // Else, save the changes
             return CiviApi.create(constants.entities.MAILING, currentMailing)
               .then(function (response) {
-                if (response.data.values.length === 0) {
-                  return $q.reject('API responded with no values.');
+                if (!response.data.values || response.data.values.length === 0) {
+                  return $q.reject('API responded with no value. Please refresh the page and try again.');
                 }
 
                 return CiviApi.get(constants.entities.MAILING, {id: response.data.values[0].id});
               })
               .then(function (response) {
-                if (response.data.values.length === 0) {
+                if (!response.data.values || response.data.values.length === 0) {
                   return $q.reject('Saved mailing cannot be found. Please refresh the page and try again.');
                 }
 
