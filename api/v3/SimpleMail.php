@@ -22,7 +22,8 @@ function _civicrm_api3_simple_mail_create_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_create($params) {
-  return _civicrm_api3_basic_create(_civicrm_api3_get_BAO(__FUNCTION__), $params);
+  return _civicrm_api3_basic_create(_civicrm_api3_get_BAO(__FUNCTION__),
+    $params);
 }
 
 /**
@@ -34,7 +35,8 @@ function civicrm_api3_simple_mail_create($params) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_delete($params) {
-  return _civicrm_api3_basic_delete(_civicrm_api3_get_BAO(__FUNCTION__), $params);
+  return _civicrm_api3_basic_delete(_civicrm_api3_get_BAO(__FUNCTION__),
+    $params);
 }
 
 /**
@@ -48,62 +50,68 @@ function civicrm_api3_simple_mail_delete($params) {
 function civicrm_api3_simple_mail_get($params) {
   try {
     $result = CRM_Simplemail_BAO_SimpleMail::getMailing($params);
-		
-		//$contactsResult = CRM_Simplemail_BAO_SimpleMail::getMailingContacts();
-		
-		if ($result && isset($result['values']) && (count($result['values']) > 0)){
-			
-			// This may need reviewing for two reasons:
-			// 1. the entity id may not be in hidden_recipient_group_entity_ids, it could be located by a different
-			// array key
-			// 2. we're looking at an array of values, so there may be more than one value
-			$entities = $result['values'][0]['hidden_recipient_group_entity_ids'];
-			$entityId = $entities[0];
-			$mailingId = $result['values'][0]['crm_mailing_id'];
 
-			$apiResult = civicrm_api('GroupContact', 'getcount', array(
-				'version' => 3,
-				'group_id' => $entityId
-			));
-			
-			if (!$apiResult){
-				$contactsCount = CRM_Simplemail_BAO_SimpleMail::getMailingContacts($entityId, $mailingId);
-			} else {
-				$contactsCount = $apiResult;
-			}
+    //$contactsResult = CRM_Simplemail_BAO_SimpleMail::getMailingContacts();
 
-			$result['extraValues']['contactsCount'] = $contactsCount;
-			
-			// check to see how this script is being requested
-			$isHttpsConnection = !empty($_SERVER['HTTPS']);
-			
-			// if the call to this method is over HTTPS, then we return content to the front end
-			// with HTTPS linked content (in the email body)
-			// And if it's a HTTP call, then return HTTP linked content
-			$emailBody = CRM_Simplemail_BAO_SimpleMail::updateEmailBodyHttps(
-				$result['values'][0]['body_html'],
-				$isHttpsConnection
-			);
-			
-			$result['values'][0]['body_html'] = $emailBody;
-			
+    if ($result && isset($result['values']) && (count($result['values']) > 0)) {
+
+      // This may need reviewing for two reasons:
+      // 1. the entity id may not be in hidden_recipient_group_entity_ids, it could be located by a different
+      // array key
+      // 2. we're looking at an array of values, so there may be more than one value
+      $entities = $result['values'][0]['hidden_recipient_group_entity_ids'];
+      $entityId = $entities[0];
+      $mailingId = $result['values'][0]['crm_mailing_id'];
+
+      $apiResult = civicrm_api('GroupContact', 'getcount', array(
+        'version'  => 3,
+        'group_id' => $entityId
+      ));
+
+      if (!$apiResult) {
+        $contactsCount =
+          CRM_Simplemail_BAO_SimpleMail::getMailingContacts($entityId,
+            $mailingId);
+      }
+      else {
+        $contactsCount = $apiResult;
+      }
+
+      $result['extraValues']['contactsCount'] = $contactsCount;
+
+      // check to see how this script is being requested
+      $isHttpsConnection = !empty($_SERVER['HTTPS']);
+
+      // if the call to this method is over HTTPS, then we return content to the front end
+      // with HTTPS linked content (in the email body)
+      // And if it's a HTTP call, then return HTTP linked content
+      $emailBody = CRM_Simplemail_BAO_SimpleMail::updateEmailBodyHttps(
+        $result['values'][0]['body_html'],
+        $isHttpsConnection
+      );
+
+      $result['values'][0]['body_html'] = $emailBody;
+
       // also generate urls to reports for these mailings
-      foreach ($result['values'] as &$value){
-  
+      foreach ($result['values'] as &$value) {
+
         // part of this code was taken straight from sites/all/modules/civicrm/CRM/Mailing/BAO/Mailing.php
         // but it doesn't quite fit our needs
         //$value['report_url'] = CRM_Utils_System::url('civicrm/mailing/report', 'reset=1&html=1&mid=' . $value['crm_mailing_id']);
-        $value['report_url'] = '/civicrm/mailing/report?reset=1&html=1&mid=' . $value['crm_mailing_id'];
+        $value['report_url'] = '/civicrm/mailing/report?reset=1&html=1&mid='
+          . $value['crm_mailing_id'];
       }
-      
-      
-		}
-		
-    return civicrm_api3_create_success($result['values'], $params, NULL, 'get', $result['dao'], $result['extraValues']);
+
+
+    }
+
+    return civicrm_api3_create_success($result['values'], $params, NULL, 'get',
+      $result['dao'], $result['extraValues']);
   } catch (CRM_Extension_Exception $e) {
     $errorData = $e->getErrorData();
 
-    return civicrm_api3_create_error($e->getMessage(), array(), $errorData['dao']);
+    return civicrm_api3_create_error($e->getMessage(), array(),
+      $errorData['dao']);
   }
 }
 
@@ -121,11 +129,13 @@ function civicrm_api3_simple_mail_submitmassemail($params) {
   try {
     $result = CRM_Simplemail_BAO_SimpleMail::submitMassEmail($params);
 
-    return civicrm_api3_create_success($result['values'], $params, NULL, 'submitmassemail', $result['dao']);
+    return civicrm_api3_create_success($result['values'], $params, NULL,
+      'submitmassemail', $result['dao']);
   } catch (CRM_Extension_Exception $e) {
     $errorData = $e->getErrorData();
 
-    return civicrm_api3_create_error($e->getMessage(), array(), $errorData['dao']);
+    return civicrm_api3_create_error($e->getMessage(), array(),
+      $errorData['dao']);
   }
 }
 
@@ -191,11 +201,13 @@ function civicrm_api3_simple_mail_sendtestemail($params) {
   try {
     $result = CRM_Simplemail_BAO_SimpleMail::sendTestEmail($params);
 
-    return civicrm_api3_create_success($result['values'], $params, NULL, 'sendtestemail');
+    return civicrm_api3_create_success($result['values'], $params, NULL,
+      'sendtestemail');
   } catch (CRM_Extension_Exception $e) {
     $errorData = $e->getErrorData();
 
-    return civicrm_api3_create_error($e->getMessage(), array(), $errorData['dao']);
+    return civicrm_api3_create_error($e->getMessage(), array(),
+      $errorData['dao']);
   }
 }
 
@@ -238,7 +250,8 @@ function civicrm_api3_simple_mail_iscreatedfromsearch($params) {
   try {
     $result = CRM_Simplemail_BAO_SimpleMail::isCreatedFromSearch();
 
-    return civicrm_api3_create_success($result['values'], $params, NULL, 'iscreatedfromsearch');
+    return civicrm_api3_create_success($result['values'], $params, NULL,
+      'iscreatedfromsearch');
   } catch (CRM_Extension_Exception $e) {
     return civicrm_api3_create_error($e->getMessage());
   }
@@ -246,19 +259,20 @@ function civicrm_api3_simple_mail_iscreatedfromsearch($params) {
 
 /**
  * SimpleMail.GetSearchContacts
- * 
+ *
  * This method returns a list of contacts who were previously results from a search
  * Could be used in conjunction with iscreatedfromsearch
- * 
+ *
  */
-function civicrm_api3_simple_mail_getsearchcontacts($params){
-	try {
-		$result = CRM_Simplemail_BAO_SimpleMail::getSearchContacts();
+function civicrm_api3_simple_mail_getsearchcontacts($params) {
+  try {
+    $result = CRM_Simplemail_BAO_SimpleMail::getSearchContacts();
     $dao = '';
-		return civicrm_api3_create_success(true, $params, NULL, 'getsearchcontacts', $dao, $result);
-	} catch (CRM_Extension_Exception $e){
-		return civicrm_api3_create_error($e->getMessage());
-	}
+    return civicrm_api3_create_success(TRUE, $params, NULL, 'getsearchcontacts',
+      $dao, $result);
+  } catch (CRM_Extension_Exception $e) {
+    return civicrm_api3_create_error($e->getMessage());
+  }
 }
 
 
@@ -268,13 +282,15 @@ function civicrm_api3_simple_mail_getsearchcontacts($params){
  * Whereas getsearchcontacts works for a mailing that has literally just been created
  * This goes to the DB to get the users, whereas the getsearchcontacts looks in the session
  */
-function civicrm_api3_simple_mail_getmailingcontacts($params){
-	try {
-		$result = CRM_Simplemail_BAO_SimpleMail::getMailingContacts($params['mailingid']);
-		return civicrm_api3_create_success($result['values'], $params, NULL, 'getmailingcontacts');
-	} catch (CRM_Extension_Exception $e){
-		return civicrm_api3_create_error($e->getMessage());
-	}
+function civicrm_api3_simple_mail_getmailingcontacts($params) {
+  try {
+    $result =
+      CRM_Simplemail_BAO_SimpleMail::getMailingContacts($params['mailingid']);
+    return civicrm_api3_create_success($result['values'], $params, NULL,
+      'getmailingcontacts');
+  } catch (CRM_Extension_Exception $e) {
+    return civicrm_api3_create_error($e->getMessage());
+  }
 }
 
 
@@ -292,7 +308,8 @@ function civicrm_api3_simple_mail_clearsearchcontacts($params) {
   try {
     simplemail_civicrm_clearSessionScope();
 
-    return civicrm_api3_create_success(1, $params, NULL, 'clearsearchresultsfromsession');
+    return civicrm_api3_create_success(1, $params, NULL,
+      'clearsearchresultsfromsession');
   } catch (CRM_Extension_Exception $e) {
     return civicrm_api3_create_error($e->getMessage());
   }
@@ -302,12 +319,12 @@ function civicrm_api3_simple_mail_clearsearchcontacts($params) {
 function civicrm_api3_simple_mail_uploadinlineattachment($params) {
   try {
     $result = CRM_Simplemail_BAO_SimpleMailInlineAttachment::upload($params);
-    return civicrm_api3_create_success($result['values'], $params, NULL, 'uploadinlineattachment');
+    return civicrm_api3_create_success($result['values'], $params, NULL,
+      'uploadinlineattachment');
   } catch (CRM_Extension_Exception $e) {
     return civicrm_api3_create_error($e->getMessage());
   }
 }
-
 
 
 //////////////////////
@@ -333,7 +350,8 @@ function _get_entity_values($entity, $id) {
   $values = reset($api->values());
 
   if ($api->is_error()) {
-    throw new api_exception('an error occurred when trying to retrieve ' . $entity . ': ' . $api->errormsg(), 500);
+    throw new api_exception('an error occurred when trying to retrieve '
+      . $entity . ': ' . $api->errormsg(), 500);
   }
 
   return $values;
