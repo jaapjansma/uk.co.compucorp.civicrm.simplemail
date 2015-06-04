@@ -334,7 +334,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     $mailings = static::postProcessMailings($params, $mailings);
 
-    $extraValues = static::getExtraValues($params, $mailings);
+    $extraValues = static::getExtraValuesForMailings($params, $mailings);
 
     return array(
       'values'      => $mailings,
