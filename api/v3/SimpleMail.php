@@ -51,67 +51,12 @@ function civicrm_api3_simple_mail_get($params) {
   try {
     $result = CRM_Simplemail_BAO_SimpleMail::getMailing($params);
 
-    //$contactsResult = CRM_Simplemail_BAO_SimpleMail::getMailingContacts();
-
-    if ($result && isset($result['values']) && (count($result['values']) > 0)) {
-
-      // This may need reviewing for two reasons:
-      // 1. the entity id may not be in hidden_recipient_group_entity_ids, it could be located by a different
-      // array key
-      // 2. we're looking at an array of values, so there may be more than one value
-      $entities = $result['values'][0]['hidden_recipient_group_entity_ids'];
-      $entityId = $entities[0];
-      $mailingId = $result['values'][0]['crm_mailing_id'];
-
-      $apiResult = civicrm_api('GroupContact', 'getcount', array(
-        'version'  => 3,
-        'group_id' => $entityId
-      ));
-
-      if (!$apiResult) {
-        $contactsCount =
-          CRM_Simplemail_BAO_SimpleMail::getMailingContacts($entityId,
-            $mailingId);
-      }
-      else {
-        $contactsCount = $apiResult;
-      }
-
-      $result['extraValues']['contactsCount'] = $contactsCount;
-
-      // check to see how this script is being requested
-      $isHttpsConnection = !empty($_SERVER['HTTPS']);
-
-      // if the call to this method is over HTTPS, then we return content to the front end
-      // with HTTPS linked content (in the email body)
-      // And if it's a HTTP call, then return HTTP linked content
-      $emailBody = CRM_Simplemail_BAO_SimpleMail::updateEmailBodyHttps(
-        $result['values'][0]['body_html'],
-        $isHttpsConnection
-      );
-
-      $result['values'][0]['body_html'] = $emailBody;
-
-      // also generate urls to reports for these mailings
-      foreach ($result['values'] as &$value) {
-
-        // part of this code was taken straight from sites/all/modules/civicrm/CRM/Mailing/BAO/Mailing.php
-        // but it doesn't quite fit our needs
-        //$value['report_url'] = CRM_Utils_System::url('civicrm/mailing/report', 'reset=1&html=1&mid=' . $value['crm_mailing_id']);
-        $value['report_url'] = '/civicrm/mailing/report?reset=1&html=1&mid='
-          . $value['crm_mailing_id'];
-      }
-
-
-    }
-
     return civicrm_api3_create_success($result['values'], $params, NULL, 'get',
       $result['dao'], $result['extraValues']);
   } catch (CRM_Extension_Exception $e) {
     $errorData = $e->getErrorData();
 
-    return civicrm_api3_create_error($e->getMessage(), array(),
-      $errorData['dao']);
+    return civicrm_api3_create_error($e->getMessage(), [], $errorData['dao']);
   }
 }
 

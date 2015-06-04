@@ -195,7 +195,7 @@
             Notification.success('Mailing duplicated');
           })
           .catch(function (response) {
-            Notification.error('Failed to duplicate the mailing', response.data.error_message);
+            Notification.error('Failed to duplicate the mailing', response);
             $log.error('Failed to duplicate the mailing:', response);
 
             return $q.reject();

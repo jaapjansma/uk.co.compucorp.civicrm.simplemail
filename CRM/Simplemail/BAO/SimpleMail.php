@@ -244,8 +244,9 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @throws CRM_Extension_Exception
    */
   public static function getMailing($params) {
-    $whereClause =
-      isset($params['id']) ? 'sm.id = ' . (int) $params['id'] : 'true';
+    $isSingle = isset($params['id']);
+
+    $whereClause = $isSingle ? 'sm.id = ' . (int) $params['id'] : 'true';
 
     $query
       = "
@@ -331,13 +332,14 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
         . $e->getMessage(), 500, array('dao' => $dao));
     }
 
+    $mailings = static::postProcessMailings($params, $mailings);
+
+    $extraValues = static::getExtraValues($params, $mailings);
+
     return array(
       'values'      => $mailings,
       'dao'         => $dao,
-      'extraValues' => array(
-        'userId' => CRM_Core_Session::singleton()
-          ->get('userID')
-      )
+      'extraValues' => $extraValues
     );
   }
 
@@ -922,23 +924,28 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $template->title = empty($params['title']) ? NULL : $params['title'];
     $template->replyAddress = static::getMailToLink($params);
     $template->body = empty($params['body']) ? NULL : $params['body'];
-	
-		$twoColumn = new CRM_Simplemail_BAO_TwoColumn();
-		$template->isTwoColumn = $twoColumn->isTwoColumn($template->body);
-		if ($template->isTwoColumn){
-			list($bodyColumn1, $bodyColumn2) = $twoColumn->getColumns($template->body);
-			$template->bodyColumn1 = $bodyColumn1;
-			$template->bodyColumn2 = $bodyColumn2;
-		}
-		
-    $template->facebookUrl = static::getOptionValue('email_social_facebook_links', $params['social_link']);
-    $template->twitterUrl = static::getOptionValue('email_social_twitter_links', $params['social_link']);
-    
+
+    $twoColumn = new CRM_Simplemail_BAO_TwoColumn();
+    $template->isTwoColumn = $twoColumn->isTwoColumn($template->body);
+    if ($template->isTwoColumn) {
+      list($bodyColumn1, $bodyColumn2) =
+        $twoColumn->getColumns($template->body);
+      $template->bodyColumn1 = $bodyColumn1;
+      $template->bodyColumn2 = $bodyColumn2;
+    }
+
+    $template->facebookUrl =
+      static::getOptionValue('email_social_facebook_links',
+        $params['social_link']);
+    $template->twitterUrl = static::getOptionValue('email_social_twitter_links',
+      $params['social_link']);
+
     static::updateSignature($template->body);
-    
-    $template->contactDetails = isset($params['contact_details']) && $params['contact_details']
-      ? $params['contact_details']
-      : NULL;
+
+    $template->contactDetails =
+      isset($params['contact_details']) && $params['contact_details']
+        ? $params['contact_details']
+        : NULL;
     // TODO (robin): Make this dynamic as useful when testing on a dev box
     $template->unsubscribeLink = static::getOptOutLink();
 
@@ -989,88 +996,91 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     return $emailBody;
 
   }
-  
+
   /**
    * Searches the email body for signature tags {signature} or {xxx_signature} and replaces
    * it with a graphic that is of the user's signature
    */
-  protected static function updateSignature(&$body){
+  protected static function updateSignature(&$body) {
     $matches = array();
     $total = preg_match_all('/\{(.*)signature\}/', $body, $matches);
-    
-    if (!$total){
+
+    if (!$total) {
       return;
     }
-    
+
     $sigMatches = array_unique($matches[0]);
     $sigNames = array_unique($matches[1]);
-    
-    foreach ($sigMatches as $index => $match){
+
+    foreach ($sigMatches as $index => $match) {
       $name = $sigNames[$index];
-      if (strlen($name) > 0){
+      if (strlen($name) > 0) {
         // trim the trailing underscore
         $name = substr($name, 0, -1);
       }
-      $filename = CRM_Simplemail_BAO_SimpleMailHelper::getSignatureFilename($name);
-      
-      $replacement = (!empty($filename) ? '<img src="'.$filename.'" />' : '');
+      $filename =
+        CRM_Simplemail_BAO_SimpleMailHelper::getSignatureFilename($name);
+
+      $replacement =
+        (!empty($filename) ? '<img src="' . $filename . '" />' : '');
       $body = str_replace($sigMatches[$index], $replacement, $body);
-      
+
     }
-    
+
   }
-  
-  
+
+
   /**
    * Uses the Civi API to retrieve an option value from the specified option group
    * For example, there may be an Option Group called: email_social_facebook_links
    * And contained within that group is an Option Value with the name 'UK'
-   * 
+   *
    * So you would pass in the parameteres:
    * $optionGroupName = 'email_social_facebook_links'
    * $optionValueName = 'UK'
-   * 
+   *
    * @return {String}
    */
-  protected static function getOptionValue($optionGroupName, $optionValueName){
+  protected static function getOptionValue($optionGroupName, $optionValueName) {
     $optionGroupResult = civicrm_api('OptionGroup', 'getvalue', array(
       'version' => '3',
-      'name' => $optionGroupName,
+      'name'   => $optionGroupName,
       'return' => 'id'
     ));
-    
-    if (!$optionGroupResult){
+
+    if (!$optionGroupResult) {
       throw new CRM_Extension_Exception("Error finding option group ($optionGroupName)");
     }
-    
-    $optionValueResult = civicrm_api('OptionValue','get',array(
-      'version' => '3',
+
+    $optionValueResult = civicrm_api('OptionValue', 'get', array(
+      'version'   => '3',
       'option_group_id' => $optionGroupResult,
-      'label' => $optionValueName,
+      'label'     => $optionValueName,
       'is_active' => '1'
     ));
-    
-    if (!$optionValueResult){
+
+    if (!$optionValueResult) {
       throw new CRM_Extension_Exception("Error finding option value ($optionValueName)");
     }
-    
-    if ($optionValueResult['is_error'] || count($optionValueResult['values']) <= 0){
+
+    if ($optionValueResult['is_error']
+      || count($optionValueResult['values']) <= 0
+    ) {
       throw new CRM_Extension_Exception("No option found with value ($optionValueName)");
     }
-    
+
     // Get the values array from the result
     $values = $optionValueResult['values'];
-    
+
     // the $values array is an associative array and we don't know the key,
     /// so use "each" to extract the kv pair
     list($key, $value) = each($values);
     $firstResult = $value;
-    
+
     // return the actual value that is stored in the OptionValue
     return $firstResult['value'];
   }
-  
-  
+
   /**
    * Generate the link for mailto for the reply button in the template
    *
@@ -1204,7 +1214,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     else {
       $crmMailingParams['dedupe_email'] = 0;
     }
-    
+
     return $crmMailingParams;
   }
 
@@ -1290,6 +1300,70 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   /////////////////////
   // Private Methods //
   /////////////////////
+
+  private function postProcessMailings($params, $mailings) {
+    $isSingle = isset($params['id']);
+
+    if ($isSingle) {
+      // check to see how this script is being requested
+      $isHttpsConnection = !empty($_SERVER['HTTPS']);
+
+      // if the call to this method is over HTTPS, then we return content to the front end
+      // with HTTPS linked content (in the email body)
+      // And if it's a HTTP call, then return HTTP linked content
+      $emailBody = CRM_Simplemail_BAO_SimpleMail::updateEmailBodyHttps(
+        $mailings[0]['body_html'],
+        $isHttpsConnection
+      );
+
+      $mailings[0]['body_html'] = $emailBody;
+    }
+
+    foreach ($mailings as &$mailing) {
+      // part of this code was taken straight from sites/all/modules/civicrm/CRM/Mailing/BAO/Mailing.php
+      // but it doesn't quite fit our needs
+      //$value['report_url'] = CRM_Utils_System::url('civicrm/mailing/report', 'reset=1&html=1&mid=' . $value['crm_mailing_id']);
+      $mailing['report_url'] = '/civicrm/mailing/report?reset=1&html=1&mid='
+        . $mailing['crm_mailing_id'];
+    }
+
+    return $mailings;
+  }
+
+  private static function getExtraValuesForMailings($params, array $mailings) {
+    $values = [];
+    $values['userId'] = CRM_Core_Session::singleton()->get('userID');
+
+    $isSingle = isset($params['id']);
+    if ($isSingle) {
+      $mailing = reset($mailings);
+
+      if ($entities = $mailing['hidden_recipient_group_entity_ids']) {
+        $entityId = $entities[0];
+        $mailingId = $mailing['crm_mailing_id'];
+
+        $apiResult = civicrm_api('GroupContact', 'getcount', array(
+          'version'  => 3,
+          'group_id' => $entityId
+        ));
+
+        if (!$apiResult) {
+          $contactsCount = CRM_Simplemail_BAO_SimpleMail::getMailingContacts(
+            $entityId, $mailingId
+          );
+        }
+        else {
+          $contactsCount = $apiResult;
+        }
+
+        if (is_int($contactsCount)) {
+          $values['contactsCount'] = $contactsCount;
+        }
+      }
+    }
+
+    return $values;
+  }
 
   private static function isActionAllowed($action, $params) {
     switch ($action) {
