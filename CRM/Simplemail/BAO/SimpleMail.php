@@ -1348,15 +1348,16 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
         ));
 
         if (!$apiResult) {
-          $contactsCount = CRM_Simplemail_BAO_SimpleMail::getMailingContacts(
+          $contactsCount =
+            (int) CRM_Simplemail_BAO_SimpleMail::getMailingContacts(
             $entityId, $mailingId
           );
         }
         else {
-          $contactsCount = $apiResult;
+          $contactsCount = (int) $apiResult;
         }
 
-        if (is_int($contactsCount)) {
+        if ($contactsCount) {
           $values['contactsCount'] = $contactsCount;
         }
       }
