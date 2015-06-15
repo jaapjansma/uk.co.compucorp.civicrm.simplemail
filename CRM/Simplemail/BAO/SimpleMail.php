@@ -1063,9 +1063,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       throw new CRM_Extension_Exception("Error finding option value ($optionValueName)");
     }
 
-    if ($optionValueResult['is_error']
-      || count($optionValueResult['values']) <= 0
-    ) {
+    if ($optionValueResult['is_error']) {
       throw new CRM_Extension_Exception("No option found with value ($optionValueName)");
     }
 
