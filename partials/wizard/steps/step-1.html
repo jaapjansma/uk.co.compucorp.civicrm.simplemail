@@ -1,8 +1,8 @@
 <div ng-controller="CreateMailingCtrl as create">
   <form sm-loaded="steps.isInitialised()" class="crm-form-block" name="create.step1form">
-  
+
   <h2>Title *</h2>
-  
+
   <div class="field-group">
     <label for="mailing-name">
       Please choose a meaningful title for this email to make it easier to search for it in the future (max 128 characters)
@@ -29,7 +29,7 @@
     <p ng-if="create.fromSearch" class="status">This mailing contains {{create.contactsCount}} recipient(s) from search results</p>
     <p ng-if="!create.fromSearch && create.contactsCount > 0" class="status">This mailing contains {{create.contactsCount}} recipient(s)</p>
 
-    <div class="field-group required">
+    <div ng-if="create.manageAllMailPerm" class="field-group required">
       <label for="">If you have saved your data as a group (filter), select it here</label>
       <ui-select multiple ng-model="create.mailing.recipient_group_entity_ids"
                  ng-disabled="!create.isMailingNotScheduled()" theme="select2">
@@ -39,6 +39,7 @@
         </ui-select-choices>
       </ui-select>
     </div>
+
 
     <div class="field-group inline clearfix">
       <label for="remove-duplicates" class="auto-width">Remove duplicate emails?</label>

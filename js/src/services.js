@@ -298,7 +298,7 @@
    * @alias WizardStepFactory
    * @type {*[]}
    */
-  var WizardStepProvider = ['$location', '$log', '$q', 'CiviApiFactory', 'MailingDetailFactory', 'NotificationFactory', 'paths', 'FormValidationFactory', 
+  var WizardStepProvider = ['$location', '$log', '$q', 'CiviApiFactory', 'MailingDetailFactory', 'NotificationFactory', 'paths', 'FormValidationFactory',
     /**
      *
      * @param $location
@@ -398,7 +398,7 @@
       		FormValidation.doValidation();
       		return $q.reject("Next step not allowed");
       	};
-      		
+
         return proceedToStep(currentStep + 1);
       };
 
@@ -543,7 +543,7 @@
        */
       var proceedToStep = function (step) {
         Notification.clearPersistentNotifications();
-				
+
         return Mailing.saveProgress()
           .then(function (response) {
             redirectToStep(step);
@@ -795,15 +795,15 @@
        */
       var headerFiltersInitialised = false;
 
-      
+
       /**
        * Should contain a list of different countries/locations that should map to Option Values in Civi
        * For example: this will contain a list such as [UK, Ireland, Japan]
        * Then there should be a corresponding Option Group that contains the titles [UK, Ireland, Japan]
-       * @type {Array} 
+       * @type {Array}
        */
       var socialLinkLocations = [];
-      
+
       /**
        * This contains a full list of all the social links we have, grouped by Option Group name.
        * So you should have something like:
@@ -813,9 +813,9 @@
        * ]
        */
       var socialLinks = [];
-      
+
       /**
-       * If you have more Option Groups to contain other social media links, add them to this array 
+       * If you have more Option Groups to contain other social media links, add them to this array
        */
       var socialLinkGroups = ['email_social_facebook_links', 'email_social_twitter_links'];
 
@@ -836,9 +836,9 @@
         } else {
           CiviApi.get(constants.entities.MAILING_GROUP)
             .then(function (response) {
-            	
+
             	console.log('mailgroups response', response);
-            	
+
               // TODO (robin): Move is_hidden filtering to API query
               var groups = $filter('filter')(response.data.values, {is_hidden: 0});
 
@@ -934,30 +934,30 @@
 
         return deferred.promise;
       };
-      
-      
+
+
       /**
        * Requests from the API all the social media links we may want to put into an email
-       * It looks specifically at the Option Groups you've specified in socialLinkGroups above 
+       * It looks specifically at the Option Groups you've specified in socialLinkGroups above
        */
       var initSocialLinks = function(){
         var deferredMaster = $q.defer();
-        
+
         var promises = [];
-        
+
         // Loop through all the socialLinkGroups
         for (var socialLinkGroupIndex in socialLinkGroups){
-        
+
           // We create a deferred object for each API request we're going to make, because we're making quite
           // a few
           var dfr = $q.defer();
           var groupName = socialLinkGroups[ socialLinkGroupIndex ];
-          
-          
+
+
           // We need to create a new scope to store the group name and the deferred object
           // otherwise these values are overwritten each iteration of the for loop
           (function(group, deferredObject){
-          
+
             // Ask the API for the id of the Option Group called groupName (above)
             CiviApi.getValue(
               constants.entities.OPTION_GROUP,
@@ -966,7 +966,7 @@
             ).then(function(response){
               return response.data.result;
             }).then(function(groupId){
-              
+
               // Now we have the group id for the Option Group called groupName, we need to get
               // all the options belonging to that group
               return CiviApi.get(
@@ -977,30 +977,30 @@
                 socialLinks[group] = response.data.values;
                 deferredObject.resolve();
               });
-              
+
             }).catch(function(response){
               deferredObject.reject(response);
             });
-            
+
           })(groupName, dfr);
-          
-          
+
+
           // Store the promise of this deferred object. We store this in an array because we're expecting
           // quite a few deferred objects
           promises.push(dfr.promise);
-          
+
         }
-        
+
         // Resolve the master deferred object when all the deferred objects/promises are complete
         $q.all(promises).then(function(){
           deferredMaster.resolve();
         });
-        
+
         return deferredMaster.promise;
       };
 
-      
-      
+
+
       // Getters and Setters //
 
       /**
@@ -1038,29 +1038,29 @@
       var getHeaderFilters = function () {
         return headerFilters;
       };
-      
+
       var getSocialLinks = function(){
         return socialLinks;
       };
-      
-      
+
+
       /**
        * This will return a short list of common "locations" from the socialLinks object
-       * So you should receive a list like: [UK, Japan, Ireland] 
-       */ 
+       * So you should receive a list like: [UK, Japan, Ireland]
+       */
       var getSocialLinkLocations = function(){
         if (socialLinkLocations.length <= 0){
           var firstGroup = socialLinkGroups[0];
-          
+
           for (var index in socialLinks[firstGroup]){
             var item = socialLinks[firstGroup][index];
             socialLinkLocations.push(item.label);
           }
         }
-        
+
         return socialLinkLocations;
       };
-      
+
       return {
         initMailingGroups: initMailingGroups,
         initFromEmails: initFromEmails,
@@ -1126,10 +1126,18 @@
 			 * Stores the number of contacts that are being emailed
 			 * This value is only populated if the contacts have come from a previous
 			 * search result, or if this is a previous email that we've come back to
-			 * 
-			 * @type {int} 
+			 *
+			 * @type {int}
 			 */
 			var contactsCount;
+
+
+      /**
+       * Is the current user allowed to view and manabge all mailing?
+       *
+       * @type {boolean}
+       */
+      var ManageAllMailPerm = false;
 
       /**
        * @type {string}
@@ -1368,7 +1376,7 @@
 			/**
 			 * @ngdoc method
 			 * @name MailingDetailFactory#getContactsCount
-			 * @returns {int} 
+			 * @returns {int}
 			 */
 			var getContactsCount = function(){
 				return contactsCount;
@@ -1385,6 +1393,16 @@
        */
       var getCurrentMailing = function (original) {
         return original ? originalCurrentMailing : currentMailing;
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingDetailFactory#getManageAllMailPerm
+       * @param null
+       * @returns {boolean}
+       */
+      var getManageAllMailPerm = function () {
+        return ManageAllMailPerm;
       };
 
       /**
@@ -1408,6 +1426,18 @@
         createdFromSearch = boolean;
       };
 
+      /**
+       * @ngdoc method
+       * @name MailingDetailFactory#getManageAllMailPerm
+       * @param null
+       * @returns {boolean}
+       */
+      var setManageAllMailPerm = function (boolean) {
+        ManageAllMailPerm = boolean;
+      };
+
+
+
       /////////////////////
       // Private Methods //
       /////////////////////
@@ -1427,13 +1457,27 @@
       var initMailing = function () {
         var deferred = $q.defer();
 
+        CiviApi.post('SimpleMail', null ,'manageallCiviSimpleMailmails')
+          .then(function(response) {
+
+            if(response.data.is_error == 1) {
+              setManageAllMailPerm(false);
+            } else {
+              setManageAllMailPerm(response.data.values.data);
+            }
+
+            deferred.resolve();
+
+          });
+
+
         // The mailing isn't new (i.e. mailing ID exists in the URL) - populate current mailing using the API
         if (!isNewMailing()) {
           // This is NOT a new mailing
           CiviApi.get(constants.entities.MAILING, {id: getMailingIdFromUrl()})
             .then(function (response) {
               if (response.data.values.length === 0) return $q.reject('Mailing not found!');
-              
+
               setCurrentMailing(response.data.values[0], true);
 
               var createdFromSearch = response.data.values[0].hidden_recipient_group_entity_ids.length ? true : false;
@@ -1442,7 +1486,7 @@
 							if (response.data.contactsCount){
 								contactsCount = response.data.contactsCount;
 							}
-							
+
               deferred.resolve();
             })
             .catch(function (response) {
@@ -1455,7 +1499,7 @@
 
 							var createdFromSearch = response.data.values[0].answer;
               setCreatedFromSearch(createdFromSearch);
-							
+
 							if (createdFromSearch){
 
 								CiviApi.post('SimpleMail', getCurrentMailing(), 'getsearchcontacts')
@@ -1463,7 +1507,7 @@
 										contactsCount = response.data.contactCount;
 			              deferred.resolve();
 									});
-							
+
 							} else {
 	              deferred.resolve();
 							}
@@ -1518,6 +1562,7 @@
         getCurrentMailing: getCurrentMailing,
         setCurrentMailing: setCurrentMailing,
         getContactsCount : getContactsCount,
+        getManageAllMailPerm : getManageAllMailPerm,
         isInitialised: isInitialised,
         isCreatedFromSearch: isCreatedFromSearch,
         isCurrentMailingDirty: isCurrentMailingDirty,
@@ -1532,46 +1577,46 @@
    */
   var InlineAttachmentProvider = ['$q', 'CiviApiFactory',
     function($q, civiApi){
-      
+
       var constants = {
         entities : {
           INLINE_ATTACHMENT : 'SimpleMailInlineAttachment'
         }
       };
-      
+
       return {
-        
+
         get : function(mailingId){
           var dfr = $q.defer();
           var data = {
             id : mailingId
           };
-          
+
           civiApi.post(constants.entities.INLINE_ATTACHMENT, data, 'getall')
             .then(function(response){
               if (!response || !response.data || !response.data.values){
                 dfr.reject("Error retrieving attachments");
               }
-              
+
               dfr.resolve(response.data.values);
             })
             .catch(function(response){
               dfr.reject(response);
             });
-          
+
           return dfr.promise;
         },
-        
+
         remove : function(id){
           var data = {
             id : id
           };
-          
+
           return civiApi.post(constants.entities.INLINE_ATTACHMENT, data, 'remove');
         }
-        
+
       };
-      
+
     }
   ];
 
@@ -1818,64 +1863,64 @@
     }
   ];
 
-	
+
 	/**
 	 * Provides a method of checking if a form is valid, across controllers
 	 * Set the state to false when a form first loads, then run your validation on the
 	 * form, and finally set the state on this to true if the form is valid
-	 * 
+	 *
 	 * Other controllers can then call isValid to check the state of the form
-	 * 
+	 *
 	 * @ngdoc service
 	 * @name FormValidationFactory
 	 * @return {object}
 	 */
 	var FormValidationProvider = [function(){
-		
+
 		var validState = false;
 		var form = null;
-		
+
 		var setState = function(state){
 			validState = state;
 		};
-		
+
 		var isValid = function(){
 			return validState;
 		};
-		
+
 		var setForm = function(_form){
 			form = _form;
 			if (form){
 				form.$setPristine();
 			}
-			
+
 			// If we are passed a new form it should start off invalid
 			setState(false);
-			
+
 		};
-		
+
 		var doValidation = function(){
 			if (!form){
 				return;
 			}
-			
+
 			form.$setDirty();
 
 			// I think this is a limitation of Angular1.2
 			// In 1.4 I believe you can just call form.$setDirty() to make all the elements dirty
 			angular.element(form).addClass('ng-dirty');
-			
+
 		};
-		
+
 		return {
 			setState : setState,
 			isValid : isValid,
 			setForm : setForm,
 			doValidation : doValidation
 		};
-		
+
 	}];
-	
+
 
 
   /**

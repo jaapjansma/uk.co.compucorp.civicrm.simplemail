@@ -244,9 +244,18 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @throws CRM_Extension_Exception
    */
   public static function getMailing($params) {
+
     $isSingle = isset($params['id']);
 
     $whereClause = $isSingle ? 'sm.id = ' . (int) $params['id'] : 'true';
+
+    if(!CRM_Core_Permission::check('manage all CiviSimpleMail mails')) {
+
+      $session = CRM_Core_Session::singleton();
+      $contactId = $session->get('userID');
+      $whereClause .= ' AND cm.created_id = '.$contactId.' ';
+
+    }
 
     $query
       = "
@@ -278,6 +287,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     GROUP BY sm.id
   ";
+
 
     $mailings = array();
 
@@ -326,6 +336,9 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
         $mailings[] = $mailing;
       }
     } catch (Exception $e) {
+
+
+
       $dao = isset($dao) ? $dao : NULL;
 
       throw new CRM_Extension_Exception('Failed to retrieve mailings: '

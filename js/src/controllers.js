@@ -82,7 +82,7 @@
 			/**
 			 * @name confirmDeleteMailing
 			 * @description	Confirms that the user wishes to delete an email, and if they agree it proceeds to
-			 * 							perform said deletion 
+			 * 							perform said deletion
 			 */
 			$scope.confirmDeleteMailing = function(mailing){
 				if (confirm("Are you sure you wish to delete the mailing:\n"+mailing.name)){
@@ -130,7 +130,7 @@
    * @name CreateMailingCtrl
    * @type {*[]}
    */
-  var CreateMailingCtrl = ['$scope', '$q', 'MailingDetailFactory', 'NotificationFactory', 'MailingHelperFactory', 'WizardStepFactory', 'FormValidationFactory', 
+  var CreateMailingCtrl = ['$scope', '$q', 'MailingDetailFactory', 'NotificationFactory', 'MailingHelperFactory', 'WizardStepFactory', 'FormValidationFactory',
     /**
      *
      * @param $q
@@ -146,6 +146,7 @@
       this.mailing = Mailing.getCurrentMailing();
       this.groups = Helper.getMailingGroups();
       this.categories = Helper.getMailingCategories();
+      this.manageAllMailPerm = Mailing.getManageAllMailPerm();
 
       var promises = [];
 
@@ -156,7 +157,8 @@
           self.mailing = Mailing.getCurrentMailing();
           self.fromSearch = Mailing.isCreatedFromSearch();
           self.contactsCount = Mailing.getContactsCount();
-          
+          self.manageAllMailPerm = Mailing.getManageAllMailPerm();
+
           if (angular.isUndefined(self.mailing.dedupe_email)) self.mailing.dedupe_email = '1';
         });
 
@@ -174,7 +176,7 @@
         })
         .finally(function () {
           self.initialised = true;
-          
+
           // assign the form to the scope so we can watch it
           $scope.step1form = self.step1form;
           FormValidation.setForm(self.step1form);
@@ -185,11 +187,11 @@
       this.isMailingNotScheduled = function() {
         return Mailing.isCurrentMailingNotScheduled();
       };
-      
+
       $scope.$watch('step1form.$valid', function(isValid){
       	FormValidation.setState(isValid);
       });
-      
+
     }
   ];
 
@@ -237,7 +239,7 @@
 			this.inlineAttachments = {};
 
       this.regionsTemplatePath = Wizard.getRegionsTemplatePath();
-      
+
       this.editorInstance = {};
 
       var promises = [];
@@ -246,13 +248,13 @@
       var mailingPromise = Mailing.init()
         .then(function () {
           self.mailing = Mailing.getCurrentMailing();
-          
+
           /* Another way of setting the default value in the CKEditor / email body
           if (self.mailing.body.length <= 0){
             self.mailing.body = 'Dear {contact.display_name},<br/><br/><br/><br/><br/><br/>{signature}';
           }
           */
-          
+
           inlineAttachmentsPromise = InlineAttachments.get( Mailing.getCurrentMailing().id )
             .then(function(result){
               if (!result){
@@ -260,20 +262,20 @@
                 return;
               }
               self.inlineAttachments = {};
-              
+
               for (var index in result){
                 var row = result[index];
                 row.uploaded = true;      // tells the front end that this is a valid upload
-                
+
                 self.inlineAttachments[row.id] = row;
               }
-              
+
             })
             .catch(function(error){
               console.log('Inline Attachments error: ', error);
             });
 
-          
+
         });
 
       var headerFiltersPromise = Helper.initHeaderFilters()
@@ -288,9 +290,9 @@
         .then(function () {
           self.headers = Header.getHeaders();
           self.headersLoaded = true;
-          
+
           setDefaultHeader();
-          
+
         });
 
       var fromEmailsPromise = Helper.initFromEmails()
@@ -298,11 +300,11 @@
           self.fromEmails = Helper.getFromEmails();
 
           if (self.fromEmails.length){
-          	
+
           	// cycle through the email addresses
           	for (var fromEmailIndex in self.fromEmails){
           		var item = self.fromEmails[ fromEmailIndex ];
-          		
+
           		// if this email address item has an id, which indicates a valid record from the DB, then set this
           		// as the default selected option
           		if (item.id){
@@ -318,11 +320,11 @@
         .then(function () {
           self.messages = CampaignMessage.getMessages();
         });
-      
-      
+
+
       var socialLinksPromise = Helper.initSocialLinks()
         .then(function(){
-          
+
           var locations = Helper.getSocialLinkLocations();
           for (var index in locations){
             self.socialLinkLocations.push({
@@ -330,7 +332,7 @@
               value : locations[index]
             });
           }
-          
+
         });
 
       promises.push(mailingPromise, headerFiltersPromise, headersPromise, fromEmailsPromise, campaignMessagesPromise, inlineAttachmentsPromise, socialLinksPromise);
@@ -356,12 +358,12 @@
 
       // TODO (robin): Could this be refactored so that the view interpolates the result of this method? This might mean invoking it is no longer needed in the above then() method
       this.updateSelectedMessage = function () {
-        
+
         // Not an ideal thing to do, but we set the default value of the "campaign message" drop down to ID 5
         if (!this.mailing.message_id){
           this.mailing.message_id = 5;
         }
-        
+
         this.selectedMessage = $filter('filter')(this.messages, {id: this.mailing.message_id})[0];
       };
 
@@ -372,7 +374,7 @@
         if (!$filter('filter')(this.filters, {id: 'all'})[0]) {
           this.filters.unshift({id: 'all', label: 'All'});
         }
-				
+
         if (!this.mailing.header_id) {
           // Pre-select the filter named 'ATL' (if exists)
           var selectedFilter = $filter('filter')(this.filters, {label: 'ATL'})[0];
@@ -401,75 +403,75 @@
           self.mailing.social_link = self.socialLinkLocations[0].value;
         }
       };
-      
+
       /**
        * This method is called when the inlineAttachment directive is about to upload something
        * but hasn't started yet
        */
 			$scope.inlineAttachmentBeforeUpload = function(uploadItem){
 				Notification.clearAll();
-				
+
 				var id = getUniqueId(uploadItem.file.name);
-				
+
 				self.inlineAttachments[id] = {
 				  id : id,
 					uploaded : false,
 					filename : uploadItem.file.name
 				};
-				
+
 				uploadItem.id = id;
-				
+
 				uploadItem.formData.push({
           simplemail_id : self.mailing.id,
 				});
-				
+
 			};
-			
-			
+
+
 			/**
-			 * This is called when the inlineAttachment directive has an error during uplaod 
+			 * This is called when the inlineAttachment directive has an error during uplaod
 			 */
 			$scope.inlineAttachmentError = function(uploadItem, response, status, headers){
 				delete( self.inlineAttachments[uploadItem.id] );
 			};
-			
-			
+
+
 			/**
-			 * This method is called when the inlineAttachment has completed an upload 
+			 * This method is called when the inlineAttachment has completed an upload
 			 */
 			$scope.inlineAttachmentComplete = function(uploadItem, response, status, headers){
-				
+
 				// check the upload actually was a success by checking the backend's response
 				if (!response){
 					Notification.genericError("There was no response from the server. Please try again");
 					$scope.inlineAttachmentError(uploadItem);
 					return false;
 				}
-				
+
 				if (response.is_error){
 					Notification.genericError("There was a problem uploading your attachment.<br/>"+response.error_message);
 					$scope.inlineAttachmentError(uploadItem);
 					return false;
 				}
-				
+
 				var id = uploadItem.id;
 				var responseData = response.values[0];
-				
+
 				self.inlineAttachments[ responseData.databaseId ] = self.inlineAttachments[id];
         self.inlineAttachments[ responseData.databaseId ].id = responseData.databaseId;
         self.inlineAttachments[ responseData.databaseId ].uploaded = true;
         self.inlineAttachments[ responseData.databaseId ].url = responseData.url;;
-				
+
 				delete(self.inlineAttachments[id]);
 
 				Notification.success("Inline attachment uploaded");
-				
+
 				return true;
 			};
 
 
 			/**
-			 * A method for the inlineAttachment directive to call when it wants to make a notification 
+			 * A method for the inlineAttachment directive to call when it wants to make a notification
 			 */
 			$scope.inlineAttachmentNotification = function(message){
 				if (message.type == 'success'){
@@ -477,52 +479,52 @@
 				} else if (message.type == 'alert') {
 					Notification.alert(message.text);
 				} else {
-					Notification.error(message.text);					
+					Notification.error(message.text);
 				}
 			};
-			
+
 
 			/**
 			 * This fires when a user presses the "insert" button in the inlineAttachment directive
-			 * It should insert a link to the attachment into CK Editor 
+			 * It should insert a link to the attachment into CK Editor
 			 */
 			$scope.inlineAttachmentInsert = function(attachment){
 			  var result;
-			  
+
         if (!self.editorInstance){
           Notification.alert("There does not appear to be an instance of CKEditor available");
           return;
         }
-        
+
 			  var selection = self.editorInstance.getSelection();
 			  var selectedText = selection.getSelectedText();
-			  
+
 			  if (!selectedText || selectedText.length <= 0){
-          
+
   				if (result = prompt("Inserting inline attachment\n\nPlease enter the text you want as a link:", attachment.filename)){
-  					  
+
 					  // we use a timeout to break out of the digest/apply cycle
 					  // if you try to make the editorInstance call outside the timeout, you'll experience
 					  // an Angular error. Go on. Try it.
 					  $timeout(function(){
 					    self.editorInstance.insertHtml('<a href="'+attachment.url+'">'+result+'</a>');
 					  }, 0);
-					  
+
 					  moveEditorCursor(1);
-					  
+
   				}
-  				
+
         } else {
           // someone HAS selected text
           $timeout(function(){
             self.editorInstance.insertHtml('<a href="'+attachment.url+'">'+selectedText+'</a>');
           }, 0);
-          
+
           moveEditorCursor(1);
         }
 			};
-			
-			
+
+
 			$scope.inlineAttachmentRemove = function(attachment, response){
 			  if (response.is_error){
 			    Notification.alert("Failed to remove attachment. "+response.error_message);
@@ -532,7 +534,7 @@
         }
 			};
 
-      
+
       /**
        * Moves the cursor x amount characters to the right in CKEditor
        */
@@ -540,14 +542,14 @@
         var selection = self.editorInstance.getSelection();
         var ranges = selection.getRanges();
         var range = ranges[0];
-        
+
         range.setEnd(range.endContainer, range.endOffset+amountRight);
       }
 
 
 			/**
 			 * Checks if the user has selected a header already
-			 * If not, pick the first one 
+			 * If not, pick the first one
 			 */
 			function setDefaultHeader(){
 				if (!self.mailing.header_id){
@@ -556,23 +558,23 @@
 					}
 				}
 			}
-			
-			
+
+
 			/**
 			 * A very unsophisticated way of generating a unique id
 			 * By using the timestamp first and then appending the filename, we can maintain
-			 * the order of elements if they are sorted by time added/uploaded 
+			 * the order of elements if they are sorted by time added/uploaded
 			 */
 			function getUniqueId(suffix){
 			  var ms = new Date().getTime();
 			  return ms+'_'+suffix;
 			}
-			
+
       $scope.$watch('step2form.$valid', function(isValid){
       	FormValidation.setState(isValid);
       });
 
-      
+
     }
   ];
 
@@ -723,7 +725,7 @@
       this.sendTestEmail = function () {
         return Wizard.sendTestEmail();
       };
-      
+
     }];
 
 

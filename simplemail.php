@@ -166,7 +166,7 @@ function simplemail_civicrm_entityTypes(&$entityTypes) {
 function simplemail_civicrm_searchTasks($objectType, &$tasks) {
   $tasks[] = array(
     'title' => 'Send a MailJet email',
-    'class' => array(      
+    'class' => array(
       // because this class is now deprecated
       // 'CRM_Simplemail_Form_SimpleMailRecipientsFromSearch'
       'CRM_Simplemail_Form_Task_SimpleMail'
@@ -187,7 +187,7 @@ function simplemail_civicrm_navigationMenu(&$params) {
      * Only provides this extension's menu if a customised one does not already exist */
     foreach ($params as $parameter) {
         if ($parameter['attributes']['name'] == 'MailJet') {
-            return;
+            //return;
         }
     }
 
@@ -284,6 +284,7 @@ function simplemail_civicrm_permission(&$permissions) {
   $permissions['delete CiviSimpleMail'] = $prefix . ts('delete CiviSimpleMail');
   $permissions['access admin CiviSimpleMail'] = $prefix . ts('access admin CiviSimpleMail');
   $permissions['access LegacyMailUi']  = $prefix . ts('access legacy mail UI') ;
+  $permissions['manage all CiviSimpleMail mails']  = $prefix . ts('manage all CiviSimpleMail mails') ;
 }
 
 /**
@@ -331,6 +332,7 @@ function simplemail_civicrm_alterAPIPermissions($entity, $action, &$params, &$pe
         'sendtestemail'       => $permissionKeys,
         'duplicatemassemail'  => $permissionKeys,
         'iscreatedfromsearch' => $permissionKeys,
+        'manageallCiviSimpleMailmails' => $permissionKeys, // ?
         'uploadinlineattachment' => $permissionKeys,
         'clearsearchcontacts' => $permissionKeys
       ) + $standardActions;
@@ -356,6 +358,8 @@ function simplemail_civicrm_alterAPIPermissions($entity, $action, &$params, &$pe
 
     $permissions['option_group'] = $permissions['option_value'] = array('get' => $permissionKeys);
   }
+
+
 }
 
 /////////////
