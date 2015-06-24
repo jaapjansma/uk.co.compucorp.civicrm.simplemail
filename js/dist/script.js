@@ -3529,7 +3529,7 @@
 
 
       /**
-       * Is the current user allowed to view and manabge all mailing?
+       * Is the current user allowed to view and manage all mailing?
        *
        * @type {boolean}
        */
@@ -3830,8 +3830,6 @@
        */
       var setManageAllMailPerm = function (boolean) {
         ManageAllMailPerm = boolean;
-        //alert('setting');
-        //alert(ManageAllMailPerm);
       };
 
 
@@ -3864,14 +3862,9 @@
               setManageAllMailPerm(response.data.values.data);
             }
 
-            //alert(JSON.stringify(response.data.values.data));
-            //alert(JSON.stringify(getManageAllMailPerm()));
-
             deferred.resolve();
 
           });
-
-
 
 
         // The mailing isn't new (i.e. mailing ID exists in the URL) - populate current mailing using the API

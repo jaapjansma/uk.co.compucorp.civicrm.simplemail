@@ -337,8 +337,6 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       }
     } catch (Exception $e) {
 
-
-
       $dao = isset($dao) ? $dao : NULL;
 
       throw new CRM_Extension_Exception('Failed to retrieve mailings: '

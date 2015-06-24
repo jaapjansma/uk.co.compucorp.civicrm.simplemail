@@ -1133,7 +1133,7 @@
 
 
       /**
-       * Is the current user allowed to view and manabge all mailing?
+       * Is the current user allowed to view and manage all mailing?
        *
        * @type {boolean}
        */
