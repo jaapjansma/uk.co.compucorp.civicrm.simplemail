@@ -332,7 +332,7 @@ function simplemail_civicrm_alterAPIPermissions($entity, $action, &$params, &$pe
         'sendtestemail'       => $permissionKeys,
         'duplicatemassemail'  => $permissionKeys,
         'iscreatedfromsearch' => $permissionKeys,
-        'manageallCiviSimpleMailmails' => $permissionKeys, // ?
+        'canaddgroups' => $permissionKeys, // ?
         'uploadinlineattachment' => $permissionKeys,
         'clearsearchcontacts' => $permissionKeys
       ) + $standardActions;
@@ -358,7 +358,6 @@ function simplemail_civicrm_alterAPIPermissions($entity, $action, &$params, &$pe
 
     $permissions['option_group'] = $permissions['option_value'] = array('get' => $permissionKeys);
   }
-
 
 }
 

@@ -950,7 +950,7 @@
       this.mailing = Mailing.getCurrentMailing();
       this.groups = Helper.getMailingGroups();
       this.categories = Helper.getMailingCategories();
-      this.manageAllMailPerm = Mailing.getManageAllMailPerm();
+      this.canaddgroups = Mailing.getCanAddGroups();
 
       var promises = [];
 
@@ -961,7 +961,7 @@
           self.mailing = Mailing.getCurrentMailing();
           self.fromSearch = Mailing.isCreatedFromSearch();
           self.contactsCount = Mailing.getContactsCount();
-          self.manageAllMailPerm = Mailing.getManageAllMailPerm();
+          self.canaddgroups = Mailing.getCanAddGroups();
 
           if (angular.isUndefined(self.mailing.dedupe_email)) self.mailing.dedupe_email = '1';
         });
@@ -3533,7 +3533,7 @@
        *
        * @type {boolean}
        */
-      var ManageAllMailPerm = false;
+      var canAddGroups;
 
       /**
        * @type {string}
@@ -3793,12 +3793,12 @@
 
       /**
        * @ngdoc method
-       * @name MailingDetailFactory#getManageAllMailPerm
+       * @name MailingDetailFactory#getcCanAddGroups
        * @param null
        * @returns {boolean}
        */
-      var getManageAllMailPerm = function () {
-        return ManageAllMailPerm;
+      var getCanAddGroups = function () {
+        return canAddGroups;
       };
 
       /**
@@ -3824,12 +3824,12 @@
 
       /**
        * @ngdoc method
-       * @name MailingDetailFactory#getManageAllMailPerm
+       * @name MailingDetailFactory#setCanAddGroups
        * @param null
        * @returns {boolean}
        */
-      var setManageAllMailPerm = function (boolean) {
-        ManageAllMailPerm = boolean;
+      var setCanAddGroups= function (boolean) {
+        canAddGroups = boolean;
       };
 
 
@@ -3853,13 +3853,13 @@
       var initMailing = function () {
         var deferred = $q.defer();
 
-        CiviApi.post('SimpleMail', null ,'manageallCiviSimpleMailmails')
+        CiviApi.post('SimpleMail', null ,'canaddgroups')
           .then(function(response) {
 
             if(response.data.is_error == 1) {
-              setManageAllMailPerm(false);
+              setCanAddGroups(false);
             } else {
-              setManageAllMailPerm(response.data.values.data);
+              setCanAddGroups(response.data.values.data);
             }
 
             deferred.resolve();
@@ -3958,7 +3958,7 @@
         getCurrentMailing: getCurrentMailing,
         setCurrentMailing: setCurrentMailing,
         getContactsCount : getContactsCount,
-        getManageAllMailPerm : getManageAllMailPerm,
+        getCanAddGroups : getCanAddGroups,
         isInitialised: isInitialised,
         isCreatedFromSearch: isCreatedFromSearch,
         isCurrentMailingDirty: isCurrentMailingDirty,

@@ -62,7 +62,7 @@ function civicrm_api3_simple_mail_get($params) {
 
 
 
-/**
+/**s
  * SimpleMail.manageAllCiviSimpleMailMails API
  *
  * @param array $params
@@ -70,7 +70,7 @@ function civicrm_api3_simple_mail_get($params) {
  * @return array API result descriptor
  * @throws API_Exception
  */
-function civicrm_api3_simple_mail_manageallCiviSimpleMailmails($params) {
+function civicrm_api3_simple_mail_canaddgroups($params) {
   try {
     if(CRM_Core_Permission::check('manage all CiviSimpleMail mails'))
     {

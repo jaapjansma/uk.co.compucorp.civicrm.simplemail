@@ -146,7 +146,7 @@
       this.mailing = Mailing.getCurrentMailing();
       this.groups = Helper.getMailingGroups();
       this.categories = Helper.getMailingCategories();
-      this.manageAllMailPerm = Mailing.getManageAllMailPerm();
+      this.canaddgroups = Mailing.getCanAddGroups();
 
       var promises = [];
 
@@ -157,7 +157,7 @@
           self.mailing = Mailing.getCurrentMailing();
           self.fromSearch = Mailing.isCreatedFromSearch();
           self.contactsCount = Mailing.getContactsCount();
-          self.manageAllMailPerm = Mailing.getManageAllMailPerm();
+          self.canaddgroups = Mailing.getCanAddGroups();
 
           if (angular.isUndefined(self.mailing.dedupe_email)) self.mailing.dedupe_email = '1';
         });

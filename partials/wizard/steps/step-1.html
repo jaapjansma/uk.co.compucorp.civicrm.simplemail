@@ -29,7 +29,7 @@
     <p ng-if="create.fromSearch" class="status">This mailing contains {{create.contactsCount}} recipient(s) from search results</p>
     <p ng-if="!create.fromSearch && create.contactsCount > 0" class="status">This mailing contains {{create.contactsCount}} recipient(s)</p>
 
-    <div ng-if="create.manageAllMailPerm" class="field-group required">
+    <div ng-if="create.canaddgroups" class="field-group required">
       <label for="">If you have saved your data as a group (filter), select it here</label>
       <ui-select multiple ng-model="create.mailing.recipient_group_entity_ids"
                  ng-disabled="!create.isMailingNotScheduled()" theme="select2">

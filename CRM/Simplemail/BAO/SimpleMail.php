@@ -286,7 +286,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     WHERE $whereClause
 
     GROUP BY sm.id
-  ";
+    ";
 
 
     $mailings = array();
