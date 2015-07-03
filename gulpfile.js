@@ -9,10 +9,10 @@ var notify = require('gulp-notify');
  * CSS operations
  */
 gulp.task('css', function () {
-	
-	// the change to the gulpfile is due to this:
-	// http://stackoverflow.com/questions/28140012/gulp-typeerror-arguments-to-path-join-must-be-strings
-	
+
+    // the change to the gulpfile is due to this:
+    // http://stackoverflow.com/questions/28140012/gulp-typeerror-arguments-to-path-join-must-be-strings
+
   return sass('css/src/style.scss', {style: 'compressed', sourcemap: true})
     //.pipe(sass({style: 'compressed', sourcemap: true}))
     .pipe(autoprefixer())

@@ -60,6 +60,33 @@ function civicrm_api3_simple_mail_get($params) {
   }
 }
 
+
+
+/**s
+ * SimpleMail.manageAllCiviSimpleMailMails API
+ *
+ * @param array $params
+ *
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_simple_mail_canaddgroups($params) {
+  try {
+    if(CRM_Core_Permission::check('manage all CiviSimpleMail mails'))
+    {
+      $result['data'] = true;
+      return civicrm_api3_create_success($result, array(), NULL,'manageallCiviSimpleMailmails');
+    } else {
+      $result['data'] = false;
+      return civicrm_api3_create_success($result, array(), NULL,'manageallCiviSimpleMailmails');
+    }
+  } catch (CRM_Extension_Exception $e) {
+    $errorData = $e->getErrorData();
+    return civicrm_api3_create_error($e->getMessage());
+  }
+}
+
+
 /**
  * SimpleMail.SubmitMassEmail API
  *

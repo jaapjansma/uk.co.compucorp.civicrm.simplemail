@@ -886,7 +886,7 @@
 			/**
 			 * @name confirmDeleteMailing
 			 * @description	Confirms that the user wishes to delete an email, and if they agree it proceeds to
-			 * 							perform said deletion 
+			 * 							perform said deletion
 			 */
 			$scope.confirmDeleteMailing = function(mailing){
 				if (confirm("Are you sure you wish to delete the mailing:\n"+mailing.name)){
@@ -934,7 +934,7 @@
    * @name CreateMailingCtrl
    * @type {*[]}
    */
-  var CreateMailingCtrl = ['$scope', '$q', 'MailingDetailFactory', 'NotificationFactory', 'MailingHelperFactory', 'WizardStepFactory', 'FormValidationFactory', 
+  var CreateMailingCtrl = ['$scope', '$q', 'MailingDetailFactory', 'NotificationFactory', 'MailingHelperFactory', 'WizardStepFactory', 'FormValidationFactory',
     /**
      *
      * @param $q
@@ -950,6 +950,7 @@
       this.mailing = Mailing.getCurrentMailing();
       this.groups = Helper.getMailingGroups();
       this.categories = Helper.getMailingCategories();
+      this.canaddgroups = Mailing.getCanAddGroups();
 
       var promises = [];
 
@@ -960,7 +961,8 @@
           self.mailing = Mailing.getCurrentMailing();
           self.fromSearch = Mailing.isCreatedFromSearch();
           self.contactsCount = Mailing.getContactsCount();
-          
+          self.canaddgroups = Mailing.getCanAddGroups();
+
           if (angular.isUndefined(self.mailing.dedupe_email)) self.mailing.dedupe_email = '1';
         });
 
@@ -978,7 +980,7 @@
         })
         .finally(function () {
           self.initialised = true;
-          
+
           // assign the form to the scope so we can watch it
           $scope.step1form = self.step1form;
           FormValidation.setForm(self.step1form);
@@ -989,11 +991,11 @@
       this.isMailingNotScheduled = function() {
         return Mailing.isCurrentMailingNotScheduled();
       };
-      
+
       $scope.$watch('step1form.$valid', function(isValid){
       	FormValidation.setState(isValid);
       });
-      
+
     }
   ];
 
@@ -1041,7 +1043,7 @@
 			this.inlineAttachments = {};
 
       this.regionsTemplatePath = Wizard.getRegionsTemplatePath();
-      
+
       this.editorInstance = {};
 
       var promises = [];
@@ -1050,13 +1052,13 @@
       var mailingPromise = Mailing.init()
         .then(function () {
           self.mailing = Mailing.getCurrentMailing();
-          
+
           /* Another way of setting the default value in the CKEditor / email body
           if (self.mailing.body.length <= 0){
             self.mailing.body = 'Dear {contact.display_name},<br/><br/><br/><br/><br/><br/>{signature}';
           }
           */
-          
+
           inlineAttachmentsPromise = InlineAttachments.get( Mailing.getCurrentMailing().id )
             .then(function(result){
               if (!result){
@@ -1064,20 +1066,20 @@
                 return;
               }
               self.inlineAttachments = {};
-              
+
               for (var index in result){
                 var row = result[index];
                 row.uploaded = true;      // tells the front end that this is a valid upload
-                
+
                 self.inlineAttachments[row.id] = row;
               }
-              
+
             })
             .catch(function(error){
               console.log('Inline Attachments error: ', error);
             });
 
-          
+
         });
 
       var headerFiltersPromise = Helper.initHeaderFilters()
@@ -1092,9 +1094,9 @@
         .then(function () {
           self.headers = Header.getHeaders();
           self.headersLoaded = true;
-          
+
           setDefaultHeader();
-          
+
         });
 
       var fromEmailsPromise = Helper.initFromEmails()
@@ -1102,11 +1104,11 @@
           self.fromEmails = Helper.getFromEmails();
 
           if (self.fromEmails.length){
-          	
+
           	// cycle through the email addresses
           	for (var fromEmailIndex in self.fromEmails){
           		var item = self.fromEmails[ fromEmailIndex ];
-          		
+
           		// if this email address item has an id, which indicates a valid record from the DB, then set this
           		// as the default selected option
           		if (item.id){
@@ -1122,11 +1124,11 @@
         .then(function () {
           self.messages = CampaignMessage.getMessages();
         });
-      
-      
+
+
       var socialLinksPromise = Helper.initSocialLinks()
         .then(function(){
-          
+
           var locations = Helper.getSocialLinkLocations();
           for (var index in locations){
             self.socialLinkLocations.push({
@@ -1134,7 +1136,7 @@
               value : locations[index]
             });
           }
-          
+
         });
 
       promises.push(mailingPromise, headerFiltersPromise, headersPromise, fromEmailsPromise, campaignMessagesPromise, inlineAttachmentsPromise, socialLinksPromise);
@@ -1160,12 +1162,12 @@
 
       // TODO (robin): Could this be refactored so that the view interpolates the result of this method? This might mean invoking it is no longer needed in the above then() method
       this.updateSelectedMessage = function () {
-        
+
         // Not an ideal thing to do, but we set the default value of the "campaign message" drop down to ID 5
         if (!this.mailing.message_id){
           this.mailing.message_id = 5;
         }
-        
+
         this.selectedMessage = $filter('filter')(this.messages, {id: this.mailing.message_id})[0];
       };
 
@@ -1176,7 +1178,7 @@
         if (!$filter('filter')(this.filters, {id: 'all'})[0]) {
           this.filters.unshift({id: 'all', label: 'All'});
         }
-				
+
         if (!this.mailing.header_id) {
           // Pre-select the filter named 'ATL' (if exists)
           var selectedFilter = $filter('filter')(this.filters, {label: 'ATL'})[0];
@@ -1205,75 +1207,75 @@
           self.mailing.social_link = self.socialLinkLocations[0].value;
         }
       };
-      
+
       /**
        * This method is called when the inlineAttachment directive is about to upload something
        * but hasn't started yet
        */
 			$scope.inlineAttachmentBeforeUpload = function(uploadItem){
 				Notification.clearAll();
-				
+
 				var id = getUniqueId(uploadItem.file.name);
-				
+
 				self.inlineAttachments[id] = {
 				  id : id,
 					uploaded : false,
 					filename : uploadItem.file.name
 				};
-				
+
 				uploadItem.id = id;
-				
+
 				uploadItem.formData.push({
           simplemail_id : self.mailing.id,
 				});
-				
+
 			};
-			
-			
+
+
 			/**
-			 * This is called when the inlineAttachment directive has an error during uplaod 
+			 * This is called when the inlineAttachment directive has an error during uplaod
 			 */
 			$scope.inlineAttachmentError = function(uploadItem, response, status, headers){
 				delete( self.inlineAttachments[uploadItem.id] );
 			};
-			
-			
+
+
 			/**
-			 * This method is called when the inlineAttachment has completed an upload 
+			 * This method is called when the inlineAttachment has completed an upload
 			 */
 			$scope.inlineAttachmentComplete = function(uploadItem, response, status, headers){
-				
+
 				// check the upload actually was a success by checking the backend's response
 				if (!response){
 					Notification.genericError("There was no response from the server. Please try again");
 					$scope.inlineAttachmentError(uploadItem);
 					return false;
 				}
-				
+
 				if (response.is_error){
 					Notification.genericError("There was a problem uploading your attachment.<br/>"+response.error_message);
 					$scope.inlineAttachmentError(uploadItem);
 					return false;
 				}
-				
+
 				var id = uploadItem.id;
 				var responseData = response.values[0];
-				
+
 				self.inlineAttachments[ responseData.databaseId ] = self.inlineAttachments[id];
         self.inlineAttachments[ responseData.databaseId ].id = responseData.databaseId;
         self.inlineAttachments[ responseData.databaseId ].uploaded = true;
         self.inlineAttachments[ responseData.databaseId ].url = responseData.url;;
-				
+
 				delete(self.inlineAttachments[id]);
 
 				Notification.success("Inline attachment uploaded");
-				
+
 				return true;
 			};
 
 
 			/**
-			 * A method for the inlineAttachment directive to call when it wants to make a notification 
+			 * A method for the inlineAttachment directive to call when it wants to make a notification
 			 */
 			$scope.inlineAttachmentNotification = function(message){
 				if (message.type == 'success'){
@@ -1281,52 +1283,52 @@
 				} else if (message.type == 'alert') {
 					Notification.alert(message.text);
 				} else {
-					Notification.error(message.text);					
+					Notification.error(message.text);
 				}
 			};
-			
+
 
 			/**
 			 * This fires when a user presses the "insert" button in the inlineAttachment directive
-			 * It should insert a link to the attachment into CK Editor 
+			 * It should insert a link to the attachment into CK Editor
 			 */
 			$scope.inlineAttachmentInsert = function(attachment){
 			  var result;
-			  
+
         if (!self.editorInstance){
           Notification.alert("There does not appear to be an instance of CKEditor available");
           return;
         }
-        
+
 			  var selection = self.editorInstance.getSelection();
 			  var selectedText = selection.getSelectedText();
-			  
+
 			  if (!selectedText || selectedText.length <= 0){
-          
+
   				if (result = prompt("Inserting inline attachment\n\nPlease enter the text you want as a link:", attachment.filename)){
-  					  
+
 					  // we use a timeout to break out of the digest/apply cycle
 					  // if you try to make the editorInstance call outside the timeout, you'll experience
 					  // an Angular error. Go on. Try it.
 					  $timeout(function(){
 					    self.editorInstance.insertHtml('<a href="'+attachment.url+'">'+result+'</a>');
 					  }, 0);
-					  
+
 					  moveEditorCursor(1);
-					  
+
   				}
-  				
+
         } else {
           // someone HAS selected text
           $timeout(function(){
             self.editorInstance.insertHtml('<a href="'+attachment.url+'">'+selectedText+'</a>');
           }, 0);
-          
+
           moveEditorCursor(1);
         }
 			};
-			
-			
+
+
 			$scope.inlineAttachmentRemove = function(attachment, response){
 			  if (response.is_error){
 			    Notification.alert("Failed to remove attachment. "+response.error_message);
@@ -1336,7 +1338,7 @@
         }
 			};
 
-      
+
       /**
        * Moves the cursor x amount characters to the right in CKEditor
        */
@@ -1344,14 +1346,14 @@
         var selection = self.editorInstance.getSelection();
         var ranges = selection.getRanges();
         var range = ranges[0];
-        
+
         range.setEnd(range.endContainer, range.endOffset+amountRight);
       }
 
 
 			/**
 			 * Checks if the user has selected a header already
-			 * If not, pick the first one 
+			 * If not, pick the first one
 			 */
 			function setDefaultHeader(){
 				if (!self.mailing.header_id){
@@ -1360,23 +1362,23 @@
 					}
 				}
 			}
-			
-			
+
+
 			/**
 			 * A very unsophisticated way of generating a unique id
 			 * By using the timestamp first and then appending the filename, we can maintain
-			 * the order of elements if they are sorted by time added/uploaded 
+			 * the order of elements if they are sorted by time added/uploaded
 			 */
 			function getUniqueId(suffix){
 			  var ms = new Date().getTime();
 			  return ms+'_'+suffix;
 			}
-			
+
       $scope.$watch('step2form.$valid', function(isValid){
       	FormValidation.setState(isValid);
       });
 
-      
+
     }
   ];
 
@@ -1527,7 +1529,7 @@
       this.sendTestEmail = function () {
         return Wizard.sendTestEmail();
       };
-      
+
     }];
 
 
@@ -2692,7 +2694,7 @@
    * @alias WizardStepFactory
    * @type {*[]}
    */
-  var WizardStepProvider = ['$location', '$log', '$q', 'CiviApiFactory', 'MailingDetailFactory', 'NotificationFactory', 'paths', 'FormValidationFactory', 
+  var WizardStepProvider = ['$location', '$log', '$q', 'CiviApiFactory', 'MailingDetailFactory', 'NotificationFactory', 'paths', 'FormValidationFactory',
     /**
      *
      * @param $location
@@ -2792,7 +2794,7 @@
       		FormValidation.doValidation();
       		return $q.reject("Next step not allowed");
       	};
-      		
+
         return proceedToStep(currentStep + 1);
       };
 
@@ -2937,7 +2939,7 @@
        */
       var proceedToStep = function (step) {
         Notification.clearPersistentNotifications();
-				
+
         return Mailing.saveProgress()
           .then(function (response) {
             redirectToStep(step);
@@ -3189,15 +3191,15 @@
        */
       var headerFiltersInitialised = false;
 
-      
+
       /**
        * Should contain a list of different countries/locations that should map to Option Values in Civi
        * For example: this will contain a list such as [UK, Ireland, Japan]
        * Then there should be a corresponding Option Group that contains the titles [UK, Ireland, Japan]
-       * @type {Array} 
+       * @type {Array}
        */
       var socialLinkLocations = [];
-      
+
       /**
        * This contains a full list of all the social links we have, grouped by Option Group name.
        * So you should have something like:
@@ -3207,9 +3209,9 @@
        * ]
        */
       var socialLinks = [];
-      
+
       /**
-       * If you have more Option Groups to contain other social media links, add them to this array 
+       * If you have more Option Groups to contain other social media links, add them to this array
        */
       var socialLinkGroups = ['email_social_facebook_links', 'email_social_twitter_links'];
 
@@ -3230,9 +3232,9 @@
         } else {
           CiviApi.get(constants.entities.MAILING_GROUP)
             .then(function (response) {
-            	
+
             	console.log('mailgroups response', response);
-            	
+
               // TODO (robin): Move is_hidden filtering to API query
               var groups = $filter('filter')(response.data.values, {is_hidden: 0});
 
@@ -3328,30 +3330,30 @@
 
         return deferred.promise;
       };
-      
-      
+
+
       /**
        * Requests from the API all the social media links we may want to put into an email
-       * It looks specifically at the Option Groups you've specified in socialLinkGroups above 
+       * It looks specifically at the Option Groups you've specified in socialLinkGroups above
        */
       var initSocialLinks = function(){
         var deferredMaster = $q.defer();
-        
+
         var promises = [];
-        
+
         // Loop through all the socialLinkGroups
         for (var socialLinkGroupIndex in socialLinkGroups){
-        
+
           // We create a deferred object for each API request we're going to make, because we're making quite
           // a few
           var dfr = $q.defer();
           var groupName = socialLinkGroups[ socialLinkGroupIndex ];
-          
-          
+
+
           // We need to create a new scope to store the group name and the deferred object
           // otherwise these values are overwritten each iteration of the for loop
           (function(group, deferredObject){
-          
+
             // Ask the API for the id of the Option Group called groupName (above)
             CiviApi.getValue(
               constants.entities.OPTION_GROUP,
@@ -3360,7 +3362,7 @@
             ).then(function(response){
               return response.data.result;
             }).then(function(groupId){
-              
+
               // Now we have the group id for the Option Group called groupName, we need to get
               // all the options belonging to that group
               return CiviApi.get(
@@ -3371,30 +3373,30 @@
                 socialLinks[group] = response.data.values;
                 deferredObject.resolve();
               });
-              
+
             }).catch(function(response){
               deferredObject.reject(response);
             });
-            
+
           })(groupName, dfr);
-          
-          
+
+
           // Store the promise of this deferred object. We store this in an array because we're expecting
           // quite a few deferred objects
           promises.push(dfr.promise);
-          
+
         }
-        
+
         // Resolve the master deferred object when all the deferred objects/promises are complete
         $q.all(promises).then(function(){
           deferredMaster.resolve();
         });
-        
+
         return deferredMaster.promise;
       };
 
-      
-      
+
+
       // Getters and Setters //
 
       /**
@@ -3432,29 +3434,29 @@
       var getHeaderFilters = function () {
         return headerFilters;
       };
-      
+
       var getSocialLinks = function(){
         return socialLinks;
       };
-      
-      
+
+
       /**
        * This will return a short list of common "locations" from the socialLinks object
-       * So you should receive a list like: [UK, Japan, Ireland] 
-       */ 
+       * So you should receive a list like: [UK, Japan, Ireland]
+       */
       var getSocialLinkLocations = function(){
         if (socialLinkLocations.length <= 0){
           var firstGroup = socialLinkGroups[0];
-          
+
           for (var index in socialLinks[firstGroup]){
             var item = socialLinks[firstGroup][index];
             socialLinkLocations.push(item.label);
           }
         }
-        
+
         return socialLinkLocations;
       };
-      
+
       return {
         initMailingGroups: initMailingGroups,
         initFromEmails: initFromEmails,
@@ -3520,10 +3522,18 @@
 			 * Stores the number of contacts that are being emailed
 			 * This value is only populated if the contacts have come from a previous
 			 * search result, or if this is a previous email that we've come back to
-			 * 
-			 * @type {int} 
+			 *
+			 * @type {int}
 			 */
 			var contactsCount;
+
+
+      /**
+       * Is the current user allowed to view and manage all mailing?
+       *
+       * @type {boolean}
+       */
+      var canAddGroups;
 
       /**
        * @type {string}
@@ -3762,7 +3772,7 @@
 			/**
 			 * @ngdoc method
 			 * @name MailingDetailFactory#getContactsCount
-			 * @returns {int} 
+			 * @returns {int}
 			 */
 			var getContactsCount = function(){
 				return contactsCount;
@@ -3779,6 +3789,16 @@
        */
       var getCurrentMailing = function (original) {
         return original ? originalCurrentMailing : currentMailing;
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingDetailFactory#getcCanAddGroups
+       * @param null
+       * @returns {boolean}
+       */
+      var getCanAddGroups = function () {
+        return canAddGroups;
       };
 
       /**
@@ -3802,6 +3822,18 @@
         createdFromSearch = boolean;
       };
 
+      /**
+       * @ngdoc method
+       * @name MailingDetailFactory#setCanAddGroups
+       * @param null
+       * @returns {boolean}
+       */
+      var setCanAddGroups= function (boolean) {
+        canAddGroups = boolean;
+      };
+
+
+
       /////////////////////
       // Private Methods //
       /////////////////////
@@ -3821,13 +3853,27 @@
       var initMailing = function () {
         var deferred = $q.defer();
 
+        CiviApi.post('SimpleMail', null ,'canaddgroups')
+          .then(function(response) {
+
+            if(response.data.is_error == 1) {
+              setCanAddGroups(false);
+            } else {
+              setCanAddGroups(response.data.values.data);
+            }
+
+            deferred.resolve();
+
+          });
+
+
         // The mailing isn't new (i.e. mailing ID exists in the URL) - populate current mailing using the API
         if (!isNewMailing()) {
           // This is NOT a new mailing
           CiviApi.get(constants.entities.MAILING, {id: getMailingIdFromUrl()})
             .then(function (response) {
               if (response.data.values.length === 0) return $q.reject('Mailing not found!');
-              
+
               setCurrentMailing(response.data.values[0], true);
 
               var createdFromSearch = response.data.values[0].hidden_recipient_group_entity_ids.length ? true : false;
@@ -3836,7 +3882,7 @@
 							if (response.data.contactsCount){
 								contactsCount = response.data.contactsCount;
 							}
-							
+
               deferred.resolve();
             })
             .catch(function (response) {
@@ -3849,7 +3895,7 @@
 
 							var createdFromSearch = response.data.values[0].answer;
               setCreatedFromSearch(createdFromSearch);
-							
+
 							if (createdFromSearch){
 
 								CiviApi.post('SimpleMail', getCurrentMailing(), 'getsearchcontacts')
@@ -3857,7 +3903,7 @@
 										contactsCount = response.data.contactCount;
 			              deferred.resolve();
 									});
-							
+
 							} else {
 	              deferred.resolve();
 							}
@@ -3912,6 +3958,7 @@
         getCurrentMailing: getCurrentMailing,
         setCurrentMailing: setCurrentMailing,
         getContactsCount : getContactsCount,
+        getCanAddGroups : getCanAddGroups,
         isInitialised: isInitialised,
         isCreatedFromSearch: isCreatedFromSearch,
         isCurrentMailingDirty: isCurrentMailingDirty,
@@ -3926,46 +3973,46 @@
    */
   var InlineAttachmentProvider = ['$q', 'CiviApiFactory',
     function($q, civiApi){
-      
+
       var constants = {
         entities : {
           INLINE_ATTACHMENT : 'SimpleMailInlineAttachment'
         }
       };
-      
+
       return {
-        
+
         get : function(mailingId){
           var dfr = $q.defer();
           var data = {
             id : mailingId
           };
-          
+
           civiApi.post(constants.entities.INLINE_ATTACHMENT, data, 'getall')
             .then(function(response){
               if (!response || !response.data || !response.data.values){
                 dfr.reject("Error retrieving attachments");
               }
-              
+
               dfr.resolve(response.data.values);
             })
             .catch(function(response){
               dfr.reject(response);
             });
-          
+
           return dfr.promise;
         },
-        
+
         remove : function(id){
           var data = {
             id : id
           };
-          
+
           return civiApi.post(constants.entities.INLINE_ATTACHMENT, data, 'remove');
         }
-        
+
       };
-      
+
     }
   ];
 
@@ -4212,64 +4259,64 @@
     }
   ];
 
-	
+
 	/**
 	 * Provides a method of checking if a form is valid, across controllers
 	 * Set the state to false when a form first loads, then run your validation on the
 	 * form, and finally set the state on this to true if the form is valid
-	 * 
+	 *
 	 * Other controllers can then call isValid to check the state of the form
-	 * 
+	 *
 	 * @ngdoc service
 	 * @name FormValidationFactory
 	 * @return {object}
 	 */
 	var FormValidationProvider = [function(){
-		
+
 		var validState = false;
 		var form = null;
-		
+
 		var setState = function(state){
 			validState = state;
 		};
-		
+
 		var isValid = function(){
 			return validState;
 		};
-		
+
 		var setForm = function(_form){
 			form = _form;
 			if (form){
 				form.$setPristine();
 			}
-			
+
 			// If we are passed a new form it should start off invalid
 			setState(false);
-			
+
 		};
-		
+
 		var doValidation = function(){
 			if (!form){
 				return;
 			}
-			
+
 			form.$setDirty();
 
 			// I think this is a limitation of Angular1.2
 			// In 1.4 I believe you can just call form.$setDirty() to make all the elements dirty
 			angular.element(form).addClass('ng-dirty');
-			
+
 		};
-		
+
 		return {
 			setState : setState,
 			isValid : isValid,
 			setForm : setForm,
 			doValidation : doValidation
 		};
-		
+
 	}];
-	
+
 
 
   /**
