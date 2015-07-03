@@ -398,8 +398,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
   public static function getSearchContacts() {
     $contactIds = simplemail_civicrm_getFromSessionScope('contactIds');
-    $contactCount =
-      simplemail_civicrm_getFromSessionScope('contactCountFromSearch');
+    $contactCount = simplemail_civicrm_getFromSessionScope('contactCountFromSearch');
     return array(
       'contactIds'   => $contactIds,
       'contactCount' => $contactCount
