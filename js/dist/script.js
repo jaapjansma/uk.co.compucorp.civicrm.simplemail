@@ -3533,7 +3533,7 @@
        *
        * @type {boolean}
        */
-      var canAddGroups;
+      var canAddGroups = false;
 
       /**
        * @type {string}
@@ -3855,33 +3855,30 @@
 
         CiviApi.post('SimpleMail', null ,'canaddgroups')
           .then(function(response) {
-
             if(response.data.is_error == 1) {
               setCanAddGroups(false);
             } else {
               setCanAddGroups(response.data.values.data);
             }
-
-            deferred.resolve();
-
           });
-
 
         // The mailing isn't new (i.e. mailing ID exists in the URL) - populate current mailing using the API
         if (!isNewMailing()) {
           // This is NOT a new mailing
           CiviApi.get(constants.entities.MAILING, {id: getMailingIdFromUrl()})
             .then(function (response) {
-              if (response.data.values.length === 0) return $q.reject('Mailing not found!');
+              if (response.data.values.length === 0) {
+                return $q.reject('Mailing not found!');
+              }
 
               setCurrentMailing(response.data.values[0], true);
 
               var createdFromSearch = response.data.values[0].hidden_recipient_group_entity_ids.length ? true : false;
               setCreatedFromSearch(createdFromSearch);
 
-							if (response.data.contactsCount){
-								contactsCount = response.data.contactsCount;
-							}
+              if (response.data.contactsCount) {
+                contactsCount = response.data.contactsCount;
+              }
 
               deferred.resolve();
             })
@@ -3893,21 +3890,20 @@
           CiviApi.post('SimpleMail', getCurrentMailing(), 'iscreatedfromsearch')
             .then(function (response) {
 
-							var createdFromSearch = response.data.values[0].answer;
+              var createdFromSearch = response.data.values[0].answer;
               setCreatedFromSearch(createdFromSearch);
 
-							if (createdFromSearch){
+              if (createdFromSearch) {
 
-								CiviApi.post('SimpleMail', getCurrentMailing(), 'getsearchcontacts')
-									.then(function(response){
-										contactsCount = response.data.contactCount;
-			              deferred.resolve();
-									});
-
-							} else {
-	              deferred.resolve();
-							}
-
+                CiviApi.post('SimpleMail', getCurrentMailing(), 'getsearchcontacts')
+                  .then(function (response) {
+                    contactsCount = response.data.contactCount;
+                    deferred.resolve();
+                  });
+              }
+              else {
+                deferred.resolve();
+              }
             });
         }
 
