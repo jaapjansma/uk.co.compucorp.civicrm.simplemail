@@ -72,7 +72,7 @@ function civicrm_api3_simple_mail_get($params) {
  */
 function civicrm_api3_simple_mail_canaddgroups($params) {
   try {
-    if(CRM_Core_Permission::check('manage all CiviSimpleMail mails'))
+    if(CRM_Core_Permission::check('add groups to new CiviSimpleMail mails'))
     {
       $result['data'] = true;
       return civicrm_api3_create_success($result, array(), NULL,'manageallCiviSimpleMailmails');

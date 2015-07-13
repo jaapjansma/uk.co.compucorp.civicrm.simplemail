@@ -285,6 +285,7 @@ function simplemail_civicrm_permission(&$permissions) {
   $permissions['access admin CiviSimpleMail'] = $prefix . ts('access admin CiviSimpleMail');
   $permissions['access LegacyMailUi']  = $prefix . ts('access legacy mail UI') ;
   $permissions['manage all CiviSimpleMail mails']  = $prefix . ts('manage all CiviSimpleMail mails') ;
+  $permissions['add groups to new CiviSimpleMail mails']  = $prefix . ts('add groups to new CiviSimpleMail mails') ;
 }
 
 /**
