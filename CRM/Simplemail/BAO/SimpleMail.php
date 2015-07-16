@@ -129,10 +129,12 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * Delete the CiviCRM mailing corresponding to the SimpleMail mailing currently being deleted, as it would indirectly
    * cause deletion of SimpleMail mailing and any associated scheduled mailing jobs
    *
-   * @return void
-   * @throws CRM_Extension_Exception
+   * @param bool $useWhere
+   *
+   * @return mixed|void
+   * @throws \CRM_Extension_Exception
    */
-  public function delete() {
+  public function delete($useWhere = FALSE) {
     if (!static::authorised(SM_PERMISSION_DELETE)) {
       throw new CRM_Extension_Exception('Sorry! You do not have permission to delete mailings',
         500);
@@ -151,8 +153,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     }
 
     // Delete the inline attachments first, because they are tied to a cascade delete on the simple mailing table
-    $attachments =
-      CRM_Simplemail_BAO_SimpleMailInlineAttachment::removeAll((int) $this->id);
+    $attachments = CRM_Simplemail_BAO_SimpleMailInlineAttachment::removeAll((int) $this->id);
 
     $civiMailing = new CRM_Mailing_BAO_Mailing();
     $civiMailing->id = (int) $this->crm_mailing_id;
