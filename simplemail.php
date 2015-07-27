@@ -187,7 +187,7 @@ function simplemail_civicrm_navigationMenu(&$params) {
      * Only provides this extension's menu if a customised one does not already exist */
     foreach ($params as $parameter) {
         if ($parameter['attributes']['name'] == 'MailJet') {
-            //return;
+            return;
         }
     }
 
