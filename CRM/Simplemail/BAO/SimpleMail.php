@@ -250,11 +250,11 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     $whereClause = $isSingle ? 'sm.id = ' . (int) $params['id'] : 'true';
 
-    if(!CRM_Core_Permission::check('manage all CiviSimpleMail mails')) {
+    if (!CRM_Core_Permission::check('manage all CiviSimpleMail mails')) {
 
       $session = CRM_Core_Session::singleton();
       $contactId = $session->get('userID');
-      $whereClause .= ' AND cm.created_id = '.$contactId.' ';
+      $whereClause .= ' AND cm.created_id = ' . $contactId . ' ';
 
     }
 
@@ -1359,8 +1359,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
         if (!$apiResult) {
           $contactsCount =
             (int) CRM_Simplemail_BAO_SimpleMail::getMailingContacts(
-            $entityId, $mailingId
-          );
+              $entityId, $mailingId
+            );
         }
         else {
           $contactsCount = (int) $apiResult;
@@ -1391,27 +1391,15 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   }
 
   private static function isUpdateActionAllowed($params) {
-    if (static::isScheduled($params) || static::isRunning($params)) {
-      return FALSE;
-    }
-
-    return TRUE;
+    return static::isScheduled($params) || static::isRunning($params) ? FALSE : TRUE;
   }
 
   private static function isDeleteActionAllowed($params) {
-    if (static::isScheduled($params) || static::isRunning($params)) {
-      return FALSE;
-    }
-
-    return TRUE;
+    return static::isScheduled($params) || static::isRunning($params) ? FALSE : TRUE;
   }
 
   private static function isCancelActionAllowed($params) {
-    if (static::isScheduled($params) || static::isRunning($params)) {
-      return TRUE;
-    }
-
-    return FALSE;
+    return static::isScheduled($params) || static::isRunning($params) ? TRUE : FALSE;
   }
 
   /**
