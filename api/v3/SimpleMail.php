@@ -77,14 +77,8 @@ function civicrm_api3_simple_mail_get($params) {
  */
 function civicrm_api3_simple_mail_canaddgroups($params) {
   try {
-    if (CRM_Core_Permission::check('add groups to new CiviSimpleMail mails')) {
-      $result['data'] = TRUE;
-      return civicrm_api3_create_success($result, array(), NULL, 'manageallCiviSimpleMailmails');
-    }
-    else {
-      $result['data'] = FALSE;
-      return civicrm_api3_create_success($result, array(), NULL, 'manageallCiviSimpleMailmails');
-    }
+    $result['data'] = CRM_Core_Permission::check('add groups to new CiviSimpleMail mails');
+    return civicrm_api3_create_success($result, array(), NULL, 'manageallCiviSimpleMailmails');
   } catch (CRM_Extension_Exception $e) {
     $errorData = $e->getErrorData();
     return civicrm_api3_create_error($e->getMessage());
