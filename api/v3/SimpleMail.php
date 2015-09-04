@@ -22,8 +22,14 @@ function _civicrm_api3_simple_mail_create_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_simple_mail_create($params) {
-  return _civicrm_api3_basic_create(_civicrm_api3_get_BAO(__FUNCTION__),
-    $params);
+  try {
+    $result = CRM_Simplemail_BAO_SimpleMail::create($params);
+    $values = array($result->toArray());
+
+    return civicrm_api3_create_success($values, $params, NULL, 'create', $result);
+  } catch (CRM_Extension_Exception $e) {
+    return civicrm_api3_create_error($e->getMessage(), [], $result);
+  }
 }
 
 /**
@@ -61,7 +67,6 @@ function civicrm_api3_simple_mail_get($params) {
 }
 
 
-
 /**s
  * SimpleMail.manageAllCiviSimpleMailMails API
  *
@@ -72,13 +77,13 @@ function civicrm_api3_simple_mail_get($params) {
  */
 function civicrm_api3_simple_mail_canaddgroups($params) {
   try {
-    if(CRM_Core_Permission::check('add groups to new CiviSimpleMail mails'))
-    {
-      $result['data'] = true;
-      return civicrm_api3_create_success($result, array(), NULL,'manageallCiviSimpleMailmails');
-    } else {
-      $result['data'] = false;
-      return civicrm_api3_create_success($result, array(), NULL,'manageallCiviSimpleMailmails');
+    if (CRM_Core_Permission::check('add groups to new CiviSimpleMail mails')) {
+      $result['data'] = TRUE;
+      return civicrm_api3_create_success($result, array(), NULL, 'manageallCiviSimpleMailmails');
+    }
+    else {
+      $result['data'] = FALSE;
+      return civicrm_api3_create_success($result, array(), NULL, 'manageallCiviSimpleMailmails');
     }
   } catch (CRM_Extension_Exception $e) {
     $errorData = $e->getErrorData();
