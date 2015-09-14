@@ -1768,12 +1768,27 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     if ($disabledStatuses || $hideDraft) {
       $disabledStatusesQueryArr = array();
+
+      // Note: Take extra caring and test thoroughly the filtering functionality, when modifying the below, as it's
+      // really easy to introduce a bug due to incorrect query
       if ($disabledStatuses) {
         $disabledStatusesQueryArr[] = 'j.status NOT IN (' . implode(', ', $disabledStatuses) . ')';
-      }
 
-      if (!$hideDraft) {
-        $disabledStatusesQueryArr[] = 'j.status IS NULL';
+        if (!$hideDraft) {
+          // This is needed if the 'IN' clause above is applied, as otherwise all the rows with NULL as the value in the
+          // joined field 'status' will be ignored from the result set.
+          $disabledStatusesQueryArr[] = 'j.status IS NULL';
+        }
+      }
+      else {
+        if ($hideDraft) {
+          // We're only inserting this clause in case the above 'IN' clause isn't applied. This is because, if the
+          // above clause did apply, all the rows with NULL value in the joined field 'status' will be ignored anyway.
+          // And, adding this clause in conjunction with the 'IN' clause from above would result in incorrect result,
+          // because 'IS NOT NULL' would become true for all rows in the 'OR' expression where the 'status' field
+          // has any non-null value.
+          $disabledStatusesQueryArr[] = 'j.status IS NOT NULL';
+        }
       }
 
       if ($disabledStatusesQueryArr) {
