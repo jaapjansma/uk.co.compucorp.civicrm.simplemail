@@ -584,6 +584,10 @@
         if (newVal === true) {
           element.find('.loading-panel').addClass('ng-hide');
         }
+        else
+          if (newVal === false) {
+            element.find('.loading-panel').removeClass('ng-hide');
+        }
       });
     };
 
