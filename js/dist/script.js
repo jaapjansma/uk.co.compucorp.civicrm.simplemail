@@ -878,18 +878,22 @@
       $scope.pagination = {};
 
       $scope.paginate = function (target) {
-        if (false === MailingsListing.paginate(target)) return false;
+        if (false === MailingsListing.paginate(target)) {
+          return false;
+        }
 
         init(); // Re-initialise listing
       };
 
       $scope.filterByStatus = function () {
-        $scope.paginate('first'); // reset pagination to first page
+        MailingsListing.paginate('first'); // reset pagination to first page
+        init(); // Re-initialise listing
       };
 
       $scope.filterByCreator = function (item, model) {
         $scope.mailingFilters.creator = model;
-        $scope.paginate('first'); // reset pagination to first page
+        MailingsListing.paginate('first'); // reset pagination to first page
+        init(); // Re-initialise listing
       };
 
       /**
@@ -2588,26 +2592,34 @@
       var paginate = function (target) {
         switch (target) {
           case 'first':
-            if (pagination.from === 0) return false;
+            if (pagination.from === 0) {
+              return false;
+            }
 
             pagination.currentPage = 1;
             break;
           case 'prev':
-            if (pagination.from === 0) return false;
+            if (pagination.from === 0) {
+              return false;
+            }
 
             if (pagination.currentPage > 1) {
               pagination.currentPage--;
             }
             break;
           case 'next':
-            if (pagination.to === pagination.total) return false;
+            if (pagination.to === pagination.total) {
+              return false;
+            }
 
             if (pagination.currentPage < Math.ceil(pagination.total / pagination.itemsPerPage)) {
               pagination.currentPage++;
             }
             break;
           case 'last':
-            if (pagination.to === pagination.total) return false;
+            if (pagination.to === pagination.total) {
+              return false;
+            }
 
             pagination.currentPage = Math.ceil(pagination.total / pagination.itemsPerPage);
             break;
@@ -2616,7 +2628,9 @@
         pagination.from = (pagination.currentPage - 1) * pagination.itemsPerPage;
 
         pagination.to = pagination.from + pagination.itemsPerPage;
-        if (pagination.to > pagination.total) pagination.to = pagination.total;
+        if (pagination.to > pagination.total) {
+          pagination.to = pagination.total;
+        }
 
         return true;
       };
@@ -2776,7 +2790,7 @@
        * @name MailingsListingFactory#getPagination
        * @returns {Object}
        */
-      var getPagination = function() {
+      var getPagination = function () {
         return pagination;
       };
 

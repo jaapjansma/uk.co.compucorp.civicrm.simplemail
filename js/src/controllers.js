@@ -82,12 +82,14 @@
       };
 
       $scope.filterByStatus = function () {
-        $scope.paginate('first'); // reset pagination to first page
+        MailingsListing.paginate('first'); // reset pagination to first page
+        init(); // Re-initialise listing
       };
 
       $scope.filterByCreator = function (item, model) {
         $scope.mailingFilters.creator = model;
-        $scope.paginate('first'); // reset pagination to first page
+        MailingsListing.paginate('first'); // reset pagination to first page
+        init(); // Re-initialise listing
       };
 
       /**
