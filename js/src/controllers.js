@@ -61,10 +61,8 @@
 
       $scope.mailingFilters = {
         status: {},
-        creator: 'all'
+        creator: null
       };
-
-      $scope.filteredMailings = [];
 
       $scope.mailingFilters.status[$scope.constants.DRAFT] = true;
       $scope.mailingFilters.status[$scope.constants.SCHEDULED] = true;
@@ -73,22 +71,24 @@
       $scope.mailingFilters.status[$scope.constants.PAUSED] = true;
       $scope.mailingFilters.status[$scope.constants.CANCELLED] = true;
 
-      MailingsListing.init()
-        .then(function () {
-          $scope.mailings = MailingsListing.getMailings();
-          $scope.userId = MailingsListing.getUserId();
+      $scope.pagination = {};
 
-          $scope.models.creators = MailingsListing.getCreators();
-          $scope.models.creators.unshift({id: 'all', 'name': 'All'});
+      $scope.paginate = function (target) {
+        if (false === MailingsListing.paginate(target)) {
+          return false;
+        }
 
-          // The below will cause to show mailings for all users if the current user never created any mailing;
-          // otherwise nothing would be shown, potentially confusing the user that mailings are missing/lost
-          var currentUserInCreators = $filter('filter')($scope.models.creators, {id: $scope.userId});
-          $scope.mailingFilters.creator = currentUserInCreators.length ? $scope.userId : 'all';
-        })
-        .finally(function () {
-          $scope.models.mailingsLoaded = true;
-        });
+        init(); // Re-initialise listing
+      };
+
+      $scope.filterByStatus = function () {
+        $scope.paginate('first'); // reset pagination to first page
+      };
+
+      $scope.filterByCreator = function (item, model) {
+        $scope.mailingFilters.creator = model;
+        $scope.paginate('first'); // reset pagination to first page
+      };
 
       /**
        * @name confirmDeleteMailing
@@ -128,9 +128,42 @@
       $scope.duplicateMailing = function (mailing) {
         return MailingsListing.duplicateMailing(mailing);
       };
+
+      // Begin initialisation
+      init();
+
+      /////////////////////
+      // Private Methods //
+      /////////////////////
+
+      function init() {
+        $scope.models.mailingsLoaded = false;
+
+        var params = {filters: $scope.mailingFilters};
+
+        MailingsListing.init(params)
+          .then(function () {
+            $scope.mailings = MailingsListing.getMailings();
+            $scope.userId = MailingsListing.getUserId();
+            if (!$scope.mailingFilters.creator) {
+              $scope.mailingFilters.creator = $scope.userId;
+            }
+
+            $scope.models.creators = MailingsListing.getCreators();
+            $scope.models.creators.unshift({id: 'all', 'name': 'All'});
+
+            updatePagination();
+          })
+          .finally(function () {
+            $scope.models.mailingsLoaded = true;
+          });
+      }
+
+      function updatePagination() {
+        $scope.pagination = angular.extend({}, MailingsListing.getPagination());
+      }
     }
   ];
-
 
   /**
    * Step 1 of the wizard

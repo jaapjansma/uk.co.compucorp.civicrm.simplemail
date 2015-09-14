@@ -43,6 +43,19 @@
       var mailings = [];
 
       /**
+       * Pagination data
+       * @name MailingsListingFactory#pagination
+       * @type {Object}
+       */
+      var pagination = {
+        from: 0,
+        to: 10,
+        itemsPerPage: 10,
+        currentPage: 1,
+        total: 0
+      };
+
+      /**
        * The user ID of the current user
        *
        * @ngdoc property
@@ -68,11 +81,10 @@
        * @ngdoc method
        * @name MailingsListingFactory#init
        */
-      var init = function () {
+      var init = function (params) {
         var deferred = $q.defer();
 
-        initMailings()
-          .then(initCreators)
+        initMailings(params)
           .then(function () {
             deferred.resolve();
           })
@@ -82,6 +94,57 @@
           });
 
         return deferred.promise;
+      };
+
+      /**
+       * @ngdoc method
+       * @name MailingsListingFactory#paginate
+       * @param target
+       */
+      var paginate = function (target) {
+        switch (target) {
+          case 'first':
+            if (pagination.from === 0) {
+              return false;
+            }
+
+            pagination.currentPage = 1;
+            break;
+          case 'prev':
+            if (pagination.from === 0) {
+              return false;
+            }
+
+            if (pagination.currentPage > 1) {
+              pagination.currentPage--;
+            }
+            break;
+          case 'next':
+            if (pagination.to === pagination.total) {
+              return false;
+            }
+
+            if (pagination.currentPage < Math.ceil(pagination.total / pagination.itemsPerPage)) {
+              pagination.currentPage++;
+            }
+            break;
+          case 'last':
+            if (pagination.to === pagination.total) {
+              return false;
+            }
+
+            pagination.currentPage = Math.ceil(pagination.total / pagination.itemsPerPage);
+            break;
+        }
+
+        pagination.from = (pagination.currentPage - 1) * pagination.itemsPerPage;
+
+        pagination.to = pagination.from + pagination.itemsPerPage;
+        if (pagination.to > pagination.total) {
+          pagination.to = pagination.total;
+        }
+
+        return true;
       };
 
       /**
@@ -234,6 +297,15 @@
         return creators;
       };
 
+      /**
+       * @ngdoc method
+       * @name MailingsListingFactory#getPagination
+       * @returns {Object}
+       */
+      var getPagination = function () {
+        return pagination;
+      };
+
       /////////////////////
       // Private Methods //
       /////////////////////
@@ -243,11 +315,17 @@
        * @private
        * @returns {ng.IPromise<TResult>}
        */
-      var initMailings = function () {
-        return CiviApi.get(constants.entities.MAILING, {}, {error: 'Failed to retrieve mailings'})
+      var initMailings = function (params) {
+        params = params || {};
+
+        addPaginationParams(params);
+
+        return CiviApi.get(constants.entities.MAILING, params, {error: 'Failed to retrieve mailings'})
           .then(function (response) {
             mailings = response.data.values;
             userId = response.data.userId;
+            creators = response.data.creators;
+            setPaginationTotal(response.data.count);
           })
           .then(clearSearchResultsFromSession)
           .catch(function (response) {
@@ -259,13 +337,18 @@
           });
       };
 
-      /**
-       * @name initCreators
-       * @private
-       */
-      var initCreators = function () {
-        creators = $filter('extractColumn')(mailings, {id: 'created_id', name: 'sort_name'});
-        creators = $filter('unique')(creators, 'id');
+      var addPaginationParams = function (params) {
+        params.from = pagination.from;
+        params.items = pagination.itemsPerPage;
+      };
+
+      var setPaginationTotal = function (total) {
+        pagination.total = total;
+
+        pagination.to = pagination.from + pagination.itemsPerPage;
+        if (pagination.to > pagination.total) {
+          pagination.to = pagination.total;
+        }
       };
 
       /**
@@ -282,12 +365,14 @@
 
       return {
         init: init,
+        paginate: paginate,
         deleteMailing: deleteMailing,
         cancelMailing: cancelMailing,
         duplicateMailing: duplicateMailing,
         getMailings: getMailings,
         getUserId: getUserId,
-        getCreators: getCreators
+        getCreators: getCreators,
+        getPagination: getPagination
       };
     }
   ];

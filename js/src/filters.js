@@ -45,6 +45,8 @@
   ]);
 
   /**
+   * Note: This is no longer used as filtering is now being done on the server side
+   *
    * @ngDoc filter
    * @name filterMailings
    * @kind function

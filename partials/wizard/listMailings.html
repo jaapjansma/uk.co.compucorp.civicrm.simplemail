@@ -1,124 +1,135 @@
 <div id="sm-mailings" class="sm-container">
 
-  <div class="buttons clearfix">
-    <p class="left">
-      <a class="button" ng-href="#/mailings/new"><i class="icon email-icon"></i>Create a New Mailing</a>
-    </p>
+    <div class="buttons clearfix">
+        <p class="left">
+            <a class="button" ng-href="#/mailings/new"><i class="icon email-icon"></i>Create a New Mailing</a>
+        </p>
 
-    <p class="right">
-      <a href ng-click="showFilters = !showFilters" class="button"><i class="icon settings-icon"></i>Filter</a>
-    </p>
-  </div>
-
-  <div ng-show="showFilters" class="filters crm-form-block">
-    <div class="field-group filter inline clearfix">
-      <p class="filter-title label">Mailing status:</p>
-
-      <ul class="inline" style="list-style: none; padding: 0; margin: 0;">
-        <li>
-          <input ng-model="mailingFilters.status[constants.DRAFT]" id="filter-draft-mailings" type="checkbox"/>
-          <label for="filter-draft-mailings">Not Scheduled</label>
-        </li>
-
-        <li>
-          <input ng-model="mailingFilters.status[constants.SCHEDULED]" id="filter-scheduled-mailings" type="checkbox"/>
-          <label for="filter-scheduled-mailings">Scheduled</label>
-        </li>
-
-        <li>
-          <input ng-model="mailingFilters.status[constants.RUNNING]" id="filter-running-mailings" type="checkbox"/>
-          <label for="filter-running-mailings">Running</label>
-        </li>
-
-        <li>
-          <input ng-model="mailingFilters.status[constants.PAUSED]" id="filter-paused-mailings" type="checkbox"/>
-          <label for="filter-paused-mailings">Paused</label>
-        </li>
-
-        <li>
-          <input ng-model="mailingFilters.status[constants.SENT]" id="filter-sent-mailings" type="checkbox"/>
-          <label for="filter-sent-mailings">Sent</label>
-        </li>
-
-        <li>
-          <input ng-model="mailingFilters.status[constants.CANCELLED]" id="filter-cancelled-mailings" type="checkbox"/>
-          <label for="filter-cancelled-mailings">Cancelled</label>
-        </li>
-      </ul>
+        <p class="right">
+            <a href ng-click="showFilters = !showFilters" class="button"><i class="icon settings-icon"></i>Filter</a>
+        </p>
     </div>
 
-    <div class="field-group filter inline clearfix">
-      <p class="filter-title label">Created By:</p>
+    <div ng-show="showFilters" class="filters crm-form-block">
+        <div class="field-group filter inline clearfix">
+            <p class="filter-title label">Mailing status:</p>
 
-      <ui-select ng-model="mailingFilters.creator" theme="select2">
-        <ui-select-match placeholder="Created By">{{$select.selected.name}}</ui-select-match>
-        <ui-select-choices repeat="creator.id as creator in models.creators | filter: {name: $select.search}">
-          {{creator.name}}
-        </ui-select-choices>
-      </ui-select>
-    </div>
-  </div>
+            <ul class="inline" style="list-style: none; padding: 0; margin: 0;">
+                <li>
+                    <input ng-change="filterByStatus()" ng-model="mailingFilters.status[constants.DRAFT]"
+                           id="filter-draft-mailings" type="checkbox"/>
+                    <label for="filter-draft-mailings">Not Scheduled</label>
+                </li>
 
-  <table id="sm-mailings-table">
-    <thead>
-    <tr>
-      <th class="id">ID</th>
-      <th class="name">Name</th>
-      <th class="current-status">Status</th>
-      <th class="created-by">Created By</th>
-      <th class="created-date">Created Date</th>
-      <th class="scheduled">Scheduled</th>
-      <th class="started">Started</th>
-      <th class="completed">Completed</th>
-      <th class="action-buttons">Action</th>
-    </tr>
-    </thead>
-    <tr ng-repeat="mailing in filteredMailings = (mailings | filterMailings:mailingFilters)" ng-class-even="'even-row'"
-        ng-class-odd="'odd-row'">
-      <td class="id">{{mailing.id}}</td>
-      
-      <td class="name">
-        <a href="javascript:popUp('{{mailing.report_url}}')">
-          {{mailing.name}}
-        </a>
-      </td>
-      
-      <td class="current-status">
-        <i class="fa fa-2x"
-           ng-class="{Scheduled: 'fa-clock-o', Complete: 'fa-check-circle-o', 'Not Scheduled': 'fa-pencil', Canceled: 'fa-times-circle-o', Running: 'fa-paper-plane', Paused: 'fa-flag'}[mailing.status]"
-           title="{{mailing.status}}">
-        </i>
-      </td>
+                <li>
+                    <input ng-change="filterByStatus()" ng-model="mailingFilters.status[constants.SCHEDULED]"
+                           id="filter-scheduled-mailings" type="checkbox"/>
+                    <label for="filter-scheduled-mailings">Scheduled</label>
+                </li>
 
-      <td class="created-by">
-        <a ng-href="/civicrm/contact/view?reset=1&cid={{mailing.created_id}}">{{mailing.sort_name}}</a>
-      </td>
-      <td class="created-date">{{mailing.created_date}}</td>
-      <td class="scheduled">{{mailing.scheduled_date}}</td>
-      <td class="started">{{mailing.start_date}}</td>
-      <td class="completed">{{mailing.end_date}}</td>
+                <li>
+                    <input ng-change="filterByStatus()" ng-model="mailingFilters.status[constants.RUNNING]"
+                           id="filter-running-mailings" type="checkbox"/>
+                    <label for="filter-running-mailings">Running</label>
+                </li>
 
-      <td class="action-buttons">
-        <div data-sm-mailing-action-buttons
-             data-mailing="mailing"
-             data-status-constants="constants"
-             data-on-duplicate="duplicateMailing(mailing)"
-             data-on-delete="confirmDeleteMailing(mailing)"
-             data-on-cancel="cancelMailing(mailing)">
+                <li>
+                    <input ng-change="filterByStatus()" ng-model="mailingFilters.status[constants.PAUSED]"
+                           id="filter-paused-mailings" type="checkbox"/>
+                    <label for="filter-paused-mailings">Paused</label>
+                </li>
+
+                <li>
+                    <input ng-change="filterByStatus()" ng-model="mailingFilters.status[constants.SENT]"
+                           id="filter-sent-mailings" type="checkbox"/>
+                    <label for="filter-sent-mailings">Sent</label>
+                </li>
+
+                <li>
+                    <input ng-change="filterByStatus()" ng-model="mailingFilters.status[constants.CANCELLED]"
+                           id="filter-cancelled-mailings" type="checkbox"/>
+                    <label for="filter-cancelled-mailings">Cancelled</label>
+                </li>
+            </ul>
         </div>
-      </td>
-    </tr>
 
-    <tr class="odd-row" ng-if="!models.mailingsLoaded">
-      <td class="empty-placeholder" colspan="9">
-        <span><i class="loading"></i>Loading</span>
-      </td>
-    </tr>
+        <div class="field-group filter inline clearfix">
+            <p class="filter-title label">Created By:</p>
 
-    <tr class="odd-row" ng-if="models.mailingsLoaded && !filteredMailings.length">
-      <td class="empty-placeholder" colspan="9">
-        <span>Nothing here :(</span>
-      </td>
-    </tr>
-  </table>
+            <ui-select ng-model="mailingFilters.creator" on-select="filterByCreator($item, $model)" theme="select2">
+                <ui-select-match placeholder="Created By">{{$select.selected.name}}</ui-select-match>
+                <ui-select-choices repeat="creator.id as creator in models.creators | filter: {name: $select.search}">
+                    {{creator.name}}
+                </ui-select-choices>
+            </ui-select>
+        </div>
+    </div>
+
+    <table sm-loaded="models.mailingsLoaded" id="sm-mailings-table">
+        <thead>
+        <tr>
+            <th class="id">ID</th>
+            <th class="name">Name</th>
+            <th class="current-status">Status</th>
+            <th class="created-by">Created By</th>
+            <th class="created-date">Created Date</th>
+            <th class="scheduled">Scheduled</th>
+            <th class="started">Started</th>
+            <th class="completed">Completed</th>
+            <th class="action-buttons">Action</th>
+        </tr>
+        </thead>
+        <tr ng-repeat="mailing in mailings" ng-class-even="'even-row'"
+            ng-class-odd="'odd-row'">
+            <td class="id">{{mailing.id}}</td>
+
+            <td class="name">
+                <a href="javascript:popUp('{{mailing.report_url}}')">
+                    {{mailing.name}}
+                </a>
+            </td>
+
+            <td class="current-status">
+                <i class="fa fa-2x"
+                   ng-class="{Scheduled: 'fa-clock-o', Complete: 'fa-check-circle-o', 'Not Scheduled': 'fa-pencil', Canceled: 'fa-times-circle-o', Running: 'fa-paper-plane', Paused: 'fa-flag'}[mailing.status]"
+                   title="{{mailing.status}}">
+                </i>
+            </td>
+
+            <td class="created-by">
+                <a ng-href="/civicrm/contact/view?reset=1&cid={{mailing.created_id}}">{{mailing.sort_name}}</a>
+            </td>
+            <td class="created-date">{{mailing.created_date}}</td>
+            <td class="scheduled">{{mailing.scheduled_date}}</td>
+            <td class="started">{{mailing.start_date}}</td>
+            <td class="completed">{{mailing.end_date}}</td>
+
+            <td class="action-buttons">
+                <div data-sm-mailing-action-buttons
+                     data-mailing="mailing"
+                     data-status-constants="constants"
+                     data-on-duplicate="duplicateMailing(mailing)"
+                     data-on-delete="confirmDeleteMailing(mailing)"
+                     data-on-cancel="cancelMailing(mailing)">
+                </div>
+            </td>
+        </tr>
+
+        <tr class="odd-row" ng-if="models.mailingsLoaded && !mailings.length">
+            <td class="empty-placeholder" colspan="9">
+                <span>Nothing here :(</span>
+            </td>
+        </tr>
+    </table>
+
+    <nav class="pagination" ng-if="mailings.length">
+        <div class="links" ng-if="pagination.total > pagination.itemsPerPage">
+            <!-- Don't keep anchor tags on separate lines, as it would add spaces between them due to inline-block -->
+            <a sm-disabled="pagination.from === 0" href ng-click="paginate('first')">First</a><a
+                sm-disabled="pagination.from === 0" href ng-click="paginate('prev')">Prev</a><a
+                sm-disabled="pagination.to === pagination.total" href ng-click="paginate('next')">Next</a><a
+                sm-disabled="pagination.to === pagination.total" href ng-click="paginate('last')">Last</a>
+        </div>
+        <div>Showing {{pagination.from + 1}} - {{pagination.to}} of {{pagination.total}} mailings</div>
+    </nav>
 </div>

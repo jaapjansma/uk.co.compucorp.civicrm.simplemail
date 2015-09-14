@@ -23,6 +23,7 @@ $paleRed: lighten($red, 5%);
 
 /* Themed colours */
 $drop-zone: $yellow;
+$pagination-border: #ddd;
 
 /* Fonts */
 $read-only: $grey;
@@ -36,8 +37,6 @@ $one-half: 50%;
 $full: 100%;
 $border-radius: 3px;
 
-
-
 // Form Validation
 .ng-invalid.ng-dirty {
   background: $paleRed;
@@ -48,8 +47,6 @@ $border-radius: 3px;
     background: $paleRed;
   }
 }
-
-
 
 .sm-container {
   .fa-clock-o {
@@ -77,6 +74,41 @@ $border-radius: 3px;
 
   .fa-paper-plane {
     color: $light-blue;
+  }
+
+  .disabled {
+    cursor: not-allowed;
+  }
+
+  .pagination {
+    margin: 1rem 0;
+    color: $grey;
+
+    > div {
+      display: inline-block;
+    }
+
+    .links {
+      margin-right: 1rem;
+    }
+
+    a {
+      display: inline-block;
+      border-style: solid;
+      padding: 5px 10px;
+      border-color: #ddd;
+      border-color: $pagination-border;
+      border-width: 1px 1px 1px 0;
+
+      &:first-child {
+        border-radius: 3px 0 0 3px;
+        border-width: 1px;
+      }
+
+      &:last-child {
+        border-radius: 0 3px 3px 0;
+      }
+    }
   }
 
   .step-header {
@@ -116,8 +148,8 @@ $border-radius: 3px;
 
     .quickdate-button {
       color: inherit;
-      font-size:inherit;
-      
+      font-size: inherit;
+
     }
     .quickdate-button:hover {
       text-decoration: underline;
@@ -158,10 +190,12 @@ $border-radius: 3px;
           text-align: center;
         }
       }
-    }    
+    }
   }
 
   table {
+    position: relative;
+
     tr {
       td.current-status {
         text-transform: capitalize;
@@ -179,6 +213,10 @@ $border-radius: 3px;
           margin: 0;
         }
       }
+    }
+
+    &#sm-mailings-table {
+      margin-bottom: 0;
     }
   }
 
@@ -213,7 +251,8 @@ $border-radius: 3px;
         display: inline;
         margin-right: 1rem;
       }
-      input {}
+      input {
+      }
       label {
         margin-left: 0.25rem;
       }
@@ -243,7 +282,7 @@ $border-radius: 3px;
 
   .loading-panel {
     position: absolute;
-    background: url('ajax-loader.gif') 50% 50% no-repeat rgba(255,255,255, 0.5);
+    background: url('ajax-loader.gif') 50% 50% no-repeat rgba(255, 255, 255, 0.5);
     width: 100%;
     height: 100%;
     top: 0;
@@ -257,12 +296,12 @@ $border-radius: 3px;
     overflow-y: hidden;
     background: $lightest-grey;
 
-    ul {        
+    ul {
       padding: 0;
       max-height: 120px;
       white-space: nowrap;
 
-      li {      
+      li {
         display: inline-block;
         list-style: none;
         height: auto;
@@ -275,17 +314,17 @@ $border-radius: 3px;
           border: 1px dashed $light-grey;
           border-radius: $border-radius;
           display: block;
-          box-sizing: border-box;          
+          box-sizing: border-box;
           cursor: pointer;
         }
 
         img.selected {
           border-style: solid;
-          background: $yellow;          
+          background: $yellow;
           box-shadow: 1px 1px 5px 1px rgba(0, 0, 0, 0.15);
         }
       }
-      
+
       li:last-child img {
         margin-right: 0.5rem !important;
       }
@@ -294,22 +333,15 @@ $border-radius: 3px;
 
   .empty-placeholder {
     width: 100%;
+    min-height: 150px;
     text-align: center;
+    position: relative;
 
     span {
-      height: 100px;
-      padding: 0.5rem;
-      margin: 0.5rem;
       box-sizing: border-box;
-      line-height: 7;
+      line-height: 150px;
       display: block;
       color: $grey;
-
-      .loading {
-        left: 49%;
-        position: relative;
-        top: 25%;
-      }
     }
   }
 
@@ -326,15 +358,15 @@ $border-radius: 3px;
     margin-top: 2px;
     margin-right: 2px;
   }
-  
+
   .field {
     width: $three-quarters;
-    
+
     .image-preview,
     .file-drop-zone {
       width: $one-half;
     }
-    
+
     .image-preview {
       position: relative;
       .thumb {
@@ -360,7 +392,7 @@ $border-radius: 3px;
     .image-preview:hover .remove {
       display: block;
     }
-    
+
     .file-drop-zone {
       border: 1px dashed $grey;
       text-align: center;
@@ -370,20 +402,20 @@ $border-radius: 3px;
       box-sizing: border-box;
     }
   }
-  
+
   .file-drop-zone.ng-file-over {
     background: $drop-zone;
     color: inherit;
   }
-    
+
   .read-only {
     color: $read-only;
   }
-  
+
   #campaign-message-preview {
     height: 109px;
   }
-  
+
   .full-width {
     width: $full !important;
   }
@@ -419,12 +451,12 @@ $border-radius: 3px;
     width: $two-thirds;
     box-sizing: border-box;
   }
-  
+
   #contact-details {
     height: 145px;
   }
-      
-  .select2-container {    
+
+  .select2-container {
     width: $one-half;
 
     ul {
@@ -432,21 +464,21 @@ $border-radius: 3px;
       padding: 0;
     }
   }
-  
+
   .cols {
     .col {
       margin-top: 0;
       padding-left: 1rem;
 
       .select2-container {
-//        margin-top: 0;
+        //        margin-top: 0;
       }
     }
     .col:first-child {
       padding-left: 0;
     }
   }
-  
+
   p {
     margin: 0.5rem 0rem;
   }
@@ -455,14 +487,14 @@ $border-radius: 3px;
   }
   p:last-child, div:last-child {
     margin-bottom: 0;
-  }  
+  }
   .crm-form-block {
     margin: 1rem 0 !important;
     padding: 1rem;
     transition: linear 200ms;
     -webkit-transition: linear 200ms;
     position: relative;
-    top:0;
+    top: 0;
   }
   a {
   }
@@ -473,7 +505,7 @@ $border-radius: 3px;
     padding: 0.4rem;
   }
   textarea {
-    resize: none;    
+    resize: none;
   }
   input {
     border-radius: 3px;
@@ -540,8 +572,8 @@ $border-radius: 3px;
     opacity: 1;
   }
   .ng-hide {
-     opacity: 0;
-     top: -10px;
+    opacity: 0;
+    top: -10px;
   }
   .ng-enter, .ng-leave-active {
     opacity: 0;
@@ -551,36 +583,36 @@ $border-radius: 3px;
     opacity: 1;
     display: block !important;
   }
-  
+
   .social_links {
     label {
       display: inline;
     }
   }
-  
+
   .inlineAttachmentsContainer {
     margin: 1rem 0 0 0;
   }
-  
+
   .inlineAttachments {
-    
+
     input[type="file"] {
       //display: none;
     }
-    
+
     label {
       display: inline;
     }
-    
+
     .clear {
       clear: both;
     }
-    
+
     ul {
       list-style-type: none;
       margin: 0;
     }
-    
+
     li {
       clear: both;
       padding: 0.2rem 0;
@@ -588,36 +620,33 @@ $border-radius: 3px;
       border: 1px solid #e0e0e0;
       width: 470px;
     }
-    
+
     button.removeAttachment {
       background: none;
       color: #ff0000;
       border: 0;
     }
-    
+
     .inline-attachment-filename {
       display: inline-block;
       width: 300px;
       text-overflow: ellipsis;
     }
-    
+
     .ia-buttons {
       margin: 0;
       padding: 0;
       text-align: left;
       display: inline-block;
-      
+
       .insert {
         border: 0;
         color: #0000ff;
         background: none;
         cursor: pointer;
       }
-      
     }
-    
   }
-  
 }
 
 #sm-messages-admin-table {

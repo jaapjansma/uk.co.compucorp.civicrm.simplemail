@@ -245,18 +245,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    * @throws CRM_Extension_Exception
    */
   public static function getMailing($params) {
-
-    $isSingle = isset($params['id']);
-
-    $whereClause = $isSingle ? 'sm.id = ' . (int) $params['id'] : 'true';
-
-    if (!CRM_Core_Permission::check('manage all CiviSimpleMail mails')) {
-
-      $session = CRM_Core_Session::singleton();
-      $contactId = $session->get('userID');
-      $whereClause .= ' AND cm.created_id = ' . $contactId . ' ';
-
-    }
+    $whereClause = static::getWhereClause($params);
+    $limitClause = static::getLimitClause($params);
 
     $query
       = "
@@ -284,11 +274,12 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     LEFT JOIN civicrm_group g
     ON mg.entity_id = g.id
 
-    WHERE $whereClause
+    WHERE {$whereClause}
 
     GROUP BY sm.id
-    ";
 
+    LIMIT {$limitClause}
+    ";
 
     $mailings = array();
 
@@ -1055,8 +1046,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   protected static function getOptionValue($optionGroupName, $optionValueName) {
     $optionGroupResult = civicrm_api('OptionGroup', 'getvalue', array(
       'version' => '3',
-      'name'   => $optionGroupName,
-      'return' => 'id'
+      'name'    => $optionGroupName,
+      'return'  => 'id'
     ));
 
     if (!$optionGroupResult) {
@@ -1064,10 +1055,10 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     }
 
     $optionValueResult = civicrm_api('OptionValue', 'get', array(
-      'version'   => '3',
+      'version'         => '3',
       'option_group_id' => $optionGroupResult,
-      'label'     => $optionValueName,
-      'is_active' => '1'
+      'label'           => $optionValueName,
+      'is_active'       => '1'
     ));
 
     if (!$optionValueResult) {
@@ -1371,8 +1362,59 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
         }
       }
     }
+    else {
+      $values['count'] = static::getMailingCount($params);
+      $values['creators'] = static::getCreators();
+    }
 
     return $values;
+  }
+
+  /**
+   * Get total number of mailings corresponding to the current set of filters.
+   *
+   * @param $params
+   *
+   * @return mixed
+   */
+  private static function getMailingCount($params) {
+    $whereClause = static::getWhereClause($params);
+    $sql = "
+      SELECT COUNT(DISTINCT sm.id) count FROM civicrm_simplemail sm
+      LEFT JOIN civicrm_mailing cm ON sm.crm_mailing_id = cm.id
+      LEFT JOIN civicrm_mailing_job j ON (sm.crm_mailing_id = j.mailing_id AND j.is_test = 0 AND j.parent_id IS NULL)
+      WHERE {$whereClause}";
+
+    $countDao = CRM_Core_DAO::executeQuery($sql);
+    $countDao->fetch();
+
+    return $countDao->count;
+  }
+
+  /**
+   * Get an array of creators of mailings.
+   *
+   * @return array Array of creators, each containing sort name and ID
+   */
+  private static function getCreators() {
+    $creators = array();
+
+    $whereClause = static::authorised(SM_PERMISSION_MANAGE_ALL)
+      ? 'TRUE'
+      : 'c.id = ' . CRM_Core_Session::singleton()->get('userID');
+
+    $dao = CRM_Core_DAO::executeQuery("
+        SELECT DISTINCT(c.sort_name) name, c.id FROM civicrm_simplemail sm
+        LEFT JOIN civicrm_mailing cm ON sm.crm_mailing_id = cm.id
+        LEFT JOIN civicrm_contact c ON cm.created_id = c.id
+        WHERE {$whereClause}
+    ");
+
+    while ($dao->fetch()) {
+      $creators[] = $dao->toArray();
+    }
+
+    return $creators;
   }
 
   private static function isActionAllowed($action, $params) {
@@ -1685,6 +1727,75 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     );
 
     $dao->free();
+  }
+
+  /**
+   * Get where clause for retrieving mailing(s). This includes filters for creator and/or statues, if provided, which
+   * are used in the listing view. When specifying a mailing ID, the where clause would specify that ID, which is used
+   * in the detail view.
+   *
+   * @param $params
+   *
+   * @return string
+   */
+  private static function getWhereClause($params) {
+    // If a mailing is being edited, only return that specific mailing
+    $whereClause = isset($params['id']) ? 'sm.id = ' . (int) $params['id'] : 'TRUE';
+
+    // Filter by creator
+    $creator = static::authorised(SM_PERMISSION_MANAGE_ALL) && $params['filters']['creator']
+      ? $params['filters']['creator']
+      : CRM_Core_Session::singleton()->get('userID');
+
+    if ($creator !== strtolower('all')) {
+      $whereClause .= " AND cm.created_id = {$creator} ";
+    }
+
+    // Filter by statuses
+    $disabledStatuses = array_keys(array_filter($params['filters']['status'], function ($status) {
+      return 'false' === strtolower($status);
+    }));
+
+    $hideDraft = FALSE;
+    if (($key = array_search('Not Scheduled', $disabledStatuses)) !== FALSE) {
+      unset($disabledStatuses[$key]);
+      $hideDraft = TRUE;
+    }
+
+    array_walk($disabledStatuses, function (&$value, $key) {
+      $value = "'" . $value . "'";
+    });
+
+    if ($disabledStatuses || $hideDraft) {
+      $disabledStatusesQueryArr = array();
+      if ($disabledStatuses) {
+        $disabledStatusesQueryArr[] = 'j.status NOT IN (' . implode(', ', $disabledStatuses) . ')';
+      }
+
+      if (!$hideDraft) {
+        $disabledStatusesQueryArr[] = 'j.status IS NULL';
+      }
+
+      if ($disabledStatusesQueryArr) {
+        $whereClause .= ' AND (' . implode(' OR ', $disabledStatusesQueryArr) . ')';
+      }
+    }
+
+    return $whereClause;
+  }
+
+  /**
+   * Get limit clause for retrieving mailings. This is used for pagination.
+   *
+   * @param $params
+   *
+   * @return string
+   */
+  private static function getLimitClause($params) {
+    $offset = isset($params['from']) ? $params['from'] : 0;
+    $items = isset($params['items']) ? $params['items'] : 10;
+
+    return "{$items} OFFSET {$offset}";
   }
 
 }
