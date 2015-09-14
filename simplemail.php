@@ -280,12 +280,12 @@ function simplemail_civicrm_permission(&$permissions) {
   // Name of extension
   $prefix = ts('CiviSimpleMail') . ': ';
 
-  $permissions['access CiviSimpleMail'] = $prefix . ts('access CiviSimpleMail');
-  $permissions['delete CiviSimpleMail'] = $prefix . ts('delete CiviSimpleMail');
-  $permissions['access admin CiviSimpleMail'] = $prefix . ts('access admin CiviSimpleMail');
-  $permissions['access LegacyMailUi']  = $prefix . ts('access legacy mail UI') ;
-  $permissions['manage all CiviSimpleMail mails']  = $prefix . ts('manage all CiviSimpleMail mails') ;
-  $permissions['add groups to new CiviSimpleMail mails']  = $prefix . ts('add groups to new CiviSimpleMail mails') ;
+  $permissions[SM_PERMISSION_ACCESS] = $prefix . ts(SM_PERMISSION_ACCESS);
+  $permissions[SM_PERMISSION_DELETE] = $prefix . ts(SM_PERMISSION_DELETE);
+  $permissions[SM_PERMISSION_ACCESS_ADMIN] = $prefix . ts(SM_PERMISSION_ACCESS_ADMIN);
+  $permissions[SM_PERMISSION_ACCESS_LEGACY] = $prefix . ts(SM_PERMISSION_ACCESS_LEGACY);
+  $permissions[SM_PERMISSION_MANAGE_ALL] = $prefix . ts(SM_PERMISSION_MANAGE_ALL);
+  $permissions[SM_PERMISSION_ADD_GROUPS] = $prefix . ts(SM_PERMISSION_ADD_GROUPS);
 }
 
 /**
@@ -381,6 +381,10 @@ function simplemail_civicrm_init() {
   define('SM_PERMISSION_ACCESS', 'access CiviSimpleMail');
   define('SM_PERMISSION_EDIT', 'edit CiviSimpleMail');
   define('SM_PERMISSION_DELETE', 'delete CiviSimpleMail');
+  define('SM_PERMISSION_ACCESS_ADMIN', 'access admin CiviSimpleMail');
+  define('SM_PERMISSION_ACCESS_LEGACY', 'access LegacyMailUi');
+  define('SM_PERMISSION_MANAGE_ALL', 'manage all CiviSimpleMail mails');
+  define('SM_PERMISSION_ADD_GROUPS', 'add groups to new CiviSimpleMail mails');
 
   /** @var SimpleXMLElement[] $infoXml */
   $infoXml = CRM_Utils_XML::parseFile(simplemail_civicrm_getExtensionDir() . 'info.xml');
