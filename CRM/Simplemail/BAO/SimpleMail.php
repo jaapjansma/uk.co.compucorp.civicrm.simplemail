@@ -1405,8 +1405,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     $dao = CRM_Core_DAO::executeQuery("
         SELECT DISTINCT(c.sort_name) name, c.id FROM civicrm_simplemail sm
-        LEFT JOIN civicrm_mailing cm ON sm.crm_mailing_id = cm.id
-        LEFT JOIN civicrm_contact c ON cm.created_id = c.id
+        INNER JOIN civicrm_mailing cm ON sm.crm_mailing_id = cm.id
+        INNER JOIN civicrm_contact c ON cm.created_id = c.id
         WHERE {$whereClause}
     ");
 
