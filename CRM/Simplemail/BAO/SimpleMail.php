@@ -1301,7 +1301,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   // Private Methods //
   /////////////////////
 
-  private function postProcessMailings($params, $mailings) {
+  private static function postProcessMailings($params, $mailings) {
     $isSingle = isset($params['id']);
 
     if ($isSingle) {
@@ -1743,7 +1743,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $whereClause = isset($params['id']) ? 'sm.id = ' . (int) $params['id'] : 'TRUE';
 
     // Filter by creator
-    $creator = static::authorised(SM_PERMISSION_MANAGE_ALL) && $params['filters']['creator']
+    $creator = static::authorised(SM_PERMISSION_MANAGE_ALL) && !empty($params['filters']['creator'])
       ? $params['filters']['creator']
       : CRM_Core_Session::singleton()->get('userID');
 
@@ -1751,48 +1751,50 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       $whereClause .= " AND cm.created_id = {$creator} ";
     }
 
-    // Filter by statuses
-    $disabledStatuses = array_keys(array_filter($params['filters']['status'], function ($status) {
-      return 'false' === strtolower($status);
-    }));
+    if (!empty($params['filters']['status'])) {
+      // Filter by statuses
+      $disabledStatuses = (array) array_keys(array_filter($params['filters']['status'], function ($status) {
+        return 'false' === strtolower($status);
+      }));
 
-    $hideDraft = FALSE;
-    if (($key = array_search('Not Scheduled', $disabledStatuses)) !== FALSE) {
-      unset($disabledStatuses[$key]);
-      $hideDraft = TRUE;
-    }
-
-    array_walk($disabledStatuses, function (&$value, $key) {
-      $value = "'" . $value . "'";
-    });
-
-    if ($disabledStatuses || $hideDraft) {
-      $disabledStatusesQueryArr = array();
-
-      // Note: Take extra caring and test thoroughly the filtering functionality, when modifying the below, as it's
-      // really easy to introduce a bug due to incorrect query
-      if ($disabledStatuses) {
-        $disabledStatusesQueryArr[] = 'j.status NOT IN (' . implode(', ', $disabledStatuses) . ')';
-
-        if (!$hideDraft) {
-          // This is needed if the 'IN' clause above is applied, as otherwise all the rows with NULL as the value in the
-          // joined field 'status' will be ignored from the result set.
-          $disabledStatusesQueryArr[] = 'j.status IS NULL';
-        }
-      }
-      else {
-        if ($hideDraft) {
-          // We're only inserting this clause in case the above 'IN' clause isn't applied. This is because, if the
-          // above clause did apply, all the rows with NULL value in the joined field 'status' will be ignored anyway.
-          // And, adding this clause in conjunction with the 'IN' clause from above would result in incorrect result,
-          // because 'IS NOT NULL' would become true for all rows in the 'OR' expression where the 'status' field
-          // has any non-null value.
-          $disabledStatusesQueryArr[] = 'j.status IS NOT NULL';
-        }
+      $hideDraft = FALSE;
+      if (($key = array_search('Not Scheduled', $disabledStatuses)) !== FALSE) {
+        unset($disabledStatuses[$key]);
+        $hideDraft = TRUE;
       }
 
-      if ($disabledStatusesQueryArr) {
-        $whereClause .= ' AND (' . implode(' OR ', $disabledStatusesQueryArr) . ')';
+      array_walk($disabledStatuses, function (&$value, $key) {
+        $value = "'" . $value . "'";
+      });
+
+      if ($disabledStatuses || $hideDraft) {
+        $disabledStatusesQueryArr = array();
+
+        // Note: Take extra caring and test thoroughly the filtering functionality, when modifying the below, as it's
+        // really easy to introduce a bug due to incorrect query
+        if ($disabledStatuses) {
+          $disabledStatusesQueryArr[] = 'j.status NOT IN (' . implode(', ', $disabledStatuses) . ')';
+
+          if (!$hideDraft) {
+            // This is needed if the 'IN' clause above is applied, as otherwise all the rows with NULL as the value in the
+            // joined field 'status' will be ignored from the result set.
+            $disabledStatusesQueryArr[] = 'j.status IS NULL';
+          }
+        }
+        else {
+          if ($hideDraft) {
+            // We're only inserting this clause in case the above 'IN' clause isn't applied. This is because, if the
+            // above clause did apply, all the rows with NULL value in the joined field 'status' will be ignored anyway.
+            // And, adding this clause in conjunction with the 'IN' clause from above would result in incorrect result,
+            // because 'IS NOT NULL' would become true for all rows in the 'OR' expression where the 'status' field
+            // has any non-null value.
+            $disabledStatusesQueryArr[] = 'j.status IS NOT NULL';
+          }
+        }
+
+        if ($disabledStatusesQueryArr) {
+          $whereClause .= ' AND (' . implode(' OR ', $disabledStatusesQueryArr) . ')';
+        }
       }
     }
 
