@@ -936,11 +936,10 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
       $template->bodyColumn2 = $bodyColumn2;
     }
 
-    $template->facebookUrl =
-      static::getOptionValue('email_social_facebook_links',
-        $params['social_link']);
-    $template->twitterUrl = static::getOptionValue('email_social_twitter_links',
-      $params['social_link']);
+    if (!empty($params['social_link'])) {
+      $template->facebookUrl = static::getOptionValue('email_social_facebook_links', $params['social_link']);
+      $template->twitterUrl = static::getOptionValue('email_social_twitter_links', $params['social_link']);
+    }
 
     static::updateSignature($template->body);
 
@@ -1112,7 +1111,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
    *
    * @return string
    */
-  protected function getOptOutLink() {
+  protected static function getOptOutLink() {
     return CRM_Core_Config::singleton()->userFrameworkBaseURL
     . 'node/5?cid1={contact.contact_id}&{contact.checksum}';
   }
@@ -1485,7 +1484,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     static::$jobs = array();
 
-    if (!$params['crm_mailing_id']) {
+    if (empty($params['crm_mailing_id'])) {
       return static::$jobs;
     }
 

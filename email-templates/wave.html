@@ -397,7 +397,7 @@
 </head>
 <body>
 
-<?php if ($template->headerImage): ?>
+<?php if (!empty($template->headerImage)): ?>
   <!-- HEADER -->
   <table width="100%" border="0" cellpadding="0" cellspacing="0" align="center" class="mobile">
     <tbody>
@@ -618,7 +618,7 @@
                       </tr>
                     <?php endif; ?>
 
-                    <?php if ($template->logo): ?>
+                    <?php if (!empty($template->logo)): ?>
                       <tr>
                         <td valign="middle" width="100%">
                           <span style="display: block;"><div class="pic180"><img src="<?php echo $template->logo; ?>" width="180" height="auto" border="0" alt=""></div></span>
@@ -626,7 +626,7 @@
                       </tr>
                     <?php endif; ?>
 
-                    <?php if ($template->campaignMessage): ?>
+                    <?php if (!empty($template->campaignMessage)): ?>
                       <tr>
                         <td valign="middle" width="100%" style="text-align: left; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: rgb(119, 115, 115); line-height: 22px;">
                           <!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgregular', Verdana; font-weight: normal;"><!--<![endif]--><?php echo $template->campaignMessage; ?><!--[if !mso]><!--></span><!--<![endif]-->
@@ -659,10 +659,16 @@
                 <td valign="middle" width="100%" style="text-align: left; font-family: Verdana, Arial, sans-serif; font-size: 14px; color: rgb(119, 115, 115); line-height: 22px;">
                   <!--[if !mso]><!--><span style="font-family: 'proxima_nova_rgregular', Verdana; font-weight: bold;"><!--<![endif]-->
                     <img src="<?php echo SM_ASSETS_URL; ?>/facebook.jpg" style=" width: 13px; ">
-                    <a style="color: inherit; text-decoration: none;" href="https://<?php echo $template->facebookUrl; ?>">Find us on Facebook</a>
+                  <?php if(!empty($template->facebookUrl)): ?>
+                      <a style="color: inherit; text-decoration: none;"
+                         href="https://<?php echo $template->facebookUrl; ?>">Find us on Facebook</a>
+                  <?php endif; ?>
                     &nbsp;&nbsp;
                     <img src="<?php echo SM_ASSETS_URL; ?>/twitter.png" style="width: 13px; ">
-                    <a style="color: inherit; text-decoration: none;" href="https://<?php echo $template->twitterUrl; ?>">Follow us on Twitter</a>
+                  <?php if(!empty($template->twitterUrl)): ?>
+                      <a style="color: inherit; text-decoration: none;"
+                         href="https://<?php echo $template->twitterUrl; ?>">Follow us on Twitter</a>
+                  <?php endif; ?>
                     <!--[if !mso]><!--></span><!--<![endif]-->
                 </td>
               </tr>
