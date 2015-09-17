@@ -30,39 +30,27 @@
   color: #609DC3; }
 
 .sm-container .disabled {
-  cursor: not-allowed;
-}
+  cursor: not-allowed; }
 
 .sm-container .pagination {
   margin: 1rem 0;
-  color: #808080;
-}
-
-.sm-container .pagination > div {
-  display: inline-block;
-}
-
-.sm-container .pagination .links {
-  margin-right: 1rem;
-}
-
-.sm-container .pagination a {
-  display: inline-block;
-  border-style: solid;
-  padding: 5px 10px;
-  border-color: #ddd;
-  border-color: #ddd;
-  border-width: 1px 1px 1px 0;
-}
-
-.sm-container .pagination a:first-child {
-  border-radius: 3px 0 0 3px;
-  border-width: 1px;
-}
-
-.sm-container .pagination a:last-child {
-  border-radius: 0 3px 3px 0;
-}
+  color: #808080; }
+  .sm-container .pagination > div {
+    display: inline-block; }
+  .sm-container .pagination .links {
+    margin-right: 1rem; }
+  .sm-container .pagination a {
+    display: inline-block;
+    border-style: solid;
+    padding: 5px 10px;
+    border-color: #ddd;
+    border-color: #ddd;
+    border-width: 1px 1px 1px 0; }
+    .sm-container .pagination a:first-child {
+      border-radius: 3px 0 0 3px;
+      border-width: 1px; }
+    .sm-container .pagination a:last-child {
+      border-radius: 0 3px 3px 0; }
 
 .sm-container .step-header .step-title {
   display: inline; }
@@ -119,27 +107,18 @@
         text-align: center; }
 
 .sm-container table {
-  position: relative;
-}
-
-.sm-container table tr td.current-status {
-  text-transform: capitalize;
-  text-align: center;
-}
-
-.sm-container table tr td.thumb img {
-  max-height: 50px;
-}
-
-.sm-container table tr td.action-buttons ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.sm-container table#sm-mailings-table {
-  margin-bottom: 0;
-}
+  position: relative; }
+  .sm-container table tr td.current-status {
+    text-transform: capitalize;
+    text-align: center; }
+  .sm-container table tr td.thumb img {
+    max-height: 50px; }
+  .sm-container table tr td.action-buttons ul {
+    list-style: none;
+    padding: 0;
+    margin: 0; }
+  .sm-container table#sm-mailings-table {
+    margin-bottom: 0; }
 
 .sm-container .buttons {
   background: none !important; }
@@ -228,8 +207,7 @@
   width: 100%;
   min-height: 150px;
   text-align: center;
-  position: relative;
-}
+  position: relative; }
   .sm-container .empty-placeholder span {
     box-sizing: border-box;
     line-height: 150px;
