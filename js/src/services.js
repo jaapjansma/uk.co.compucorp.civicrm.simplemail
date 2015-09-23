@@ -243,7 +243,7 @@
               return CiviApi.get(constants.entities.MAILING, {id: response.data.values[0].id});
             })
             .then(function (response) {
-              mailings.push(response.data.values[0]);
+              mailings.unshift(response.data.values[0]);
               deferred.resolve();
             })
             .catch(function (response) {
