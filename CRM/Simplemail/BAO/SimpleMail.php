@@ -278,6 +278,8 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
 
     GROUP BY sm.id
 
+    ORDER BY sm.id DESC
+
     LIMIT {$limitClause}
     ";
 
