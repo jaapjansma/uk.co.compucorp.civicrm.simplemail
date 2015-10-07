@@ -1332,7 +1332,7 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
   }
 
   private static function getExtraValuesForMailings($params, array $mailings) {
-    $values = [];
+    $values = array();
     $values['userId'] = CRM_Core_Session::singleton()->get('userID');
 
     $isSingle = isset($params['id']);

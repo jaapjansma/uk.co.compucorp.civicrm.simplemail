@@ -28,7 +28,7 @@ function civicrm_api3_simple_mail_create($params) {
 
     return civicrm_api3_create_success($values, $params, NULL, 'create', $result);
   } catch (CRM_Extension_Exception $e) {
-    return civicrm_api3_create_error($e->getMessage(), [], $result);
+    return civicrm_api3_create_error($e->getMessage(), array(), $result);
   }
 }
 
@@ -62,7 +62,7 @@ function civicrm_api3_simple_mail_get($params) {
   } catch (CRM_Extension_Exception $e) {
     $errorData = $e->getErrorData();
 
-    return civicrm_api3_create_error($e->getMessage(), [], $errorData['dao']);
+    return civicrm_api3_create_error($e->getMessage(), array(), $errorData['dao']);
   }
 }
 
