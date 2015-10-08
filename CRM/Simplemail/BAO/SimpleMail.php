@@ -1744,9 +1744,13 @@ class CRM_Simplemail_BAO_SimpleMail extends CRM_Simplemail_DAO_SimpleMail {
     $whereClause = isset($params['id']) ? 'sm.id = ' . (int) $params['id'] : 'TRUE';
 
     // Filter by creator
-    $creator = static::authorised(SM_PERMISSION_MANAGE_ALL) && !empty($params['filters']['creator'])
-      ? $params['filters']['creator']
-      : CRM_Core_Session::singleton()->get('userID');
+    if (static::authorised(SM_PERMISSION_MANAGE_ALL)) {
+      $creator = empty($params['filters']['creator'])
+        ? 'all'
+        : $params['filters']['creator'];
+    } else {
+      $creator = CRM_Core_Session::singleton()->get('userID');
+    }
 
     if ($creator !== strtolower('all')) {
       $whereClause .= " AND cm.created_id = {$creator} ";
