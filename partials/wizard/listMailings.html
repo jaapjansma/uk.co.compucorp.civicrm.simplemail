@@ -125,10 +125,10 @@
     <nav class="pagination" ng-if="mailings.length">
         <div class="links" ng-if="pagination.total > pagination.itemsPerPage">
             <!-- Don't keep anchor tags on separate lines, as it would add spaces between them due to inline-block -->
-            <a sm-disabled="pagination.from === 0" href ng-click="paginate('first')">First</a><a
-                sm-disabled="pagination.from === 0" href ng-click="paginate('prev')">Prev</a><a
-                sm-disabled="pagination.to === pagination.total" href ng-click="paginate('next')">Next</a><a
-                sm-disabled="pagination.to === pagination.total" href ng-click="paginate('last')">Last</a>
+            <a sm-disabled="pagination.from == 0" href ng-click="paginate('first')">First</a><a
+                sm-disabled="pagination.from == 0" href ng-click="paginate('prev')">Prev</a><a
+                sm-disabled="pagination.to == pagination.total" href ng-click="paginate('next')">Next</a><a
+                sm-disabled="pagination.to == pagination.total" href ng-click="paginate('last')">Last</a>
         </div>
         <div>Showing {{pagination.from + 1}} - {{pagination.to}} of {{pagination.total}} mailings</div>
     </nav>
