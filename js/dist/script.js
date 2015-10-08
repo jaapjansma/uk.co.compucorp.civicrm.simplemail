@@ -3423,7 +3423,7 @@
                 var isMailingCategory = false;
 
                 if (group.group_type.indexOf('2') !== -1) isMailingGroup = true;
-                if (group.group_type.indexOf('3') !== -1) isMailingCategory = true;
+                if (group.group_type.indexOf('mailing_category') !== -1) isMailingCategory = true;
 
                 if (isMailingGroup) {
                   if (isMailingCategory) mailingCategories.push(group);
