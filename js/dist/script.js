@@ -131,13 +131,13 @@
       $scope.config = {
       	field: 'image',
       	name: 'image',
-      	required: header.show_logo
+      	required: $scope.header.show_logo
     	};
     	
     	$scope.logoConfig = {
     		field: 'logo_image',
     		name: 'logo_image',
-    		required: header.show_logo
+    		required: $scope.header.show_logo
     	};
 
       $scope.constants = {
