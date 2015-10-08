@@ -2,11 +2,13 @@
 /* Themed colours */
 /* Fonts */
 /* Dimensions */
-.ng-invalid.ng-dirty {
-  background: #d37070; }
+.ng-invalid.ng-dirty:not(form) {
+  background: #f7e5e5;
+  border: 1px dotted #d37070; }
 
-.ng-dirty .ng-invalid {
-  background: #d37070; }
+.ng-dirty .ng-invalid:not(form) {
+  background: #f7e5e5;
+  border: 1px dotted #d37070; }
 
 .sm-container .fa-clock-o {
   color: orange; }
