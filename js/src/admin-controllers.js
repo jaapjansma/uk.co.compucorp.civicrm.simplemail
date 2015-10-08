@@ -181,6 +181,7 @@
         })
         .then(function (response) {
           console.log('Option Group ID', response);
+          $scope.optionGroupId = response;
 
           return civiApi.get('OptionValue', {option_group_id: response, is_active: '1'});
         })

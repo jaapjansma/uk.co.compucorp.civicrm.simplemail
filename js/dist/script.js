@@ -229,6 +229,7 @@
         })
         .then(function (response) {
           console.log('Option Group ID', response);
+          $scope.optionGroupId = response;
 
           return civiApi.get('OptionValue', {option_group_id: response, is_active: '1'});
         })
@@ -1230,7 +1231,7 @@
       this.updateSelectedMessage = function () {
 
         // Not an ideal thing to do, but we set the default value of the "campaign message" drop down to ID 5
-        if (!this.mailing.message_id) {
+        if (!this.mailing.message_id && this.messages.count) {
           this.mailing.message_id = 5;
         }
 
@@ -1271,7 +1272,7 @@
       };
 
       this.updateSelectedSocialLink = function () {
-        if (!self.mailing.social_link) {
+        if (!self.mailing.social_link && self.socialLinkLocations.length) {
           self.mailing.social_link = self.socialLinkLocations[0].value;
         }
       };
