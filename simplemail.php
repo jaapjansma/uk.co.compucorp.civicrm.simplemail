@@ -375,7 +375,7 @@ function simplemail_civicrm_init() {
   /**
    * The value of the option value for name 'mailing_category', part of the option group 'group_type'
    */
-  define('SM_MAILING_CATEGORY_GROUP_TYPE_VALUE', '3');
+  define('SM_MAILING_CATEGORY_GROUP_TYPE_VALUE', 'mailing_category');
 
   // Permission
   define('SM_PERMISSION_ACCESS', 'access CiviSimpleMail');
