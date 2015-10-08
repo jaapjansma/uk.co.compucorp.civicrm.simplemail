@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<CustomData>
+    <OptionGroups>
+        <OptionGroup>
+            <title>Simple Mail Header Filter Options</title>
+            <name>sm_header_filter_options</name>
+            <label>Simple Mail Header Filter Options</label>
+            <is_active>1</is_active>
+        </OptionGroup>
+        <OptionGroup>
+            <title>Email Social Twitter Links</title>
+            <name>email_social_twitter_links</name>
+            <label>Email Social Twitter Links</label>
+            <is_active>1</is_active>
+        </OptionGroup>
+        <OptionGroup>
+            <title>Email Social Facebook Links</title>
+            <name>email_social_facebook_links</name>
+            <label>Email Social Facebook Links</label>
+            <is_active>1</is_active>
+        </OptionGroup>
+        <OptionGroup>
+            <title>Group Type</title>
+            <name>group_type</name>
+            <label>Group Type</label>
+            <is_active>1</is_active>
+        </OptionGroup>
+    </OptionGroups>
+    <OptionValues>
+        <OptionValue>
+            <label>Newsletter</label>
+            <value>Newsletter</value>
+            <name>Newsletter</name>
+            <is_default>0</is_default>
+            <weight>2</weight>
+            <is_optgroup>0</is_optgroup>
+            <is_reserved>0</is_reserved>
+            <is_active>1</is_active>
+            <option_group_name>sm_header_filter_options</option_group_name>
+        </OptionValue>
+        <OptionValue>
+            <label>Campaign</label>
+            <value>Campaign</value>
+            <name>Campaign</name>
+            <is_default>0</is_default>
+            <weight>2</weight>
+            <is_optgroup>0</is_optgroup>
+            <is_reserved>0</is_reserved>
+            <is_active>1</is_active>
+            <option_group_name>sm_header_filter_options</option_group_name>
+        </OptionValue>
+        <OptionValue>
+            <label>Mailing Category</label>
+            <value>mailing_category</value>
+            <name>Mailing Category</name>
+            <is_default>0</is_default>
+            <weight>3</weight>
+            <is_optgroup>0</is_optgroup>
+            <is_reserved>0</is_reserved>
+            <is_active>1</is_active>
+            <option_group_name>group_type</option_group_name>
+        </OptionValue>
+    </OptionValues>
+</CustomData>
