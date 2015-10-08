@@ -1,12 +1,30 @@
 {
-  "name": "simplemail",
-  "devDependencies": {
+  "name": "uk.co.compucorp.civicrm.simplemail",
+  "version": "1.0.0",
+  "description": "",
+  "main": "gulpfile.js",
+  "dependencies": {
     "gulp": "^3.9.0",
-    "gulp-autoprefixer": "^3.0.1",
     "gulp-concat": "^2.6.0",
-    "gulp-notify": "^2.2.0",
+    "gulp-autoprefixer": "^3.0.2",
     "gulp-sass": "^2.0.4",
-    "gulp-sourcemaps": "^1.5.2",
+    "gulp-notify": "^2.2.0",
+    "gulp-sourcemaps": "^1.6.0",
     "gulp-uglify": "^1.4.1"
-  }
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "./node_modules/.bin/gulp"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/compucorp/uk.co.compucorp.civicrm.simplemail.git"
+  },
+  "author": "Robin Mitra <robinmitra1@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/compucorp/uk.co.compucorp.civicrm.simplemail/issues"
+  },
+  "homepage": "https://github.com/compucorp/uk.co.compucorp.civicrm.simplemail#readme"
 }
