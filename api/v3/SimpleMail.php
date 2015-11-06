@@ -328,7 +328,8 @@ function _get_entity_values($entity, $id) {
 }
 
 if (!function_exists('_get_api_instance')) {
-  require_once 'sites/all/modules/civicrm/api/class.api.php';
+  global $civicrm_root;
+  require_once $civicrm_root.'/api/class.api.php';
 
   /**
    * @return civicrm_api3
